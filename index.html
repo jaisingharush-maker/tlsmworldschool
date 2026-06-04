@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>  
 <html lang="en">  
 <head>    
@@ -11,86 +12,97 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>  
-  /* Aurora Mesh Gradient Background */  
+  /* Pure White Background & App Load Animation */  
+  @keyframes popAnimation {
+    0% { opacity: 0; transform: scale(0.9) translateY(40px); }
+    60% { opacity: 1; transform: scale(1.02) translateY(-10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .animate-pop {
+    animation: popAnimation 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
   body {   
-    background: #0f172a;   
-    background-color: #0f172a;  
-    background-image:   
-      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),   
-      radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),   
-      radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%),   
-      radial-gradient(at 0% 100%, hsla(339,49%,30%,1) 0, transparent 50%),   
-      radial-gradient(at 50% 100%, hsla(225,39%,30%,1) 0, transparent 50%),   
-      radial-gradient(at 100% 100%, hsla(253,16%,7%,1) 0, transparent 50%);  
-    background-attachment: fixed;  
+    background: #f8fafc; 
+    background-color: #f8fafc;
     font-family: -apple-system, sans-serif;   
     min-height: 100vh;   
     margin: 0;   
     -webkit-user-select: none;   
     user-select: none;   
     overflow-x: hidden;   
-    color: white;  
+    color: #0f172a; 
   }   
   
-  #app { padding: 0 16px 40px 16px; display: none; position: relative; z-index: 10; }
+  #app { 
+    padding: 16px; 
+    padding-bottom: 40px; 
+    display: none; 
+    position: relative; 
+    z-index: 10; 
+  }
 
-.glass {
-background: rgba(255, 255, 255, 0.05);
-backdrop-filter: blur(15px);
--webkit-backdrop-filter: blur(15px);
-border-radius: 30px;
-padding: 25px;
-border: 1px solid rgba(255, 255, 255, 0.1);
-box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
+  /* White Cards */
+  .glass {
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  }
 
-.chapter-card {
-background: rgba(255, 255, 255, 0.05);
-padding: 16px;
-border-radius: 20px;
-display: flex;
-align-items: center;
-gap: 15px;
-border: 1px solid rgba(255, 255, 255, 0.1);
-cursor: pointer;
-transition: 0.2s;
-backdrop-filter: blur(5px);
-}
-.chapter-card:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
-.chapter-card:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.1); }
+  header { background: #ffffff !important; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
 
-#lock-screen { display: none; position: fixed; inset: 0; background: #0f172a; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-#login-screen {
-background: radial-gradient(circle at top right, #4338ca, transparent), radial-gradient(circle at bottom left, #7e22ce, #0f172a);
-position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
-}
+  .chapter-card {
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .chapter-card:active { transform: scale(0.97); background: #f1f5f9; }
 
-.login-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 40px; width: 85%; max-width: 360px; padding: 40px 30px; text-align: center; }
+  /* Light Theme Screens */
+  #lock-screen { display: none; position: fixed; inset: 0; background: #f8fafc; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+  #lock-screen h2 { color: #0f172a; }
 
-.tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
-.tab-content.active { display: block; }
+  #login-screen {
+    background: #f8fafc;
+    position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+  }
+  .login-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 40px; width: 85%; max-width: 360px; padding: 40px 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+  #login-screen h1 { color: #0f172a; }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+  .nav-btn { color: #64748b; text-align: left; transition: 0.2s; }
+  .nav-active { color: #ea580c !important; font-weight: 900; } /* Bhagwa Color */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
-.publisher-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-size: 11px; outline: none; margin-bottom: 6px; }
-.admin-sub-tab { font-size: 10px; font-weight: 800; padding: 8px 12px; border-radius: 12px; color: #94a3b8; cursor: pointer; transition: 0.3s; flex: 1; text-align: center; }
-.admin-sub-tab.active { background: #6366f1; color: white; }
+  .publisher-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 11px; outline: none; margin-bottom: 6px; }
+  
+  .admin-sub-tab { font-size: 10px; font-weight: 800; padding: 8px 12px; border-radius: 12px; color: #64748b; cursor: pointer; transition: 0.3s; }
+  .admin-sub-tab.active { background: #ea580c; color: white; } /* Bhagwa Color */
 
-.fs-modal { position: fixed; inset: 0; z-index: 5000; background: #0f172a; display: none; flex-direction: column; overflow-y: auto; }
-#modal-header { padding: 12px 20px; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5005; }
+  .fs-modal { position: fixed; inset: 0; z-index: 5000; background: #f8fafc; display: none; flex-direction: column; overflow-y: auto; }
+  #modal-header { padding: 12px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0; color: #0f172a; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5005; }
+  #modal-header button { color: #0f172a; }
 
-.option-btn { width: 100%; text-align: left; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 8px; font-size: 12px; transition: 0.2s; color: black; background: rgba(255,255,255,0.05); }
-.option-btn.selected { border-color: #6366f1 !important; background: rgba(99, 102, 241, 0.3) !important; font-weight: bold; }
+  .option-btn { width: 100%; text-align: left; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; margin-bottom: 8px; font-size: 12px; transition: 0.2s; color: black; background: #f8fafc; }
+  .option-btn.selected { border-color: #ea580c !important; background: rgba(234, 88, 12, 0.1) !important; font-weight: bold; } /* Bhagwa Color */
 
-.media-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
-.protection-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 55px; z-index: 5006; background: transparent; }
-iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
+  .media-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .protection-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 55px; z-index: 5006; background: transparent; }
+  iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
 
-/* Anti-Inspect Freeze Screen Overlay */
-#freeze-screen { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 20000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(20px); }
+  #freeze-screen { display: none; position: fixed; inset: 0; background: rgba(248, 250, 252, 0.98); z-index: 20000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(20px); }
+  #freeze-screen h2 { color: #0f172a; }
+  #freeze-screen p { color: #475569; }
 </style>
 </head>  
 <body oncontextmenu="return false;">   
@@ -106,308 +118,234 @@ iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
 </script>  
 
 <div id="freeze-screen">
-    <div class="w-20 h-20 bg-amber-900/30 text-amber-500 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>  
-    <h2 class="text-xl font-black uppercase text-white">Developer Tools Detected!</h2>  
-    <p class="text-sm text-slate-300 mt-2 max-w-xs">App features have been frozen. Please close Inspect Element / Developer Tools immediately to resume.</p>
-    <div id="warning-counter" class="mt-4 text-xs font-bold text-red-400 uppercase tracking-widest bg-red-950/40 px-4 py-2 rounded-full border border-red-900/30">Warning: 1 / 3</div>
+    <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>  
+    <h2 class="text-xl font-black uppercase text-slate-900">Developer Tools Detected!</h2>  
+    <p class="text-sm mt-2 max-w-xs">App features have been frozen. Please close Inspect Element / Developer Tools immediately to resume.</p>
+    <div id="warning-counter" class="mt-4 text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 px-4 py-2 rounded-full border border-red-200">Warning: 1 / 3</div>
 </div>
 
 <div id="lock-screen">  
-    <div class="w-20 h-20 bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fas fa-mobile-alt"></i></div>  
-    <h2 class="text-xl font-black uppercase text-white">Security Alert</h2>  
-    <p id="lock-reason" class="text-[10px] text-slate-400">Device Locked Please Contact Admin for Reset Your device📞📞 9229809156📞.</p>  
-    <button onclick="logout()" class="mt-8 text-indigo-400 font-bold uppercase text-xs underline">Logout</button>  
+    <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fas fa-mobile-alt"></i></div>  
+    <h2 class="text-xl font-black uppercase">Security Alert</h2>  
+    <p id="lock-reason" class="text-[10px] text-slate-500 font-bold mt-2">Device Locked Please Contact Admin for Reset Your device📞📞 9229809156📞.</p>  
+    <button onclick="logout()" class="mt-8 text-orange-600 font-bold uppercase text-xs underline">Logout</button>  
 </div>  
 
 <div id="login-screen">  
   <div class="login-card">  
-    <div class="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-2xl rotate-3"><i class="fas fa-crown text-white text-2xl"></i></div>  
-    <h1 class="text-2xl font-black text-white mb-8 uppercase italic tracking-wider">Aarav Tech Hub</h1>  
-   <p class="text-slate-300 text-[9px] font-bold uppercase tracking-widest mb-8">Aarav Jai Vishwanath Singh</p>  
-    <button onclick="login()" class="w-full bg-white text-indigo-900 py-4 rounded-2xl font-black shadow-lg hover:bg-slate-100 transition-all">CONTINUE WITH GOOGLE</button>  
+    <div class="w-16 h-16 bg-orange-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-2xl rotate-3"><i class="fas fa-crown text-white text-2xl"></i></div>  
+    <h1 class="text-2xl font-black mb-8 uppercase italic tracking-wider">Aarav Tech Hub</h1>  
+   <p class="text-[10px] font-bold uppercase tracking-widest mb-8 text-slate-500">Aarav Jai Vishwanath Singh</p>  
+    <button id="login-btn" onclick="login()" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-orange-700 transition-all">CONTINUE WITH GOOGLE</button>  
   </div>  
 </div>  
 
-<nav id="top-nav" class="sticky top-0 z-[4000] bg-slate-900/80 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex justify-between items-center w-full mb-6 transition-all shadow-xl hidden">
-    <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-600/30">π</div>
-        <div>
-            <h1 class="font-black text-[13px] text-white uppercase italic tracking-wider leading-tight">Aarav Ed-Tech</h1>
-            <span id="expiry-tag" class="text-[8px] text-indigo-400 font-bold uppercase block leading-tight">Syncing...</span>
-        </div>
-    </div>
+<div id="app" class="max-w-5xl mx-auto"> 
+  <header class="bg-white rounded-2xl mb-6 p-4 shadow-sm flex flex-wrap justify-between items-center relative z-50">  
+    <div class="flex items-center gap-3">  
+        <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">π</div>  
+        <div>  
+          <p id="user-display" class="font-bold text-sm text-slate-900 uppercase">User Name</p>  
+          <span id="expiry-tag" class="text-[8px] text-orange-600 font-bold uppercase block leading-tight">Syncing...</span>  
+        </div>  
+    </div>  
     
-    <div class="hidden md:flex gap-2 items-center">
-        <button onclick="switchTab('library')" id="btn-library-desktop" class="nav-btn-desk text-[11px] font-bold text-indigo-400 bg-indigo-500/10 px-4 py-2 rounded-lg transition-all uppercase tracking-wider">BOOKS</button>
-        <button onclick="switchTab('lectures')" id="btn-lectures-desktop" class="nav-btn-desk text-[11px] font-bold text-slate-400 hover:text-white px-4 py-2 rounded-lg transition-all uppercase tracking-wider">COURSES</button>
-        <button onclick="switchTab('results')" id="btn-results-desktop" class="nav-btn-desk text-[11px] font-bold text-slate-400 hover:text-white px-4 py-2 rounded-lg transition-all uppercase tracking-wider">RESULT</button>
-        <button onclick="switchTab('admin')" id="btn-admin-desktop" class="nav-btn-desk text-[11px] font-bold text-slate-400 hover:text-white px-4 py-2 rounded-lg transition-all hidden uppercase tracking-wider">ADMIN</button>
-        <button onclick="switchTab('account')" id="btn-account-desktop" class="nav-btn-desk text-[11px] font-bold text-slate-400 hover:text-white px-4 py-2 rounded-lg transition-all uppercase tracking-wider border border-white/10 ml-2 shadow-md bg-white/5"><i class="fas fa-user-circle mr-2"></i>ACCOUNT</button>
+    <div class="flex items-center gap-4">
+        <button onclick="logout()" class="text-red-600 text-[10px] font-bold bg-red-50 px-3 py-1 rounded-full border border-red-200">LOGOUT</button>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-orange-600 text-2xl p-1 focus:outline-none"><i class="fas fa-bars"></i></button>
     </div>
 
-    <button onclick="toggleMobileMenu()" class="md:hidden text-white text-2xl p-2 focus:outline-none">
-        <i class="fas fa-bars"></i>
-    </button>
-</nav>
-
-<div id="mobile-menu" class="hidden md:hidden fixed top-[72px] left-0 w-full bg-slate-900/95 backdrop-blur-2xl border-b border-white/10 z-[3500] p-4 flex-col gap-2 shadow-2xl transition-all">
-    <button onclick="switchTab('library')" id="btn-library-mobile" class="nav-btn-mob text-xs font-bold text-left text-indigo-400 py-4 px-5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 uppercase tracking-wider"><i class="fas fa-book mr-3 text-lg w-6 text-center"></i>BOOKS</button>
-    <button onclick="switchTab('lectures')" id="btn-lectures-mobile" class="nav-btn-mob text-xs font-bold text-left text-slate-300 py-4 px-5 rounded-xl bg-white/5 uppercase tracking-wider"><i class="fas fa-play-circle mr-3 text-lg w-6 text-center"></i>COURSES</button>
-    <button onclick="switchTab('results')" id="btn-results-mobile" class="nav-btn-mob text-xs font-bold text-left text-slate-300 py-4 px-5 rounded-xl bg-white/5 uppercase tracking-wider"><i class="fas fa-poll-h mr-3 text-lg w-6 text-center"></i>RESULT</button>
-    <button onclick="switchTab('admin')" id="btn-admin-mobile" class="nav-btn-mob text-xs font-bold text-left text-slate-300 py-4 px-5 rounded-xl bg-white/5 hidden uppercase tracking-wider"><i class="fas fa-user-shield mr-3 text-lg w-6 text-center"></i>ADMIN</button>
-    <div class="h-px bg-white/10 my-2 w-full"></div>
-    <button onclick="switchTab('account')" id="btn-account-mobile" class="nav-btn-mob text-xs font-bold text-left text-slate-300 py-4 px-5 rounded-xl bg-white/5 uppercase tracking-wider"><i class="fas fa-user-circle mr-3 text-lg w-6 text-center"></i>YOUR ACCOUNT</button>
-</div>
-
-<div id="app" class="container mx-auto max-w-7xl">  
-
-    <div id="tab-library" class="tab-content active">
-        <div id="bookGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-10"></div>
-    </div>    
-
-    <div id="tab-lectures" class="tab-content">  
+    <nav id="top-nav" class="hidden flex-col w-full md:flex md:w-auto md:flex-row md:items-center mt-4 md:mt-0 gap-2 md:gap-8 basis-full md:basis-auto transition-all">
+        <button onclick="switchTab('library'); closeMobileMenu()" id="btn-library" class="nav-btn text-[12px] md:text-sm font-bold nav-active flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-book text-lg w-5 text-center"></i> BOOKS</button>  
+        <button onclick="switchTab('lectures'); closeMobileMenu()" id="btn-lectures" class="nav-btn text-[12px] md:text-sm font-bold flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-play-circle text-lg w-5 text-center"></i> COURSES</button>  
+        <button onclick="switchTab('results'); closeMobileMenu()" id="btn-results" class="nav-btn text-[12px] md:text-sm font-bold flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-poll-h text-lg w-5 text-center"></i> EXAMINATION RESULT</button>  
+        <button onclick="switchTab('admin'); closeMobileMenu()" id="btn-admin" class="nav-btn text-[12px] md:text-sm font-bold hidden text-slate-400 flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-user-shield text-lg w-5 text-center"></i> ADMIN</button>  
+    </nav>
+  </header>    
+  
+  <div id="tab-library" class="tab-content active"><div id="bookGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10"></div></div>    
+  
+  <div id="tab-lectures" class="tab-content">  
       <div id="lec-locked" class="glass hidden text-center mt-10 max-w-md mx-auto">  
-          <i class="fas fa-lock text-indigo-500 text-4xl mb-4"></i>  
-          <p class="text-[12px] font-black text-white mb-4 uppercase italic">Premium Batch Required</p>  
-          <p class="text-[10px] text-slate-400 mb-6">You don't have an active subscription. Enroll in a batch to access Videos and DPP Tests.</p>  
+          <i class="fas fa-lock text-orange-500 text-4xl mb-4"></i>  
+          <p class="text-[12px] font-black text-slate-900 mb-4 uppercase italic">Premium Batch Required</p>  
+          <p class="text-[10px] text-slate-500 mb-6">You don't have an active subscription. Enroll in a batch to access Videos and DPP Tests.</p>  
           <div id="plans-container" class="space-y-3 text-left"></div>  
       </div>  
       <div id="subscriber-content" class="hidden">  
-          <div id="batch-content-nav" class="flex gap-2 mb-6 max-w-sm mx-auto">  
-              <button onclick="showContent('videos')" id="nav-v" class="flex-1 py-3 rounded-xl text-[11px] font-black bg-indigo-600 text-white shadow-lg uppercase">VIDEOS</button>  
-              <button onclick="showContent('dpps')" id="nav-d" class="flex-1 py-3 rounded-xl text-[11px] font-black bg-white/10 text-slate-300 border border-white/10 uppercase">DPP TEST</button>  
+          <div id="batch-content-nav" class="flex gap-2 mb-4 max-w-md mx-auto">  
+              <button onclick="showContent('videos')" id="nav-v" class="flex-1 py-2 rounded-xl text-[10px] font-black bg-orange-600 text-white shadow-lg">VIDEOS</button>  
+              <button onclick="showContent('dpps')" id="nav-d" class="flex-1 py-2 rounded-xl text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200">DPP TEST</button>  
           </div>  
-          
           <div id="chapter-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10"></div>  
-          <div id="dpp-view" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10"></div>  
-          
-          <div id="lecture-list-view" class="hidden pb-10 max-w-3xl mx-auto">  
-              <button onclick="showChapters()" class="mb-6 text-white text-xs font-bold flex items-center gap-2 uppercase opacity-70 bg-white/10 px-4 py-2 rounded-xl w-fit"><i class="fas fa-arrow-left"></i> Back to Chapters</button>  
-              <h2 id="current-chapter-title" class="text-indigo-400 font-black uppercase text-lg mb-6 italic border-b border-white/10 pb-2">Chapter</h2>  
-              <div id="lecture-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>  
+          <div id="dpp-view" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 pb-10"></div>  
+          <div id="lecture-list-view" class="hidden pb-10 max-w-2xl mx-auto">  
+              <button onclick="showChapters()" class="mb-4 text-slate-600 text-xs font-bold flex items-center gap-2 uppercase"><i class="fas fa-arrow-left"></i> Back</button>  
+              <h2 id="current-chapter-title" class="text-slate-900 font-black uppercase text-sm mb-4 italic">Chapter</h2>  
+              <div id="lecture-container" class="space-y-3"></div>  
           </div>  
       </div>
   </div>    
-
-  <div id="tab-results" class="tab-content space-y-6 pb-10 max-w-2xl mx-auto">  
-      <div id="result-locked-notice" class="glass text-center p-8 hidden">
-          <i class="fas fa-clock text-amber-400 text-5xl mb-4"></i>
-          <h3 class="text-base font-black uppercase tracking-wider text-white">Result Not Declared Yet</h3>
-          <p class="text-xs text-slate-400 mt-2">Examination board has compiled the data sheets. The panel will unlock instantly on official publish timings.</p>
+  
+  <div id="tab-results" class="tab-content space-y-4 pb-10 max-w-xl mx-auto">  
+      <div id="result-locked-notice" class="glass text-center p-6 hidden">
+          <i class="fas fa-clock text-amber-500 text-4xl mb-3"></i>
+          <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">Result Not Declared Yet</h3>
+          <p class="text-[10px] text-slate-500 mt-1">Your Result is in processing you will see your result on provided date by TLSMWORLDSCHOOL</p>
       </div>
 
-      <div id="result-input-box" class="glass !p-6 md:!p-8">  
-          <h2 class="text-base font-black text-white uppercase tracking-wider mb-2 text-center"><i class="fas fa-poll-h mr-2 text-indigo-400"></i>Check Examination Result</h2>  
-          <p class="text-[11px] text-slate-400 mb-6 text-center">Enter your Scholar ID, select Academic Year & Exam Type to view your report card panel.</p>  
-          <div class="flex flex-col gap-4">  
-              <input type="text" id="student-scholar-id" class="publisher-input !mb-0 text-center text-sm font-bold tracking-widest uppercase py-4" placeholder="ENTER SCHOLAR ID (e.g. 2026101)">  
+      <div id="result-input-box" class="glass !p-5">  
+          <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-2"><i class="fas fa-poll-h mr-2 text-orange-600"></i>Check Examination Result</h2>  
+          <p class="text-[10px] text-slate-500 mb-4">Enter your Scholar ID, select Academic Year & Exam Type to view your report card panel.</p>  
+          <div class="flex flex-col gap-2">  
+              <input type="text" id="student-scholar-id" class="publisher-input !mb-0 text-center text-sm font-bold tracking-widest uppercase py-3" placeholder="ENTER SCHOLAR ID (e.g. 2026101)">  
               
-              <select id="student-academic-year" class="publisher-input !mb-0 text-center text-sm font-bold py-4 bg-slate-900 text-white">
-                  <option value="2025-26">ACADEMIC YEAR: 2025-26</option>
-                  <option value="2026-27">ACADEMIC YEAR: 2026-27</option>
-                  <option value="2027-28">ACADEMIC YEAR: 2027-28</option>
-              </select>
+              <select id="student-academic-year" class="publisher-input !mb-0 text-center text-sm font-bold py-3 bg-white text-slate-900"></select>
+              <select id="student-exam-type" class="publisher-input !mb-0 text-center text-sm font-bold py-3 bg-white text-slate-900"></select>
 
-              <select id="student-exam-type" class="publisher-input !mb-0 text-center text-sm font-bold py-4 bg-slate-900 text-white">
-                  <option value="PMT">PMT EXAM</option>
-                  <option value="HALF_YEARLY">HALF YEARLY</option>
-                  <option value="PAT">PAT EXAM</option>
-                  <option value="ANNUAL">ANNUAL EXAM</option>
-              </select>
-
-              <button onclick="window.fetchStudentResult()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-black text-xs tracking-wider uppercase transition-all shadow-lg mt-2"><i class="fas fa-search mr-2"></i>Get Result</button>  
+              <button onclick="window.fetchStudentResult()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-search mr-2"></i>Get Result</button>  
           </div>  
       </div>  
-      
-      <div class="w-full flex justify-center flex-col items-center gap-4">
-          <div id="result-display-panel" class="hidden bg-white text-black rounded-3xl p-4 md:p-8 border border-slate-200 shadow-2xl overflow-x-auto w-full max-w-4xl mx-auto"></div>  
-          <button id="download-btn" onclick="downloadResult()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-xs hidden uppercase shadow-lg hover:scale-105 transition-all"><i class="fas fa-download mr-2"></i>Download Result PDF</button>  
-      </div>
+      <div id="result-display-panel" class="hidden bg-white text-black rounded-3xl p-4 border border-slate-200 shadow-2xl overflow-x-auto"></div>  
+      <button id="download-btn" onclick="downloadResult()" class="mt-3 bg-orange-600 text-white px-5 py-2 rounded-xl font-bold text-xs w-full max-w-xl mx-auto hidden md:block">📥 Download Result</button>  
   </div>    
 
-  <div id="tab-account" class="tab-content pb-10">
-      <div class="glass flex flex-col items-center justify-center p-8 max-w-md mx-auto">
-          <div class="relative mb-6">
-              <img id="profile-pic-display" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" class="w-28 h-28 rounded-full border-4 border-indigo-500 object-cover shadow-2xl bg-white">
-              <label for="profile-pic-input" class="absolute bottom-1 right-1 bg-indigo-600 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-white/20 hover:scale-110 transition-transform">
-                  <i class="fas fa-camera text-sm text-white"></i>
-              </label>
-              <input type="file" id="profile-pic-input" class="hidden" accept="image/*" onchange="updateProfilePic(event)">
-          </div>
-          
-          <h2 id="acc-name" class="text-xl font-black text-white uppercase tracking-wider text-center">User Name</h2>
-          <p id="acc-email" class="text-sm text-slate-400 mb-4 text-center">user@email.com</p>
-          
-          <div class="flex gap-2 mb-8">
-              <span id="acc-batch-badge" class="bg-indigo-600/30 text-indigo-400 px-4 py-1.5 rounded-full text-[10px] font-black tracking-wider border border-indigo-500/30 uppercase">BATCH: SYNCING...</span>
-          </div>
-          
-          <div class="w-full space-y-3 mb-8">
-             <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/10 hover:bg-white/10 transition-colors">
-                 <span class="text-xs font-bold text-slate-300"><i class="fas fa-mobile-alt mr-3 text-indigo-400"></i>Device Status</span>
-                 <span class="text-[10px] font-black text-emerald-400 bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-800/50">VERIFIED</span>
-             </div>
-             <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/10 hover:bg-white/10 transition-colors">
-                 <span class="text-xs font-bold text-slate-300"><i class="fas fa-shield-alt mr-3 text-indigo-400"></i>Security Protocol</span>
-                 <span class="text-[10px] font-black text-indigo-400 bg-indigo-900/30 px-3 py-1.5 rounded-lg border border-indigo-800/50">ACTIVE</span>
-             </div>
-          </div>
-
-          <button onclick="logout()" class="w-full bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-all py-4 rounded-xl font-black text-xs tracking-widest uppercase border border-red-500/30 shadow-lg"><i class="fas fa-sign-out-alt mr-2"></i>Logout Securely</button>
-      </div>
-  </div>
-
-  <div id="tab-admin" class="tab-content space-y-6">  
-    <div class="flex flex-wrap justify-center gap-2 bg-black/20 p-2 rounded-2xl border border-white/5 max-w-2xl mx-auto">  
+  <div id="tab-admin" class="tab-content space-y-4 max-w-4xl mx-auto">  
+    <div class="flex justify-center flex-wrap gap-2 bg-slate-100 p-2 rounded-2xl border border-slate-200">  
         <div onclick="showAdminSection('publish')" id="sub-btn-publish" class="admin-sub-tab active">PUBLISH</div>  
         <div onclick="showAdminSection('manage')" id="sub-btn-manage" class="admin-sub-tab">MANAGE</div>  
         <div onclick="showAdminSection('users')" id="sub-btn-users" class="admin-sub-tab">USERS</div>  
         <div onclick="showAdminSection('excel-results')" id="sub-btn-excel-results" class="admin-sub-tab">EXCEL RESULTS</div>  
     </div>  
     
-    <div id="sec-publish" class="admin-section">  
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass !p-6 border border-amber-500/30 bg-amber-950/10">
-                <p class="text-[11px] font-black text-amber-400 mb-2 uppercase"><i class="fas fa-eye-slash mr-2"></i> Result Portal Control Panel</p>
-                <p class="text-[10px] text-slate-400 mb-4">Yahan se aap students ke liye result panel ko hide/unhide kar sakte hain takki leak na ho.</p>
-                <div class="flex items-center justify-between bg-black/30 p-4 rounded-xl border border-white/10">
-                    <div>
-                        <span class="text-[11px] font-bold block text-white mb-1">Portal Live Status:</span>
-                        <span id="portal-status-badge" class="text-[10px] text-red-400 font-bold uppercase tracking-wider">HIDDEN (SECURE)</span>
-                    </div>
-                    <button id="toggle-portal-btn" onclick="window.toggleResultVisibility()" class="bg-amber-600 text-white text-[10px] font-black px-4 py-3 rounded-xl shadow-md uppercase transition-all">Toggle State</button>
+    <div id="sec-publish" class="admin-section grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div class="glass !p-4 border border-amber-500/30 bg-amber-50 col-span-1 md:col-span-2">
+            <p class="text-[9px] font-black text-amber-600 mb-1 uppercase"><i class="fas fa-eye-slash mr-1"></i> Result Portal Control Panel</p>
+            <p class="text-[9px] text-slate-600 mb-3">Yahan se aap students ke liye result panel ko hide/unhide kar sakte hain takki leak na ho.</p>
+            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div>
+                    <span class="text-xs font-bold block text-slate-900">Portal Live Status:</span>
+                    <span id="portal-status-badge" class="text-[9px] text-red-600 font-bold uppercase">HIDDEN (SECURE)</span>
                 </div>
+                <button id="toggle-portal-btn" onclick="window.toggleResultVisibility()" class="bg-amber-600 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all">Toggle State</button>
             </div>
-
-            <div class="glass !p-6">  
-                <p class="text-[11px] font-black text-indigo-400 mb-4 uppercase">Publish Lecture</p>  
-                <input id="lec-batch" class="publisher-input" placeholder="Batch ID (e.g. UDAAN 2027)">  
-                <input id="lec-chapter" class="publisher-input" placeholder="Chapter Name">  
-                <input id="lec-title" class="publisher-input" placeholder="Lecture Title">  
-                <input id="lec-link" class="publisher-input" placeholder="Video Link">  
-                <input id="lec-notes" class="publisher-input" placeholder="Notes Link">  
-                <button id="lec-save-btn" onclick="saveLecture()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 mt-2 rounded-xl font-bold text-[11px] shadow-lg transition-all uppercase">SAVE LECTURE</button>  
-            </div>  
-
-            <div class="glass !p-6">  
-                <p class="text-[11px] font-black text-red-400 mb-4 uppercase">Publish DPP Quiz</p>  
-                <input id="dpp-batch" class="publisher-input" placeholder="Batch ID">  
-                <input id="dpp-title" class="publisher-input" placeholder="DPP Title">  
-                <textarea id="dpp-data" class="publisher-input h-32" placeholder='JSON Questions'></textarea>  
-                <button id="dpp-save-btn" onclick="saveDPP()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 mt-2 rounded-xl font-bold text-[11px] shadow-lg transition-all uppercase">SAVE DPP</button>  
-            </div>  
-
-            <div class="glass !p-6">  
-                <p class="text-[11px] font-black text-indigo-400 mb-4 uppercase">Publish Book</p>  
-                <input id="book-title" class="publisher-input" placeholder="Book Title">  
-                <input id="book-link" class="publisher-input" placeholder="PDF Link">  
-                <input id="book-price" class="publisher-input" placeholder="Price">  
-                <input id="book-access" class="publisher-input" placeholder="Access (ALL or emails with comma)">  
-                <button id="book-save-btn" onclick="saveBook()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 mt-2 rounded-xl font-bold text-[11px] shadow-lg transition-all uppercase">SAVE BOOK</button>  
-            </div>  
-
-            <div class="glass !p-6 lg:col-span-2 max-w-2xl mx-auto w-full">  
-                <p class="text-[11px] font-black text-indigo-400 mb-4 uppercase text-center">Batch Configuration</p>  
-                <div id="plan-inputs" class="space-y-2"></div>  
-                <button onclick="addNewPlanInput()" class="w-full border-2 border-dashed border-white/20 text-slate-400 hover:text-white hover:border-white/40 transition-colors py-3 rounded-xl font-bold text-[11px] mt-4 uppercase">+ ADD BATCH</button>  
-                <button onclick="window.saveSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-black text-[11px] mt-3 shadow-lg transition-all uppercase">SAVE CONFIG</button>  
-            </div>  
         </div>
-    </div>  
 
-    <div id="sec-manage" class="admin-section hidden pb-20 space-y-6">  
-        <div>
-            <p class='text-xs text-indigo-400 uppercase font-black mb-3 ml-2 border-b border-indigo-500/30 pb-2 w-fit'>Lectures Library</p>
-            <div id="manageLecGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>  
-        </div>
-        <div>
-            <p class='text-xs text-indigo-400 uppercase font-black mb-3 ml-2 border-b border-indigo-500/30 pb-2 w-fit mt-6'>DPP Tests Library</p>
-            <div id="manageDPPGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>  
-        </div>
-        <div>
-            <p class='text-xs text-indigo-400 uppercase font-black mb-3 ml-2 border-b border-indigo-500/30 pb-2 w-fit mt-6'>Books Library</p>
-            <div id="manageBookGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>  
-        </div>
-    </div>  
+        <div class="glass !p-4 border border-orange-200">
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-cogs mr-1"></i> Exam & Session Config</p>
+            <p class="text-[9px] text-slate-500 mb-3">Add or remove Academic Sessions and Exam Types globally across the app.</p>
+            
+            <p class="text-[9px] font-bold text-slate-700 mb-1">Manage Academic Sessions</p>
+            <div id="dynamic-session-inputs" class="space-y-1 mb-2"></div>
+            <button onclick="addNewSessionInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px]">+ ADD SESSION (e.g. 2028-29)</button>
 
-    <div id="sec-users" class="admin-section hidden pb-20">  
-        <div id="adminUserList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-2"></div>  
-        <div class="glass mt-8 !p-6">  
-            <p class="text-[11px] font-black text-indigo-400 uppercase mb-4 tracking-wider"><i class="fas fa-chart-line mr-2"></i>Student DPP Analytics</p>  
-            <div class="flex flex-col md:flex-row gap-3 mb-6">  
-                <input type="text" id="analyticsSearch" placeholder="Enter student name or email" class="publisher-input !mb-0 md:flex-1 py-4">  
-                <button onclick="searchAnalytics()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-indigo-700 transition-all">SEARCH</button>  
-            </div>  
-            <div id="dppAnalytics" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>  
+            <p class="text-[9px] font-bold text-slate-700 mb-1 mt-4">Manage Exam Types</p>
+            <div id="dynamic-exam-inputs" class="space-y-1 mb-2"></div>
+            <button onclick="addNewExamInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px]">+ ADD EXAM TYPE (e.g. FINAL)</button>
+
+            <button onclick="window.saveExamSettings()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] mt-3 shadow-lg">SAVE EXAM CONFIG</button>
+        </div>
+
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Publish Lecture</p>  
+            <input id="lec-batch" class="publisher-input" placeholder="Batch ID (e.g. UDAAN 2027)">  
+            <input id="lec-chapter" class="publisher-input" placeholder="Chapter Name">  
+            <input id="lec-title" class="publisher-input" placeholder="Lecture Title">  
+            <input id="lec-link" class="publisher-input" placeholder="Video Link">  
+            <input id="lec-notes" class="publisher-input" placeholder="Notes Link">  
+            <button id="lec-save-btn" onclick="saveLecture()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE LECTURE</button>  
+        </div>  
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-red-600 mb-2 uppercase">Publish DPP Quiz</p>  
+            <input id="dpp-batch" class="publisher-input" placeholder="Batch ID">  
+            <input id="dpp-title" class="publisher-input" placeholder="DPP Title">  
+            <textarea id="dpp-data" class="publisher-input h-20" placeholder='JSON Questions'></textarea>  
+            <button id="dpp-save-btn" onclick="saveDPP()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE DPP</button>  
+        </div>  
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Publish Book</p>  
+            <input id="book-title" class="publisher-input" placeholder="Book Title">  
+            <input id="book-link" class="publisher-input" placeholder="PDF Link">  
+            <input id="book-price" class="publisher-input" placeholder="Price">  
+            <input id="book-access" class="publisher-input" placeholder="Access (ALL or emails with comma)">  
+            <button id="book-save-btn" onclick="saveBook()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE BOOK</button>  
+        </div>  
+        <div class="glass !p-4 border border-blue-200 bg-blue-50">  
+            <p class="text-[9px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-signature mr-1"></i> Manage Signatures</p>
+            <p class="text-[9px] text-slate-500 mb-3">Add or edit teacher signatures. Use "DEFAULT" for the fallback signature.</p>
+            <input id="sig-class" class="publisher-input border-blue-300" placeholder="Class (e.g. 9, 10, DEFAULT)">  
+            <input id="sig-url" class="publisher-input border-blue-300" placeholder="Signature Image URL">  
+            <button id="sig-save-btn" onclick="saveSignature()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE SIGNATURE</button>  
+        </div>
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Batch Configuration</p>  
+            <div id="plan-inputs" class="space-y-1"></div>  
+            <button onclick="addNewPlanInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px] mt-2">+ ADD BATCH</button>  
+            <button onclick="window.saveSettings()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] mt-2 shadow-lg">SAVE CONFIG</button>  
         </div>  
     </div>  
 
-    <div id="sec-excel-results" class="admin-section hidden pb-20 space-y-6">  
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass !p-6 border-2 border-indigo-500/50">
-                <p class="text-[11px] font-black text-indigo-400 mb-3 uppercase"><i class="fas fa-print mr-2"></i> Bulk Print Class Results (Admin Only)</p>
-                <p class="text-[10px] text-slate-400 mb-4 leading-relaxed">Ek hi baar me kisi ek class ke sabhi bacho ka result card single PDF me print karein.</p>
-                
-                <div class="space-y-3">
-                    <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-3" placeholder="ENTER CLASS (e.g. 10, 12, 9TH)">
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <select id="admin-print-academic-year" class="publisher-input text-[11px] font-bold bg-slate-950 text-white py-3">
-                            <option value="2025-26">SESSION: 2025-26</option>
-                            <option value="2026-27">SESSION: 2026-27</option>
-                            <option value="2027-28">SESSION: 2027-28</option>
-                        </select>
-                        <select id="admin-print-exam-type" class="publisher-input text-[11px] font-bold bg-slate-950 text-white py-3">
-                            <option value="PMT">PMT EXAM</option>
-                            <option value="HALF_YEARLY">HALF YEARLY</option>
-                            <option value="PAT">PAT EXAM</option>
-                            <option value="ANNUAL">ANNUAL EXAM</option>
-                        </select>
-                    </div>
-                    <button onclick="window.printBulkClassResults()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 mt-2 rounded-xl font-black text-[11px] tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Generate Bulk Class PDF</button>
-                </div>
-            </div>
+    <div id="sec-manage" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div id="manageSigGrid" class="space-y-2 col-span-1 md:col-span-2"></div>
+        <div id="manageLecGrid" class="space-y-2 col-span-1 md:col-span-2"></div>  
+        <div id="manageDPPGrid" class="space-y-2"></div>  
+        <div id="manageBookGrid" class="space-y-2"></div>  
+    </div>  
 
-            <div class="glass !p-6">  
-                <p class="text-[11px] font-black text-emerald-400 mb-4 uppercase"><i class="fas fa-file-excel mr-2"></i>Bulk Upload Results (.xlsx)</p>  
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                    <div>
-                        <p class="text-[9px] text-indigo-400 font-bold mb-2 uppercase">Academic Year:</p>
-                        <select id="admin-upload-academic-year" class="publisher-input text-xs font-bold bg-slate-950 text-white mb-0 py-3">
-                            <option value="2025-26">SESSION: 2025-26</option>
-                            <option value="2026-27">SESSION: 2026-27</option>
-                            <option value="2027-28">SESSION: 2027-28</option>
-                        </select>
-                    </div>
-                    <div>
-                        <p class="text-[9px] text-amber-400 font-bold mb-2 uppercase">Exam Type:</p>
-                        <select id="admin-upload-exam-type" class="publisher-input text-xs font-bold bg-slate-950 text-white mb-0 py-3">
-                            <option value="PMT">PMT EXAM</option>
-                            <option value="HALF_YEARLY">HALF YEARLY</option>
-                            <option value="PAT">PAT EXAM</option>
-                            <option value="ANNUAL">ANNUAL EXAM</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-black/30 p-4 rounded-xl border border-white/10 mb-4">
-                    <p class="text-[9px] text-slate-400 leading-relaxed font-mono">  
-                        Required headers strictly match:<br>  
-                        <span class="text-indigo-300">scholar_id, roll_no, name, mother, father, dob, class, school, subjects_json, result_status, days_present</span>
-                    </p>  
-                </div>
-                <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50/10 file:text-indigo-400 hover:file:bg-indigo-50/20 mb-4 cursor-pointer">  
-                <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-black text-[11px] tracking-wider shadow-lg uppercase transition-all"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
+    <div id="sec-users" class="admin-section hidden pb-20">  
+        <div class="glass mt-6 !p-4 mb-4">  
+            <p class="text-[10px] font-black text-orange-600 uppercase mb-3">Student DPP Analytics</p>  
+            <div class="flex gap-2 mb-4">  
+                <input type="text" id="analyticsSearch" placeholder="Enter student name or email" class="publisher-input !mb-0">  
+                <button onclick="searchAnalytics()" class="bg-orange-600 text-white px-4 rounded-xl text-[10px] font-bold">SEARCH</button>  
             </div>  
+            <div id="dppAnalytics" class="hidden"></div>  
+        </div>  
+        <div id="adminUserList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"></div>  
+    </div>  
+
+    <div id="sec-excel-results" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div class="glass !p-4 border-2 border-orange-200">
+            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Class Results</p>
+            <p class="text-[9px] text-slate-500 mb-3">Ek hi baar me kisi ek class ke sabhi bacho ka result card single PDF me print karein.</p>
+            
+            <div class="space-y-2">
+                <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2" placeholder="ENTER CLASS (e.g. 10, 12, 9TH)">
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="admin-print-academic-year" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+                    <select id="admin-print-exam-type" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+                </div>
+                <button onclick="window.printBulkClassResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Generate Bulk Class PDF</button>
+            </div>
         </div>
+
+        <div class="glass !p-4">  
+            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase">Bulk Upload Student Results (.xlsx)</p>  
+            
+            <p class="text-[9px] text-orange-600 font-bold mb-2 uppercase">Select Academic Year Before Upload:</p>
+            <select id="admin-upload-academic-year" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+
+            <p class="text-[9px] text-amber-600 font-bold mb-2 uppercase">Select Exam Type Before Upload:</p>
+            <select id="admin-upload-exam-type" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
+
+            <p class="text-[9px] text-slate-600 mb-4 leading-relaxed">  
+                Make sure your sheet headers strictly match:<br>  
+                <code class="text-orange-500">scholar_id, roll_no, name, mother, father, dob, class, school, subjects_json, result_status, days_present</code>
+            </p>  
+            <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="publisher-input text-xs pt-2">  
+            <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
+        </div>  
         
-        <div class="flex justify-center mt-8">
-            <button onclick="deleteAllResults()" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg transition-all"><i class="fas fa-trash-alt mr-2"></i>Delete All Results Database</button>
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 max-w-md mx-auto">
+            <p class="text-[10px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Specific Results</p>
+            <p class="text-[9px] text-slate-600 mb-3">Select the Session and Exam type you want to delete permanently.</p>
+            <select id="del-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-2"></select>
+            <select id="del-exam" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
+            <button onclick="window.deleteSpecificResults()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">Delete Selected Results</button>
         </div>
     </div>
-  </div>    
 
+  </div>    
 </div>  
 
 <div id="bulk-print-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 450px; background: white; color: black; padding: 15px;"></div>
@@ -415,26 +353,26 @@ iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
 <div id="main-modal" class="fs-modal">  
     <div id="modal-header">  
         <div class="flex items-center gap-2 overflow-hidden">  
-            <span id="modal-title" class="text-xs font-bold uppercase truncate tracking-wider">Secure Viewer</span>  
+            <span id="modal-title" class="text-xs font-bold uppercase truncate text-slate-900">Secure Viewer</span>  
         </div>  
         <div class="flex items-center gap-2">  
-            <button onclick="toggleFullScreen()" class="text-white p-2 hover:text-indigo-400 transition-colors"><i class="fas fa-expand"></i></button>  
-            <button onclick="closeModal()" class="text-white p-2 hover:text-red-400 transition-colors"><i class="fas fa-times text-xl"></i></button>  
+            <button onclick="toggleFullScreen()" class="text-slate-900 p-2"><i class="fas fa-expand"></i></button>  
+            <button onclick="closeModal()" class="text-slate-900 p-2"><i class="fas fa-times text-xl"></i></button>  
         </div>  
     </div>  
-    <div id="modal-content" class="flex-1 relative bg-black overflow-hidden flex items-center justify-center"></div>  
+    <div id="modal-content" class="flex-1 relative bg-black overflow-hidden"></div>  
 </div>  
 
 <div id="quiz-modal" class="fs-modal !bg-white">  
-    <div class="p-4 bg-indigo-900 text-white flex justify-between items-center border-b border-indigo-950 shadow-md">  
-        <span id="quiz-title" class="text-xs font-black uppercase tracking-wider"><i class="fas fa-file-signature mr-2"></i>Test Environment</span>  
-        <button onclick="closeQuiz()" class="hover:text-red-400 transition-colors"><i class="fas fa-times text-xl"></i></button>  
+    <div class="p-4 bg-slate-100 text-slate-900 flex justify-between items-center border-b border-slate-200">  
+        <span id="quiz-title" class="text-[10px] font-bold uppercase">Test</span>  
+        <button onclick="closeQuiz()"><i class="fas fa-times"></i></button>  
     </div>  
-    <div id="quiz-screen" class="p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto w-full"></div>  
-    <div id="quiz-footer" class="p-4 border-t border-slate-200 mt-auto flex justify-between bg-slate-50 w-full">  
-        <button id="prev-q" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl text-xs font-black uppercase hidden transition-colors">PREV</button>  
-        <button id="next-q" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-xs font-black ml-auto shadow-lg uppercase transition-colors">NEXT</button>  
-        <button id="submit-q" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl text-xs font-black hidden ml-auto shadow-lg uppercase transition-colors"><i class="fas fa-check mr-2"></i>SUBMIT</button>  
+    <div id="quiz-screen" class="p-6 overflow-y-auto max-w-2xl mx-auto w-full"></div>  
+    <div id="quiz-footer" class="p-4 border-t border-slate-200 mt-auto flex justify-between bg-slate-50">  
+        <button id="prev-q" class="bg-white border border-slate-300 px-4 py-2 rounded-xl text-[10px] font-bold text-slate-900 hidden shadow-sm">PREV</button>  
+        <button id="next-q" class="bg-orange-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold ml-auto shadow-lg">NEXT</button>  
+        <button id="submit-q" class="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold hidden ml-auto shadow-lg">SUBMIT</button>  
     </div>  
 </div>  
 
@@ -442,6 +380,19 @@ iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";  
 import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, Timestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";  
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";  
+
+window.toggleMobileMenu = () => {
+    const nav = document.getElementById('top-nav');
+    nav.classList.toggle('hidden');
+    nav.classList.toggle('flex');
+};
+window.closeMobileMenu = () => {
+    if(window.innerWidth < 768) { 
+        const nav = document.getElementById('top-nav');
+        nav.classList.add('hidden');
+        nav.classList.remove('flex');
+    }
+};
   
 window.getGrade = function(percent) {  
     if (percent >= 91) return "A1";  
@@ -453,6 +404,11 @@ window.getGrade = function(percent) {
     if (percent >= 33) return "D";  
     return "E";  
 };
+
+// DYNAMIC SIGNATURES STATE
+let classTeacherSignatures = {
+    "DEFAULT": "https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png" 
+};
   
 const fbCfg = { apiKey: "AIzaSyCrFbBhfWT6WlYAH_ZmopTfzrf47GEQe1k", authDomain: "book-swap-104b7.firebaseapp.com", projectId: "book-swap-104b7" };  
 const fbApp = initializeApp(fbCfg); const db = getFirestore(fbApp); const auth = getAuth(fbApp); const prov = new GoogleAuthProvider();  
@@ -460,57 +416,35 @@ const adminEmail = "mihirjaisingh@gmail.com";
   
 let currentLectures = []; let currentDPPs = []; let allUsers = [];   
 let userBatchCode = "FREE"; let appBatches = [];  
+let appSessions = ["2025-26", "2026-27", "2027-28"]; 
+let appExams = ["PMT", "HALF_YEARLY", "PAT", "ANNUAL"]; 
 let editLecId = null; let editDppId = null; let editBookId = null;  
 let userCompletedDPPs = {};  
 let quizStarted = false; let quizSubmitted = false;  
 let isResultsPortalVisible = false;
 
-// Profile Picture Setup - saving image as Base64 to Firestore user doc
-window.updateProfilePic = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Check size limit (e.g., 2MB)
-    if(file.size > 2 * 1024 * 1024) {
-        alert("Image size must be less than 2MB");
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const base64Str = e.target.result;
-        document.getElementById('profile-pic-display').src = base64Str;
-        
-        if (auth.currentUser) {
-            try {
-                await updateDoc(doc(db, "users", auth.currentUser.uid), { profilePic: base64Str });
-                alert("Profile Picture Updated Successfully!");
-            } catch(error) {
-                console.error("Error updating profile picture", error);
-            }
-        }
-    };
-    reader.readAsDataURL(file);
-};
-
 async function buildPerformanceChartData(scholarId, currentExam, academicYear, currentSubjects) {
-    let exams = ["PMT", "HALF_YEARLY", "PAT", "ANNUAL"];
     let datasets = [];
     let labels = currentSubjects.map(s => s.name.toUpperCase());
     
     let colors = {
         "PMT": { bg: "rgba(239, 68, 68, 0.6)", border: "#ef4444" },
-        "PAT": { bg: "rgba(99, 102, 241, 0.6)", border: "#6366f1" },
+        "PAT": { bg: "rgba(234, 88, 12, 0.6)", border: "#ea580c" }, 
         "HALF_YEARLY": { bg: "rgba(245, 158, 11, 0.6)", border: "#f59e0b" },
         "ANNUAL": { bg: "rgba(16, 185, 129, 0.6)", border: "#10b981" }
     };
 
-    for (let ex of exams) {
+    for (let ex of appExams) { 
         let docId = `${scholarId}_${ex}_${academicYear}`;
         let examData = [];
         
         if (ex === currentExam) {
-            currentSubjects.forEach(sub => { examData.push(Number(sub.total || 0)); });
+            currentSubjects.forEach(sub => {
+                let max = Number(sub.fullMarks || 100);
+                let val = Number(sub.total || 0);
+                let percent = max > 0 ? (val / max) * 100 : 0;
+                examData.push(Number(percent.toFixed(2))); 
+            });
         } else {
             try {
                 let snap = await getDoc(doc(db, "school_results", docId));
@@ -519,7 +453,14 @@ async function buildPerformanceChartData(scholarId, currentExam, academicYear, c
                     let subs = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json;
                     currentSubjects.forEach(sub => {
                         let targetSub = subs.find(s => s.name.toUpperCase() === sub.name.toUpperCase());
-                        examData.push(targetSub ? Number(targetSub.total || 0) : 0);
+                        if(targetSub) {
+                            let max = Number(targetSub.fullMarks || 100);
+                            let val = Number(targetSub.total || 0);
+                            let percent = max > 0 ? (val / max) * 100 : 0;
+                            examData.push(Number(percent.toFixed(2)));
+                        } else {
+                            examData.push(0);
+                        }
                     });
                 } else {
                     examData = new Array(labels.length).fill(0);
@@ -528,8 +469,15 @@ async function buildPerformanceChartData(scholarId, currentExam, academicYear, c
                 examData = new Array(labels.length).fill(0);
             }
         }
+
         if (examData.some(v => v > 0) || ex === currentExam) {
-            datasets.push({ label: ex.replace("_", " "), data: examData, backgroundColor: colors[ex]?.bg || "rgba(99, 102, 241, 0.5)", borderColor: colors[ex]?.border || "#6366f1", borderWidth: 1 });
+            datasets.push({
+                label: ex.replace(/_/g, " "),
+                data: examData,
+                backgroundColor: colors[ex]?.bg || "rgba(234, 88, 12, 0.5)",
+                borderColor: colors[ex]?.border || "#ea580c",
+                borderWidth: 1
+            });
         }
     }
     return { labels, datasets };
@@ -542,43 +490,61 @@ let violationTriggered = false;
 async function lockUserPermanently() {
     localStorage.setItem('aarav_permanently_blocked', 'true');
     if (globalUID && !isCurrentUserAdmin) {
-        try { await updateDoc(doc(db, "users", globalUID), { deviceLocked: true, resetWarnings: false }); } catch(e) {}
+        try {
+            await updateDoc(doc(db, "users", globalUID), { deviceLocked: true, resetWarnings: false });
+        } catch(e) { console.error("Firestore lock failed: ", e); }
     }
     document.getElementById("freeze-screen").style.display = "none";
     lockDevice("Account Permanently Locked due to multiple DevTools policy violations.");
 }
 
 function handleDevToolsViolation() {
-    if (isCurrentUserAdmin || violationTriggered) return;
+    if (isCurrentUserAdmin) return; 
+    if (violationTriggered) return;
     violationTriggered = true;
-    let currentWarnings = parseInt(localStorage.getItem('dev_warnings') || '0') + 1;
+
+    let currentWarnings = parseInt(localStorage.getItem('dev_warnings') || '0');
+    currentWarnings++;
     localStorage.setItem('dev_warnings', currentWarnings.toString());
+
     document.getElementById("warning-counter").innerText = `Warning: ${currentWarnings} / 3`;
-    if (currentWarnings >= 3) { lockUserPermanently(); } else {
+    
+    if (currentWarnings >= 3) {
+        lockUserPermanently();
+    } else {
         document.getElementById("freeze-screen").style.display = "flex";
         document.getElementById("app").style.display = "none";
-        document.getElementById("top-nav").classList.add("hidden");
     }
 }
 
 function clearDevToolsViolation() {
-    if (localStorage.getItem('aarav_permanently_blocked') === 'true' || !violationTriggered) return;
+    if (localStorage.getItem('aarav_permanently_blocked') === 'true') return;
+    if (!violationTriggered) return;
     violationTriggered = false;
+    
     document.getElementById("freeze-screen").style.display = "none";
     if (globalUID) {
         document.getElementById("app").style.display = "block";
-        document.getElementById("top-nav").classList.remove("hidden");
     }
 }
 
 setInterval(() => {
     if (localStorage.getItem('aarav_permanently_blocked') === 'true') {
-        lockDevice("Account Permanently Locked due to multiple DevTools policy violations."); return;
+        lockDevice("Account Permanently Locked due to multiple DevTools policy violations.");
+        return;
     }
     const widthThreshold = window.outerWidth - window.innerWidth > 160;
     const heightThreshold = window.outerHeight - window.innerHeight > 160;
-    let start = new Date(); debugger; let end = new Date();
-    if (widthThreshold || heightThreshold || (end - start > 100)) handleDevToolsViolation(); else clearDevToolsViolation();
+    let start = new Date();
+    debugger; 
+    let end = new Date();
+    const debuggerDetected = (end - start) > 100;
+
+    if (widthThreshold || heightThreshold || debuggerDetected) {
+        handleDevToolsViolation();
+    } else {
+        clearDevToolsViolation();
+    }
 }, 1000);
   
 onAuthStateChanged(auth, async user => {  
@@ -598,10 +564,16 @@ onAuthStateChanged(auth, async user => {
         } else {  
             userData = uSnap.data();  
             if (userData.resetWarnings === true) {
-                localStorage.removeItem('aarav_permanently_blocked'); localStorage.removeItem('dev_warnings');
-                await updateDoc(uRef, { resetWarnings: false, deviceLocked: false, deviceID: token }); window.location.reload(); return;
+                localStorage.removeItem('aarav_permanently_blocked');
+                localStorage.removeItem('dev_warnings');
+                await updateDoc(uRef, { resetWarnings: false, deviceLocked: false, deviceID: token });
+                window.location.reload(); 
+                return;
             }
-            if (localStorage.getItem('aarav_permanently_blocked') === 'true' && !isCurrentUserAdmin) { lockDevice("Account Permanently Locked due to multiple DevTools policy violations."); return; }
+            if (localStorage.getItem('aarav_permanently_blocked') === 'true' && !isCurrentUserAdmin) {
+                lockDevice("Account Permanently Locked due to multiple DevTools policy violations.");
+                return;
+            }
             if(userData.deviceLocked && !isCurrentUserAdmin) { lockDevice("Account Locked by Admin."); return; }  
             if (!userData.deviceID) await updateDoc(uRef, { deviceID: token });  
             else if (!isCurrentUserAdmin && userData.deviceID !== token) { lockDevice("Multiple Device Login Detected."); return; }  
@@ -609,29 +581,16 @@ onAuthStateChanged(auth, async user => {
           
         document.getElementById("lock-screen").style.display = "none";  
         document.getElementById("login-screen").style.display = "none";  
-        
         if (!violationTriggered) {
-            document.getElementById("app").style.display = "block";  
-            document.getElementById("top-nav").classList.remove("hidden");
+            const appDiv = document.getElementById("app");
+            appDiv.style.display = "block";  
+            appDiv.classList.remove("animate-pop");
+            void appDiv.offsetWidth; 
+            appDiv.classList.add("animate-pop");
         }
-
-        // Setup Account Tab & Navigation Info
-        document.getElementById("acc-name").innerText = user.displayName || "Scholar";  
-        document.getElementById("acc-email").innerText = user.email || "";
         
-        // Handle Profile Picture setup
-        if (userData.profilePic) {
-            document.getElementById("profile-pic-display").src = userData.profilePic;
-        } else {
-            let fallbackName = user.displayName ? user.displayName.replace(/ /g, "+") : "S";
-            document.getElementById("profile-pic-display").src = `https://ui-avatars.com/api/?name=${fallbackName}&background=4f46e5&color=fff&size=200`;
-        }
-
-        if(isCurrentUserAdmin) { 
-            document.getElementById("btn-admin-desktop").classList.remove("hidden");
-            document.getElementById("btn-admin-mobile").classList.remove("hidden");
-            loadAdminData(); 
-        }  
+        document.getElementById("user-display").innerText = user.displayName;  
+        if(isCurrentUserAdmin) { document.getElementById("btn-admin").classList.remove("hidden"); loadAdminData(); }  
         checkAccess(user.uid); loadBooks(); loadSettings(); loadUserSubmissions(user.uid);  
         listenResultVisibility(); 
     } else {  
@@ -639,14 +598,14 @@ onAuthStateChanged(auth, async user => {
         isCurrentUserAdmin = false;
         document.getElementById("login-screen").style.display = "flex";   
         document.getElementById("app").style.display = "none";  
-        document.getElementById("top-nav").classList.add("hidden");
+        const loginBtn = document.getElementById("login-btn");
+        if(loginBtn) loginBtn.innerHTML = "CONTINUE WITH GOOGLE";
     }  
 });  
   
 function lockDevice(reason) {  
     document.getElementById("lock-screen").style.display = "flex";   
     document.getElementById("app").style.display = "none";  
-    document.getElementById("top-nav").classList.add("hidden");
     document.getElementById("lock-reason").innerText = reason;  
 }  
   
@@ -664,11 +623,7 @@ async function checkAccess(uid) {
         const isAdmin = auth.currentUser.email === adminEmail;  
         const active = (u?.erpExpiry?.toDate() > new Date()) || isAdmin;  
         userBatchCode = u.activeBatchCode || "FREE";  
-        
-        let batchStr = active ? "STATUS: ACTIVE (" + userBatchCode + ")" : "STATUS: NO ACCESS";
-        document.getElementById("expiry-tag").innerText = batchStr;
-        document.getElementById("acc-batch-badge").innerText = "BATCH CODE: " + userBatchCode;
-        
+        document.getElementById("expiry-tag").innerText = active ? "STATUS: ACTIVE (" + userBatchCode + ")" : "STATUS: NO ACCESS";  
         if(active) {   
             document.getElementById("lec-locked").classList.add("hidden");   
             document.getElementById("subscriber-content").classList.remove("hidden");  
@@ -692,8 +647,8 @@ window.showContent = (type) => {
     document.getElementById('chapter-view').classList.toggle('hidden', type !== 'videos');  
     document.getElementById('dpp-view').classList.toggle('hidden', type !== 'dpps');  
     document.getElementById('lecture-list-view').classList.add('hidden');  
-    document.getElementById('nav-v').className = type === 'videos' ? 'flex-1 py-3 rounded-xl text-[11px] font-black bg-indigo-600 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-xl text-[11px] font-black bg-white/10 text-slate-300 border border-white/10 uppercase';  
-    document.getElementById('nav-d').className = type === 'dpps' ? 'flex-1 py-3 rounded-xl text-[11px] font-black bg-indigo-600 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-xl text-[11px] font-black bg-white/10 text-slate-300 border border-white/10 uppercase';  
+    document.getElementById('nav-v').className = type === 'videos' ? 'flex-1 py-2 rounded-xl text-[10px] font-black bg-orange-600 text-white shadow-lg' : 'flex-1 py-2 rounded-xl text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200';  
+    document.getElementById('nav-d').className = type === 'dpps' ? 'flex-1 py-2 rounded-xl text-[10px] font-black bg-orange-600 text-white shadow-lg' : 'flex-1 py-2 rounded-xl text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200';  
 };  
   
 function renderChapters() {  
@@ -701,7 +656,7 @@ function renderChapters() {
     const chapters = [...new Set(currentLectures.map(l => l.chapter))].filter(Boolean);  
     chapters.forEach(ch => {  
         const count = currentLectures.filter(l => l.chapter === ch).length;  
-        container.innerHTML += `<div class="chapter-card" onclick="openChapter('${ch}')"><div class="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner"><i class="fas fa-folder"></i></div><div class="flex-1"><b class="text-sm text-white uppercase block leading-tight">${ch}</b><span class="text-[10px] text-slate-400 font-bold uppercase mt-1 block">${count} Lectures</span></div><i class="fas fa-chevron-right text-white/20"></i></div>`;  
+        container.innerHTML += `<div class="chapter-card" onclick="openChapter('${ch}')"><div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-folder"></i></div><div class="flex-1"><b class="text-sm text-slate-900 uppercase block">${ch}</b><span class="text-[10px] text-slate-500 font-bold uppercase">${count} Lectures</span></div><i class="fas fa-chevron-right text-slate-300"></i></div>`;  
     });  
 }  
   
@@ -710,49 +665,59 @@ function renderDPPs() {
     currentDPPs.forEach(d => {  
         const isDone = userCompletedDPPs[d.id] !== undefined;  
         container.innerHTML += `<div class="chapter-card" onclick="startQuiz('${d.id}')">  
-            <div class="w-14 h-14 ${isDone?'bg-emerald-500/20 text-emerald-400':'bg-amber-500/20 text-amber-400'} rounded-2xl flex items-center justify-center text-2xl shadow-inner"><i class="fas ${isDone?'fa-check-circle':'fa-file-signature'}"></i></div>  
-            <div class="flex-1"><b class="text-sm text-white uppercase block leading-tight">${d.title}</b>  
-            <span class="text-[10px] ${isDone?'text-emerald-400':'text-slate-400'} font-bold uppercase mt-1 block">${isDone?'DPP COMPLETED':'CBT TEST'}</span></div>  
-            <i class="fas fa-play ${isDone?'text-emerald-400':'text-amber-400'} text-xs"></i></div>`;  
+            <div class="w-12 h-12 ${isDone?'bg-green-100 text-green-600':'bg-red-100 text-red-600'} rounded-xl flex items-center justify-center text-xl shadow-inner"><i class="fas ${isDone?'fa-check-circle':'fa-file-signature'}"></i></div>  
+            <div class="flex-1"><b class="text-sm text-slate-900 uppercase block">${d.title}</b>  
+            <span class="text-[10px] ${isDone?'text-green-600':'text-slate-500'} font-bold uppercase">${isDone?'DPP COMPLETED':'CBT TEST'}</span></div>  
+            <i class="fas fa-play ${isDone?'text-green-600':'text-red-600'} text-xs"></i></div>`;  
     });  
 }  
   
 window.toggleFeeDue = async (docId, currentStatus) => {  
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Access"); return; }  
-    await updateDoc(doc(db, "school_results", docId), { fee_due: !currentStatus });  
-    alert("Fee status updated!"); window.fetchStudentResult();  
+    if (!auth.currentUser || auth.currentUser.email !== adminEmail) {  
+        alert("Unauthorized Access");  
+        return;  
+    }  
+    await updateDoc(doc(db, "school_results", docId), {  
+        fee_due: !currentStatus  
+    });  
+    alert("Fee status updated!");  
+    window.fetchStudentResult();  
 };  
-  
-window.deleteAllResults = async () => {  
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Access"); return; }  
-    const confirmDelete = confirm("Are you sure? All results will be deleted!");  
-    if (!confirmDelete) return;  
-    const snapshot = await getDocs(collection(db, "school_results"));  
-    snapshot.forEach(async (d) => { await deleteDoc(doc(db, "school_results", d.id)); });  
-    alert("All Results Deleted Successfully");  
-}  
 
 function listenResultVisibility() {
     onSnapshot(doc(db, "settings", "app"), snapshot => {
         if (snapshot.exists()) {
             isResultsPortalVisible = snapshot.data().resultsVisibility === true;
+            
             const badge = document.getElementById("portal-status-badge");
             const toggleBtn = document.getElementById("toggle-portal-btn");
             if (badge && toggleBtn) {
                 if (isResultsPortalVisible) {
-                    badge.innerText = "UNHIDDEN (LIVE & PUBLIC)"; badge.className = "text-[10px] text-emerald-400 font-bold uppercase tracking-wider";
-                    toggleBtn.className = "bg-emerald-600 text-white text-[10px] font-black px-4 py-3 rounded-xl shadow-md uppercase";
+                    badge.innerText = "UNHIDDEN (LIVE & PUBLIC)";
+                    badge.className = "text-[9px] text-emerald-600 font-bold uppercase";
+                    toggleBtn.className = "bg-emerald-600 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase";
                 } else {
-                    badge.innerText = "HIDDEN (SECURE)"; badge.className = "text-[10px] text-red-400 font-bold uppercase tracking-wider";
-                    toggleBtn.className = "bg-amber-600 text-white text-[10px] font-black px-4 py-3 rounded-xl shadow-md uppercase";
+                    badge.innerText = "HIDDEN (SECURE)";
+                    badge.className = "text-[9px] text-red-600 font-bold uppercase";
+                    toggleBtn.className = "bg-amber-600 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase";
                 }
             }
+
             const noticeBox = document.getElementById("result-locked-notice");
             const inputBox = document.getElementById("result-input-box");
             if (!isCurrentUserAdmin) {
-                if (isResultsPortalVisible) { noticeBox.classList.add("hidden"); inputBox.classList.remove("hidden"); } 
-                else { noticeBox.classList.remove("hidden"); inputBox.classList.add("hidden"); document.getElementById("result-display-panel").classList.add("hidden"); document.getElementById("download-btn").classList.add("hidden"); }
-            } else { noticeBox.classList.add("hidden"); inputBox.classList.remove("hidden"); }
+                if (isResultsPortalVisible) {
+                    noticeBox.classList.add("hidden");
+                    inputBox.classList.remove("hidden");
+                } else {
+                    noticeBox.classList.remove("hidden");
+                    inputBox.classList.add("hidden");
+                    document.getElementById("result-display-panel").classList.add("hidden");
+                }
+            } else {
+                noticeBox.classList.add("hidden");
+                inputBox.classList.remove("hidden");
+            }
         }
     });
 }
@@ -761,227 +726,609 @@ window.toggleResultVisibility = async () => {
     if (!isCurrentUserAdmin) return;
     const newState = !isResultsPortalVisible;
     await setDoc(doc(db, "settings", "app"), { resultsVisibility: newState }, { merge: true });
-    if (newState === true) alert("Result Portal UNHIDDEN (Live Mode Active)!"); else alert("Result Portal SECURELY HIDDEN!");
+    
+    if (newState === true) {
+        alert("Result Portal has been UNHIDDEN and set to LIVE mode successfully!");
+    } else {
+        alert("Result Portal is now SECURELY HIDDEN from all non-admin devices.");
+    }
 };
 
 window.fetchStudentResult = async () => {  
-    if (!isResultsPortalVisible && !isCurrentUserAdmin) { alert("Results portal offline."); return; }
+    if (!isResultsPortalVisible && !isCurrentUserAdmin) {
+        alert("Action Forbidden. Results portal is offline right now.");
+        return;
+    }
+
     const sId = document.getElementById("student-scholar-id").value.trim().toUpperCase();  
     const examType = document.getElementById("student-exam-type").value;  
     const academicYear = document.getElementById("student-academic-year").value;   
     const targetPanel = document.getElementById("result-display-panel");  
       
     if(!sId) { alert("Please input a valid Scholar ID!"); return; }  
+      
     const targetDocId = `${sId}_${examType}_${academicYear}`;  
 
     try {  
         const rSnap = await getDoc(doc(db, "school_results", targetDocId));  
         if(!rSnap.exists()) {  
-            alert("No result found!"); targetPanel.classList.add("hidden"); document.getElementById("download-btn").classList.add("hidden"); return;  
+            alert("No result found for this Scholar ID, selected Exam Type and Academic Year.");  
+            targetPanel.classList.add("hidden");  
+            return;  
         }  
           
         const data = rSnap.data();  
         let feeBlocked = data.fee_due === true;  
   
         let blockUI = `  
-            <div class="bg-red-50 border-4 border-red-600 rounded-3xl p-8 md:p-12 text-center w-full">  
-                <i class="fas fa-lock text-6xl text-red-600 mb-6"></i>  
-                <h2 class="text-2xl font-black text-red-700 uppercase mb-4">RESULT BLOCKED</h2>  
-                <p class="text-sm text-slate-700 font-bold mb-6">Your school fee is pending Contact School Administration 8986900009.</p>  
-                ${auth.currentUser.email === adminEmail ? `<button onclick="toggleFeeDue('${targetDocId}', true)" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold uppercase shadow-lg">UNBLOCK RESULT</button>` : ``}  
+            <div class="bg-red-50 border-4 border-red-600 rounded-3xl p-8 text-center">  
+                <i class="fas fa-lock text-5xl text-red-600 mb-4"></i>  
+                <h2 class="text-2xl font-black text-red-700 uppercase mb-3">RESULT BLOCKED</h2>  
+                <p class="text-sm text-slate-700 font-bold mb-4">Your school fee is pending Contact School Administration 8986900009.</p>  
+                ${auth.currentUser.email === adminEmail ? `  
+                    <button onclick="toggleFeeDue('${targetDocId}', true)" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold">UNBLOCK RESULT</button>  
+                ` : ``}  
             </div>  
         `;  
   
-        if (feeBlocked) { targetPanel.innerHTML = blockUI; targetPanel.classList.remove("hidden"); document.getElementById("download-btn").classList.add("hidden"); return; }  
+        if (feeBlocked) {  
+            targetPanel.innerHTML = blockUI;  
+            targetPanel.classList.remove("hidden");  
+            return;  
+        }  
 
         let subjects = [];  
-        try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e) {}  
+        try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e) { console.error(e); }  
           
-        let totalMarks = 0; let maxMarks = 0;  
-        subjects.forEach(sub => { totalMarks += Number(sub.total || 0); maxMarks += Number(sub.fullMarks || 100); });  
-        let percentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : 0; percentage = percentage.toFixed(2);  
+        let totalMarks = 0;  
+        let maxMarks = 0;  
+  
+        subjects.forEach(sub => {  
+            totalMarks += Number(sub.total || 0);  
+            maxMarks += Number(sub.fullMarks || 100);  
+        });  
+          
+        let percentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : 0;  
+        percentage = percentage.toFixed(2);  
+          
         let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";  
 
-        let classRank = "N/A"; let totalInClass = 0;  
+        let classRank = "N/A";  
+        let totalInClass = 0;  
+
         const studentClass = data.class || "N/A";  
         const currentScholarId = data.scholar_id.toString().trim().toUpperCase();  
 
+        let teacherSignUrl = classTeacherSignatures[studentClass.toUpperCase().trim()] || classTeacherSignatures["DEFAULT"];
+
         if(studentClass !== "N/A") {  
-            const classSnap = await getDocs(query(collection(db, "school_results"), where("class", "==", studentClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear)));  
+            const qClass = query(  
+                collection(db, "school_results"),   
+                where("class", "==", studentClass),  
+                where("exam_type", "==", examType),  
+                where("academic_year", "==", academicYear)  
+            );  
+            const classSnap = await getDocs(qClass);  
+              
             let classStudents = [];  
+
             classSnap.forEach(docSnap => {  
-                let sData = docSnap.data(); if(!sData.scholar_id) return;  
-                let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}  
-                let sTotal = 0; if(sSubs && Array.isArray(sSubs)){ sSubs.forEach(sub => { sTotal += Number(sub.total || 0); }); }  
-                classStudents.push({ scholar_id: sData.scholar_id.toString().trim().toUpperCase(), totalMarks: sTotal });  
+                let sData = docSnap.data();  
+                if(!sData.scholar_id) return;  
+
+                let sSubs = [];  
+                try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}  
+                  
+                let sTotal = 0;  
+                if(sSubs && Array.isArray(sSubs)){  
+                    sSubs.forEach(sub => { sTotal += Number(sub.total || 0); });  
+                }  
+
+                let studentScoreObj = {   
+                    scholar_id: sData.scholar_id.toString().trim().toUpperCase(),   
+                    totalMarks: sTotal   
+                };  
+                  
+                classStudents.push(studentScoreObj);  
             });  
+
             classStudents.sort((a, b) => b.totalMarks - a.totalMarks);  
             totalInClass = classStudents.length;  
+
             let currentRank = 1;
             for(let i = 0; i < classStudents.length; i++) {
-                if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) currentRank++; 
-                if(classStudents[i].scholar_id === currentScholarId) { classRank = currentRank; break; }
+                if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) {
+                    currentRank++; 
+                }
+                if(classStudents[i].scholar_id === currentScholarId) {
+                    classRank = currentRank;
+                    break;
+                }
             }
         }  
 
         let subjectRows = "";  
         subjects.forEach(sub => {  
-            let calculatedTotal = Number(sub.total || 0); let calculatedMax = Number(sub.fullMarks || 100);  
+            let calculatedTotal = Number(sub.total || 0);  
+            let calculatedMax = Number(sub.fullMarks || 100);  
             let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;  
             let dynamicGrade = (sub.grade && sub.grade !== "E" && sub.grade.trim() !== "") ? sub.grade : window.getGrade(subPercent);  
-            subjectRows += `<tr class="border-b border-slate-300 text-xs sm:text-[13px] text-center text-slate-800"><td class="p-2 sm:p-3 font-mono">${sub.code || '---'}</td><td class="p-2 sm:p-3 text-left font-bold uppercase">${sub.name || '---'}</td><td class="p-2 sm:p-3">${sub.theory !== undefined ? sub.theory : '---'}</td><td class="p-2 sm:p-3">${sub.practical !== undefined ? sub.practical : '---'}</td><td class="p-2 sm:p-3 font-black">${calculatedTotal} / ${calculatedMax}</td><td class="p-2 sm:p-3 text-indigo-600 font-bold">${dynamicGrade}</td></tr>`;  
+  
+            subjectRows += `  
+            <tr class="border-b border-slate-300 text-[11px] text-center text-slate-800">  
+                <td class="p-2 font-mono">${sub.code || '---'}</td>  
+                <td class="p-2 text-left font-bold uppercase">${sub.name || '---'}</td>  
+                <td class="p-2">${sub.theory !== undefined ? sub.theory : '---'}</td>  
+                <td class="p-2">${sub.practical !== undefined ? sub.practical : '---'}</td>  
+                <td class="p-2 font-black">${calculatedTotal} / ${calculatedMax}</td>  
+                <td class="p-2 text-orange-600 font-bold">${dynamicGrade}</td>  
+            </tr>`;  
         });  
   
-        let examDisplayName = data.exam_type ? data.exam_type.replace("_", " ") : "Examination";  
+        let examDisplayName = data.exam_type ? data.exam_type.replace(/_/g, " ") : "Examination";  
         let displayAcademicYear = data.academic_year || academicYear;   
         
-        let theoryHeader = examType === "HALF_YEARLY" ? "MT" : (examType === "ANNUAL" ? "ANNUAL" : "THEORY");
-        let pracHeader = examType === "HALF_YEARLY" ? "PMT" : (examType === "ANNUAL" ? "PAT" : "I.A / PRAC");
-        let daysPresentStr = (data.days_present !== undefined) ? (data.days_present.toString().includes("/") ? data.days_present : data.days_present + " Days") : "N/A";
+        let theoryHeader = "THEORY";
+        let pracHeader = "I.A / PRAC";
+        if (examType === "HALF_YEARLY") {
+            theoryHeader = "MT";
+            pracHeader = "PMT";
+        } else if (examType === "ANNUAL") {
+            theoryHeader = "ANNUAL";
+            pracHeader = "PAT";
+        }
+
+        let daysPresentStr = "N/A";
+        if (data.days_present !== undefined) {
+            let dp = data.days_present.toString();
+            if (dp.includes("/")) {
+                daysPresentStr = dp;
+            } else {
+                daysPresentStr = dp + " Days";
+            }
+        }
 
         targetPanel.innerHTML = `  
-         <div class="border-4 border-blue-900 p-4 sm:p-6 bg-slate-50 relative w-full">  
-                <div class="flex items-center justify-between border-b-2 border-blue-900 pb-4 mb-5">  
-                    <div class="flex items-center gap-3"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" class="w-16 h-16 sm:w-20 sm:h-20 object-contain"></div>  
+         <div class="border-4 border-blue-900 p-4 bg-slate-50 relative">  
+                <div class="flex items-center justify-between border-b-2 border-blue-900 pb-3 mb-4">  
+                    <div class="flex items-center gap-3">  
+                        <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" class="w-14 h-14 object-contain">  
+                    </div>  
                     <div class="text-center flex-1">  
-                        <h2 class="text-blue-900 font-black text-sm sm:text-lg tracking-wide uppercase leading-tight">TLSM WORLD SCHOOL</h2>  
-                        <p class="text-[9px] sm:text-xs font-bold text-slate-600 uppercase mt-1">Affiliated to CBSE Delhi Upto+2 Level</p>  
-                        <p class="text-slate-700 text-[11px] sm:text-sm font-bold uppercase mt-2">${examDisplayName} Report Card (Class ${studentClass})</p>  
-                        <p class="text-indigo-600 text-[11px] sm:text-sm font-black uppercase mt-1">Session / Year: ${displayAcademicYear}</p>  
+                        <h2 class="text-blue-900 font-black text-sm tracking-wide uppercase leading-tight">TLSM WORLD SCHOOL</h2>  
+                        <p class="text-[8px] font-bold text-slate-600 uppercase">Affiliated to CBSE Delhi Upto+2 Level</p>  
+                        <p class="text-slate-700 text-[10px] font-bold uppercase mt-1">${examDisplayName} Report Card (Class ${studentClass})</p>  
+                        <p class="text-orange-600 text-[10px] font-black uppercase">Session / Year: ${displayAcademicYear}</p>  
                     </div>  
-                    <div class="w-16 sm:w-20"></div>  
+                    <div class="w-14"></div>  
                 </div>  
                   
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs sm:text-sm text-slate-800 border-b border-dashed border-slate-400 pb-5 mb-5 bg-white p-4 rounded-xl border border-slate-200">  
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">Roll No:</div><div class="col-span-2 font-mono font-bold text-black">${data.roll_no || 'N/A'}</div></div>
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">Candidate:</div><div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div></div>
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">Mother:</div><div class="col-span-2 font-bold uppercase">${data.mother || ''}</div></div>
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">Father:</div><div class="col-span-2 font-bold uppercase">${data.father || ''}</div></div>
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">Class/Sec:</div><div class="col-span-2 font-bold uppercase">${studentClass} - ${(data.section || "A").toUpperCase().trim()}</div></div>
-                    <div class="grid grid-cols-3 gap-2"><div class="col-span-1 text-slate-500 font-bold">DOB:</div><div class="col-span-2 font-mono font-bold">${data.dob || ''}</div></div>
-                    <div class="grid grid-cols-3 gap-2 sm:col-span-2"><div class="col-span-1 sm:col-span-1 text-slate-500 font-bold">School:</div><div class="col-span-2 sm:col-span-2 font-bold uppercase text-blue-950">${data.school || ''}</div></div>
+                <div class="grid grid-cols-3 gap-y-1 gap-x-2 text-[10px] text-slate-800 border-b border-dashed border-slate-400 pb-3 mb-3">  
+                    <div><span class="text-slate-500 font-bold">Roll No:</span></div>  
+                    <div class="col-span-2 font-mono font-bold text-black">${data.roll_no || 'N/A'}</div>  
+                    <div><span class="text-slate-500 font-bold">Candidate Name:</span></div>  
+                    <div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div>  
+                    <div><span class="text-slate-500 font-bold">Mother's Name:</span></div>  
+                    <div class="col-span-2 font-bold uppercase">${data.mother || ''}</div>  
+                    <div><span class="text-slate-500 font-bold">Father's Name:</span></div>  
+                    <div class="col-span-2 font-bold uppercase">${data.father || ''}</div>  
+                    <div><span class="text-slate-500 font-bold">Class:</span></div>  
+                    <div class="col-span-2 font-bold uppercase">${studentClass}</div>  
+                    <div><span class="text-slate-500 font-bold">Section:</span></div>  
+                    <div class="col-span-2 font-bold uppercase">${(data.section || "A").toUpperCase().trim()}</div>  
+                    <div><span class="text-slate-500 font-bold">Date of Birth:</span></div>  
+                    <div class="col-span-2 font-mono font-bold">${data.dob || ''}</div>  
+                    <div><span class="text-slate-500 font-bold">School's Name:</span></div>  
+                    <div class="col-span-2 font-bold uppercase text-blue-950">${data.school || ''}</div>  
                 </div>  
                   
-                <div class="overflow-x-auto mb-5 rounded-xl border border-blue-900 shadow-sm">
-                    <table class="w-full text-left border-collapse bg-white whitespace-nowrap">  
-                        <thead>  
-                            <tr class="bg-blue-900 text-white text-[10px] sm:text-xs font-black uppercase text-center">  
-                                <th class="p-3 border-r border-blue-800">SUB CODE</th>  
-                                <th class="p-3 border-r border-blue-800 text-left">SUB NAME</th>  
-                                <th class="p-3 border-r border-blue-800">${theoryHeader}</th>  
-                                <th class="p-3 border-r border-blue-800">${pracHeader}</th>  
-                                <th class="p-3 border-r border-blue-800">TOTAL</th>  
-                                <th class="p-3">POS. GRADE</th>  
-                            </tr>  
-                        </thead>  
-                        <tbody>${subjectRows}</tbody>  
-                    </table>  
-                </div>
+                <table class="w-full text-left border-collapse border border-blue-900 mb-4 bg-white shadow-sm">  
+                    <thead>  
+                        <tr class="bg-blue-900 text-white text-[9px] font-black uppercase text-center">  
+                            <th class="p-2 border border-blue-900">SUB CODE</th>  
+                            <th class="p-2 border border-blue-900 text-left">SUB NAME</th>  
+                            <th class="p-2 border border-blue-900">${theoryHeader}</th>  
+                            <th class="p-2 border border-blue-900">${pracHeader}</th>  
+                            <th class="p-2 border border-blue-900">TOTAL</th>  
+                            <th class="p-2 border border-blue-900">POS. GRADE</th>  
+                        </tr>  
+                    </thead>  
+                    <tbody>  
+                        ${subjectRows}  
+                    </tbody>  
+                </table>  
                   
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                    <div class="flex justify-between items-center p-3 sm:p-4 bg-white border border-blue-900 rounded-xl shadow-sm">  
-                        <span class="text-xs sm:text-sm font-black uppercase">Total Marks</span><span class="text-sm sm:text-base font-black">${totalMarks} / ${maxMarks}</span>  
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
+                        <span class="text-[10px] font-black uppercase">Total Marks</span>  
+                        <span class="text-xs font-black">${totalMarks} / ${maxMarks}</span>  
                     </div>  
-                    <div class="flex justify-between items-center p-3 sm:p-4 bg-white border border-blue-900 rounded-xl shadow-sm">  
-                        <span class="text-xs sm:text-sm font-black uppercase">Percentage</span><span class="text-sm sm:text-base font-black">${percentage}%</span>  
+                    <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
+                        <span class="text-[10px] font-black uppercase">Percentage</span>  
+                        <span class="text-xs font-black">${percentage}%</span>  
                     </div> 
-                    <div class="flex justify-between items-center p-3 sm:p-4 bg-white border border-blue-900 rounded-xl shadow-sm">  
-                        <span class="text-xs sm:text-sm font-black uppercase">Class Rank</span><span class="text-sm sm:text-base font-black text-indigo-700">${classRank} <span class="text-[10px] sm:text-xs text-slate-500 font-normal">of ${totalInClass}</span></span>  
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-3">  
+                    <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
+                        <span class="text-[9px] font-black uppercase">Class Rank</span>  
+                        <span class="text-xs font-black text-orange-700">${classRank} <span class="text-[9px] text-slate-500 font-normal">of ${totalInClass}</span></span>  
                     </div>   
-                    <div class="flex justify-between items-center p-3 sm:p-4 bg-white border border-blue-900 rounded-xl shadow-sm">  
-                        <span class="text-xs sm:text-sm font-black uppercase text-emerald-800"><i class="fas fa-calendar-check mr-2"></i>Attendance</span><span class="text-sm sm:text-base font-black text-emerald-700">${daysPresentStr}</span>  
+                    <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
+                        <span class="text-[9px] font-black uppercase text-emerald-800"><i class="fas fa-calendar-check mr-1"></i>Attendance</span>  
+                        <span class="text-xs font-black text-emerald-700">${daysPresentStr}</span>  
                     </div>   
                 </div>  
   
-                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-blue-900 text-white rounded-xl shadow-md mb-6 gap-3">  
-                    <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-center sm:text-left">Final Result Outcome:</span>  
-                    <span class="text-sm sm:text-base font-black uppercase bg-white ${autoResultStatus === 'PASS' ? 'text-emerald-700' : 'text-red-700'} px-6 py-1.5 rounded-full shadow-inner w-full sm:w-auto text-center">${autoResultStatus}</span>  
+                <div class="flex items-center justify-between p-2 bg-blue-900 text-white rounded-xl px-4 shadow-md mb-4">  
+                    <span class="text-[10px] font-black uppercase tracking-wider">Final Result Outcome:</span>  
+                    <span class="text-xs font-black uppercase bg-white ${autoResultStatus === 'PASS' ? 'text-emerald-700' : 'text-red-700'} px-4 py-0.5 rounded-full shadow-inner">${autoResultStatus}</span>  
                 </div>  
 
-                <div class="border border-blue-900 bg-white rounded-2xl p-4 sm:p-5 mb-5 shadow-sm">
-                    <p class="text-xs sm:text-sm font-black text-blue-900 uppercase mb-4 tracking-wide text-center sm:text-left"><i class="fas fa-chart-bar mr-2"></i>Subject-wise Cross Exam Analysis</p>
-                    <div class="w-full relative h-64 sm:h-72"><canvas id="student-analysis-chart"></canvas></div>
+                <div class="border border-blue-900 bg-white rounded-2xl p-3 mb-4">
+                    <p class="text-[10px] font-black text-blue-900 uppercase mb-2 tracking-wide"><i class="fas fa-chart-bar mr-1"></i>Subject-wise Cross Exam Analysis</p>
+                    <div class="w-full relative h-48">
+                        <canvas id="student-analysis-chart"></canvas>
+                    </div>
                 </div>
 
-                <div class="flex justify-center sm:justify-end mt-6 mb-3">
-                    <div class="text-center w-32">
-                        <img src="https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png" alt="Signature" class="mx-auto object-contain h-12 w-auto mb-1">
-                        <p class="text-[10px] sm:text-xs font-black text-blue-900 uppercase border-t-2 border-blue-900/30 pt-1">Principal Sign</p>
+                <div class="flex justify-end mt-4 mb-2">
+                    <div class="text-center" style="width: 110px;">
+                        <img src="${teacherSignUrl}" alt="Signature" class="mx-auto object-contain" style="width: 100px; height: 40px; max-height: 40px;">
+                        <p class="text-[9px] font-black text-blue-900 uppercase border-t border-blue-900/30 mt-1 pt-0.5">Class Teacher</p>
                     </div>
                 </div>
                   
                 ${auth.currentUser.email === adminEmail ? `  
-                <div class="mt-6 text-center border-t border-dashed border-slate-300 pt-5">  
-                    <button onclick="toggleFeeDue('${targetDocId}', ${data.fee_due || false})" class="px-8 py-3 rounded-xl text-white font-black text-xs uppercase tracking-wider shadow-lg ${data.fee_due ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'} transition-all">  
-                        ${data.fee_due ? 'UNLOCK RESULT' : 'BLOCK RESULT DUE TO FEE'}  
+                <div class="mt-4 text-center">  
+                    <button onclick="toggleFeeDue('${targetDocId}', ${data.fee_due || false})" class="px-5 py-2 rounded-xl text-white font-bold text-xs ${data.fee_due ? 'bg-green-600' : 'bg-red-600'}">  
+                        ${data.fee_due ? 'UNLOCK RESULT' : 'BLOCK RESULT'}  
                     </button>  
                 </div>  
                 ` : ''}  
                   
-                <p class="text-[8px] sm:text-[9px] text-slate-500 text-center uppercase tracking-tighter mt-6 leading-relaxed font-bold border-t border-slate-200 pt-4">  
+                <p class="text-[7px] text-slate-500 text-center uppercase tracking-tighter mt-4 leading-tight font-bold text-black">  
                 Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB [MIHIR JAI VISHWANATH SINGH & AARAV JAI VISHWANATH SINGH]. Any unauthorized use, reproduction, modification, or distribution is prohibited and may result in legal action. © 2026 All Rights Reserved | Unauthorized duplication or misuse is prohibited. DEVELOPER CONTACT NUM: 9430444443 / 8986900009
                 </p>  
             </div>  
         `;  
         targetPanel.classList.remove("hidden");  
-        document.getElementById("download-btn").classList.remove("hidden");
 
         let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
-        new Chart(document.getElementById('student-analysis-chart').getContext('2d'), {
-            type: 'bar', data: chartData,
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: window.innerWidth < 600 ? 9 : 11, weight: 'bold' } } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: window.innerWidth < 600 ? 9 : 11 } } }, x: { ticks: { font: { size: window.innerWidth < 600 ? 8 : 10, weight: 'bold' } } } } }
+        let ctx = document.getElementById('student-analysis-chart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { labels: { font: { size: 9, weight: 'bold' } } },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 }, callback: function(value) { return value + "%"; } } },
+                    x: { ticks: { font: { size: 8, weight: 'bold' } } }
+                }
+            }
         });
-    } catch(err) { alert("Firestore error."); }  
+
+    } catch(err) {  
+        console.error(err);  
+        alert("Firestore access query failure.");  
+    }  
 };  
 
-window.printBulkClassResults = async () => { /* Original Bulk logic inside JS untouched for admin safety */
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Admin Only!"); return; }
+window.printBulkClassResults = async () => {
+    if (!auth.currentUser || auth.currentUser.email !== adminEmail) {
+        alert("Unauthorized Admin Access Only!");
+        return;
+    }
+
     const targetClass = document.getElementById("admin-print-class").value.trim().toUpperCase();
     const examType = document.getElementById("admin-print-exam-type").value;
     const academicYear = document.getElementById("admin-print-academic-year").value;
     const sandbox = document.getElementById("bulk-print-sandbox");
-    if (!targetClass) { alert("Specify Class!"); return; }
-    alert("Fetching class details...");
-    // ... rest of bulk logic as provided before
-    alert("Process completed.");
+
+    if (!targetClass) { alert("Please specify a valid Class to print!"); return; }
+
+    alert("Fetching class details from firestore database, please hold on...");
+
+    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+
+    try {
+        const qClass = query(
+            collection(db, "school_results"), 
+            where("class", "==", targetClass),
+            where("exam_type", "==", examType),
+            where("academic_year", "==", academicYear)
+        );
+        const snapshot = await getDocs(qClass);
+        if (snapshot.empty) { alert("No report records found for this precise configuration."); return; }
+
+        let classStudents = [];
+        snapshot.forEach(docSnap => {
+            let sData = docSnap.data();
+            let sSubs = [];
+            try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
+            
+            let sTotal = 0;
+            if (sSubs && Array.isArray(sSubs)){
+                sSubs.forEach(sub => { sTotal += Number(sub.total || 0); });
+            }
+            classStudents.push({ ...sData, totalMarks: sTotal });
+        });
+
+        classStudents.sort((a, b) => b.totalMarks - a.totalMarks);
+        let totalInClass = classStudents.length;
+
+        let rankedStudentsMap = {};
+        let currentRank = 1;
+        for (let i = 0; i < classStudents.length; i++) {
+            if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) {
+                currentRank++;
+            }
+            rankedStudentsMap[classStudents[i].scholar_id] = currentRank;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("l", "mm", "a4");
+        
+        const pageWidth = 297; 
+        const pageHeight = 210; 
+        const margin = 10;
+        const gap = 10; 
+        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
+        const maxCardHeight = pageHeight - margin * 2;
+
+        alert(`Processing ${totalInClass} students data grids. Compiling your multi-page PDF document...`);
+
+        for (let idx = 0; idx < classStudents.length; idx++) {
+            let data = classStudents[idx];
+            let classRank = rankedStudentsMap[data.scholar_id];
+            let subjects = data.subjects_json || [];
+            let totalMarks = data.totalMarks;
+            let maxMarks = 0;
+            subjects.forEach(s => maxMarks += Number(s.fullMarks || 100));
+
+            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
+            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
+            let examDisplayName = examType.replace(/_/g, " ");
+            
+            let theoryHeader = "THEORY";
+            let pracHeader = "PRAC";
+            if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } 
+            else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
+
+            let daysPresentStr = "N/A";
+            if (data.days_present !== undefined) {
+                let dp = data.days_present.toString();
+                if (dp.includes("/")) daysPresentStr = dp;
+                else daysPresentStr = dp + " Days";
+            }
+
+            let subjectRows = "";
+            subjects.forEach(sub => {
+                let calculatedTotal = Number(sub.total || 0);
+                let calculatedMax = Number(sub.fullMarks || 100);
+                let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;
+                let dynamicGrade = sub.grade || window.getGrade(subPercent);
+
+                subjectRows += `
+                <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
+                    <td style="padding: 6px; font-family: monospace;">${sub.code || '---'}</td>
+                    <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                    <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
+                    <td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>
+                    <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
+                    <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                </tr>`;
+            });
+
+            sandbox.innerHTML = `
+                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
+                        <div style="margin-right: 10px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 55px; height: 55px; object-fit: contain;"></div>
+                        <div style="text-align: center; flex: 1;">
+                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 15px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
+                            <p style="font-size: 8px; font-weight: bold; color: #475569; margin: 2px 0 0 0; text-transform: uppercase;">Affiliated to CBSE Delhi Upto+2 Level</p>
+                            <p style="color: #334155; font-size: 11px; font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
+                            <p style="color: #ea580c; font-size: 10px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
+                        </div>
+                        <div style="width: 55px;"></div>
+                    </div>
+                      
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 10px; border-bottom: 1px dashed #94a3b8; padding-bottom: 10px; margin-bottom: 12px;">
+                        <div><span style="color: #64748b; font-weight: bold;">Roll No:</span></div><div style="font-weight: bold;">${data.roll_no || 'N/A'}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase;">${data.name || ''}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase;">${data.mother || ''}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase;">${data.father || ''}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase;">${targetClass} - ${(data.section || "A")}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">Date of Birth:</span></div><div style="font-weight: bold;">${data.dob || ''}</div>
+                        <div><span style="color: #64748b; font-weight: bold;">School's Name:</span></div><div style="font-weight: bold; color: #1e3a8a; text-transform: uppercase;">${data.school || ''}</div>
+                    </div>  
+                      
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 12px; background: white;">  
+                        <thead>  
+                            <tr style="background: #1e3a8a; color: white; font-size: 9px; font-weight: 900; text-transform: uppercase;">  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th>  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th>  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
+                            </tr>  
+                        </thead>  
+                        <tbody>${subjectRows}</tbody>  
+                    </table>  
+                      
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
+                    </div>  
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
+                    </div>  
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} of ${totalInClass} | Attd: ${daysPresentStr}</span>
+                    </div>  
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #1e3a8a; color: white; border-radius: 8px; font-size: 11px; font-weight: bold; margin-top: 10px;">  
+                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 10px; border-radius: 20px;">${autoResultStatus}</span>  
+                    </div>  
+
+                    <div style="border: 1px solid #1e3a8a; background: white; border-radius: 8px; padding: 5px; margin-top: 10px;">
+                        <div style="width: 100%; height: 140px; relative">
+                            <canvas id="bulk-chart-${idx}"></canvas>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 15px; margin-bottom: 5px;">
+                        <div style="text-align: center; width: 90px;">
+                            <img src="${teacherSignUrl}" style="width: 100px; height: 40px; max-height: 40px; object-fit: contain; margin: 0 auto;">
+                            <p style="font-size: 9px; font-weight: 900; color: #1e3a8a; border-top: 1px solid rgba(30,58,138,0.3); margin: 4px 0 0 0; padding-top: 2px; text-transform: uppercase;">Class Teacher</p>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 7px; color: #64748b; text-align: center; text-transform: uppercase; margin-top: 12px; line-height: 1.2; font-weight: bold;">
+                    Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB.
+                    </p>
+                </div>
+            `;
+
+            let chartData = await buildPerformanceChartData(data.scholar_id.toString().trim().toUpperCase(), examType, academicYear, subjects);
+            let ctx = document.getElementById(`bulk-chart-${idx}`).getContext('2d');
+            
+            await new Promise((resolve) => {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() },
+                        plugins: { 
+                            legend: { labels: { font: { size: 7 } } },
+                            tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
+                        },
+                        scales: { 
+                            y: { beginAtZero: true, max:100, ticks: { font: { size: 6 }, callback: function(value) { return value + "%"; } } }, 
+                            x: { ticks: { font: { size: 6 } } } 
+                        }
+                    }
+                });
+            });
+
+            let canvas = await html2canvas(document.getElementById(`bulk-container-${idx}`), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            let imgData = canvas.toDataURL("image/png");
+
+            let imgWidth = cardWidth;
+            let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            if (imgHeight > maxCardHeight) { imgHeight = maxCardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
+            const isLeft = (idx % 2 === 0);
+            if (isLeft && idx > 0) pdf.addPage();
+            const xOffset = isLeft ? margin : (margin + cardWidth + gap);
+            const x = xOffset + (cardWidth - imgWidth) / 2;
+            const y = margin + (maxCardHeight - imgHeight) / 2;
+
+            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        }
+
+        pdf.save(`Bulk_Class_${targetClass}_Results.pdf`);
+        sandbox.innerHTML = ""; 
+        alert("Success! All student data compiled safely inside your local storage bundle.");
+    } catch(err) {
+        console.error(err);
+        alert("An extraction processing fault occurred within dynamic renderer engines.");
+    }
 };
   
 window.processExcelUpload = () => {  
     const fileInput = document.getElementById("excel-file-input");  
     const selectedExamType = document.getElementById("admin-upload-exam-type").value;  
     const selectedAcademicYear = document.getElementById("admin-upload-academic-year").value; 
-    if(!fileInput.files || fileInput.files.length === 0) { alert("Select excel file!"); return; }  
-    const targetFile = fileInput.files[0]; const fileReader = new FileReader();  
+
+    if(!fileInput.files || fileInput.files.length === 0) { alert("Please select a valid excel .xlsx structure report card master first!"); return; }  
+      
+    const targetFile = fileInput.files[0];  
+    const fileReader = new FileReader();  
+      
     fileReader.onload = async (e) => {  
         try {  
-            const parsedWorkbook = XLSX.read(e.target.result, { type: 'binary' });  
-            const parsedJsonRows = XLSX.utils.sheet_to_json(parsedWorkbook.Sheets[parsedWorkbook.SheetNames[0]]);  
-            if(parsedJsonRows.length === 0) { alert("Empty rows!"); return; }  
+            const rawBuffer = e.target.result;  
+            const parsedWorkbook = XLSX.read(rawBuffer, { type: 'binary' });  
+            const initialSheetName = parsedWorkbook.SheetNames[0];  
+            const parsedJsonRows = XLSX.utils.sheet_to_json(parsedWorkbook.Sheets[initialSheetName]);  
+              
+            if(parsedJsonRows.length === 0) { alert("Target Worksheet array structure evaluates completely empty mapping rows."); return; }  
+              
             let loadCounter = 0;  
             for(let row of parsedJsonRows) {  
-                let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null; if(!scholarIdRaw) continue;  
+                let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;  
+                if(!scholarIdRaw) continue;  
+                  
                 let uniqueDocId = `${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
-                let subjects = []; let detectedSubjects = {};  
-                Object.keys(row).forEach(col => {  
+                let subjects = [];  
+                const allColumns = Object.keys(row);  
+                let detectedSubjects = {};  
+  
+                allColumns.forEach(col => {  
                     const skipFields = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "school", "result_status", "fee_due", "section", "days_present"];  
                     if(skipFields.includes(col.toLowerCase())) return;  
+  
                     const cleanCol = col.toUpperCase().trim();  
                     if(cleanCol.endsWith("_TH") || cleanCol.endsWith("_THEORY")) {  
-                        let subjectName = cleanCol.replace("_TH", "").replace("_THEORY", ""); if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {}; detectedSubjects[subjectName].theory = Number(row[col] || 0);  
-                    } else if(cleanCol.endsWith("_PR") || cleanCol.endsWith("_PRACTICAL") || cleanCol.endsWith("_IA")) {  
-                        let subjectName = cleanCol.replace("_PR", "").replace("_PRACTICAL", "").replace("_IA", ""); if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {}; detectedSubjects[subjectName].practical = Number(row[col] || 0);  
+                        let subjectName = cleanCol.replace("_TH", "").replace("_THEORY", "");  
+                        if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {};  
+                        detectedSubjects[subjectName].theory = Number(row[col] || 0);  
+                    }  
+                    else if(cleanCol.endsWith("_PR") || cleanCol.endsWith("_PRACTICAL") || cleanCol.endsWith("_IA")) {  
+                        let subjectName = cleanCol.replace("_PR", "").replace("_PRACTICAL", "").replace("_IA", "");  
+                        if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {};  
+                        detectedSubjects[subjectName].practical = Number(row[col] || 0);  
                     }  
                 });  
+  
                 Object.keys(detectedSubjects).forEach((sub, index) => {  
-                    const theory = detectedSubjects[sub].theory || 0; const practical = detectedSubjects[sub].practical || 0; if(theory === 0 && practical === 0) return;  
-                    let customFullMarks = row[`FULL_${sub}`] || row[`FULL_${sub}_MARKS`] || 100; let totalSub = theory + practical;  
-                    subjects.push({ code: (100 + index).toString(), name: sub, theory: theory, practical: practical, total: totalSub, fullMarks: Number(customFullMarks), grade: window.getGrade((totalSub/Number(customFullMarks))*100) });  
+                    const theory = detectedSubjects[sub].theory || 0;  
+                    const practical = detectedSubjects[sub].practical || 0;  
+                    if(theory === 0 && practical === 0) return;  
+  
+                    const totalSubjectMarks = theory + practical;  
+                    let customFullMarks = row[`FULL_${sub}`] || row[`FULL_${sub}_MARKS`] || 100;  
+                    let autoCode = (100 + index).toString();  
+                    let subPercent = (totalSubjectMarks / Number(customFullMarks)) * 100;  
+                    let grade = window.getGrade(subPercent);  
+  
+                    subjects.push({ code: autoCode, name: sub, theory: theory, practical: practical, total: totalSubjectMarks, fullMarks: Number(customFullMarks), grade: grade });  
                 });  
-                await setDoc(doc(db, "school_results", uniqueDocId), { scholar_id: scholarIdRaw, exam_type: selectedExamType, academic_year: selectedAcademicYear, roll_no: row.roll_no ? row.roll_no.toString() : "---", name: row.name || "Unknown", mother: row.mother || "---", father: row.father || "---", dob: row.dob || "---", class: row.class ? row.class.toString().trim().toUpperCase() : "N/A", section: row.section ? row.section.toString().trim().toUpperCase() : "A", school: row.school || "Aarav Public School", subjects_json: subjects, result_status: row.result_status || "PASS", fee_due: row.fee_due === true || row.fee_due === "TRUE", days_present: row.days_present !== undefined ? row.days_present : 0, updatedAt: Timestamp.now() }, { merge: true });  
+  
+                let processedPayload = {  
+                    scholar_id: scholarIdRaw,  
+                    exam_type: selectedExamType,  
+                    academic_year: selectedAcademicYear,   
+                    roll_no: row.roll_no ? row.roll_no.toString() : "---",  
+                    name: row.name || "Unknown Student",  
+                    mother: row.mother || "---",  
+                    father: row.father || "---",  
+                    dob: row.dob || "---",  
+                    class: row.class ? row.class.toString().trim().toUpperCase() : "N/A",  
+                    section: row.section ? row.section.toString().trim().toUpperCase() : "A",  
+                    school: row.school || "Aarav Public School",  
+                    subjects_json: subjects,  
+                    result_status: row.result_status || "PASS",  
+                    fee_due: row.fee_due === true || row.fee_due === "TRUE",  
+                    days_present: row.days_present !== undefined ? row.days_present : 0,
+                    updatedAt: Timestamp.now()  
+                };  
+                  
+                await setDoc(doc(db, "school_results", uniqueDocId), processedPayload, { merge: true });  
                 loadCounter++;  
             }  
-            alert(`Uploaded ${loadCounter} records!`); fileInput.value = "";  
-        } catch(err) { alert("Upload error!"); }  
+            alert(`Success! Uploaded ${loadCounter} student records for ${selectedExamType} exam (${selectedAcademicYear}).`);  
+            fileInput.value = "";  
+        } catch(err) {  
+            console.error(err);  
+            alert("Error encounter during structural runtime processing parsing index schemas.");  
+        }  
     };  
     fileReader.readAsBinaryString(targetFile);  
 };  
@@ -990,37 +1337,41 @@ let quizData = []; let currentQ = 0; let userAnswers = []; let activeDPPId = nul
   
 window.startQuiz = (id) => {  
     activeDPPId = id; const dpp = currentDPPs.find(x => x.id === id);   
-    try { quizData = JSON.parse(dpp.data); } catch(e) { alert("Invalid DPP Format"); return; }  
-    currentQ = 0; userAnswers = new Array(quizData.length).fill(null); quizStarted = true; quizSubmitted = false;  
-    document.getElementById("quiz-title").innerHTML = `<i class="fas fa-file-signature mr-2"></i>${dpp.title}`;   
+    try { quizData = JSON.parse(dpp.data); } catch(e) { alert("Invalid DPP Data Format"); return; }  
+    currentQ = 0; userAnswers = new Array(quizData.length).fill(null);  
+    quizStarted = true; quizSubmitted = false;  
+      
+    document.getElementById("quiz-title").innerText = dpp.title;   
     document.getElementById("quiz-modal").style.display = "flex";  
       
-    document.getElementById("quiz-footer").innerHTML = `<button id="prev-q" onclick="prevQuestion()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-xl text-xs font-black uppercase hidden transition-colors">PREV</button><button id="next-q" onclick="nextQuestion()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-xs font-black ml-auto shadow-lg uppercase transition-colors">NEXT</button><button id="submit-q" onclick="submitQuiz()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl text-xs font-black hidden ml-auto shadow-lg uppercase transition-colors"><i class="fas fa-check mr-2"></i>SUBMIT</button>`;  
+    document.getElementById("quiz-footer").innerHTML = `  
+        <button id="prev-q" onclick="prevQuestion()" class="bg-white border border-slate-300 px-4 py-2 rounded-xl text-[10px] font-bold text-slate-900 hidden shadow-sm">PREV</button>  
+        <button id="next-q" onclick="nextQuestion()" class="bg-orange-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold ml-auto shadow-lg">NEXT</button>  
+        <button id="submit-q" onclick="submitQuiz()" class="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold hidden ml-auto shadow-lg">SUBMIT</button>`;  
   
     if(userCompletedDPPs[id] !== undefined) {  
-        document.getElementById("quiz-screen").innerHTML = `<div class="text-center p-10"><i class="fas fa-check-circle text-emerald-500 text-6xl mb-6"></i><h2 class="font-black text-xl uppercase text-black mb-2">Already Submitted</h2><p class="text-sm font-bold text-slate-500">Your Score: ${userCompletedDPPs[id]} / ${quizData.length}</p></div>`;  
-        document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-wider transition-colors">BACK TO DASHBOARD</button>`;  
+        document.getElementById("quiz-screen").innerHTML = `<div class="text-center p-10"><i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i><h2 class="font-bold uppercase text-slate-900">Already Submitted</h2><p class="text-xs text-slate-500">Your Score: ${userCompletedDPPs[id]}/${quizData.length}</p></div>`;  
+        document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold text-[10px]">BACK</button>`;  
     } else { showQuestion(); }  
 };  
   
 function showQuestion() {  
     const q = quizData[currentQ];  
-    let html = `<p class="text-indigo-600 text-[11px] mb-3 font-black uppercase tracking-wider">QUESTION ${currentQ + 1} OF ${quizData.length}</p>  
-    ${q.img ? `<img src="${q.img}" class="w-full rounded-2xl mb-6 border border-gray-300 shadow-sm max-w-lg mx-auto">` : ''}  
-                <h3 class="text-slate-800 font-bold text-base md:text-lg mb-8 leading-relaxed">${q.q}</h3>  
-                <div class="space-y-4 max-w-2xl mx-auto">`;  
+    let html = `<p class="text-slate-500 text-[10px] mb-2 font-bold">QUESTION ${currentQ + 1} OF ${quizData.length}</p>  
+    ${q.img ? `<img src="${q.img}" class="w-full rounded-2xl mb-4 border border-slate-300">` : ''}  
+                <h3 class="text-slate-900 font-bold text-sm mb-6 leading-relaxed">${q.q}</h3>  
+                <div class="space-y-4">`;  
   
     if (q.type === "integer") {  
         let currentVal = userAnswers[currentQ] !== null ? userAnswers[currentQ] : '';  
-        html += `<input type="text" oninput="window.saveAns(this.value)" value="${currentVal}" placeholder="Type your answer here..." class="w-full bg-slate-50 border-2 border-slate-200 text-black p-5 rounded-2xl focus:outline-none focus:border-indigo-500 font-bold text-lg text-center transition-colors shadow-inner">`;  
+        html += `<input type="text" id="integer-ans" oninput="window.saveAns(this.value)" value="${currentVal}" placeholder="Type your answer here..." class="w-full bg-white border border-slate-300 text-slate-900 p-4 rounded-2xl focus:outline-none focus:border-orange-500">`;  
     } else {  
         q.o.forEach((opt, i) => {  
             const isSelected = userAnswers[currentQ] === i;  
-            html += `<button onclick="window.saveAns(${i})" class="w-full text-left p-4 md:p-5 border-2 rounded-2xl mb-3 text-sm md:text-base transition-all font-bold ${isSelected ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}">  
-                <span class="mr-4 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}">${String.fromCharCode(65 + i)}.</span> ${opt}  
-            </button>`;  
+            html += `<button onclick="window.saveAns(${i})" class="option-btn ${isSelected ? 'selected' : ''}"><span class="mr-3 opacity-40">${String.fromCharCode(65 + i)}.</span> ${opt}</button>`;  
         });  
     }  
+  
     document.getElementById("quiz-screen").innerHTML = html + `</div>`;  
     document.getElementById("prev-q").classList.toggle("hidden", currentQ === 0);  
     document.getElementById("next-q").classList.toggle("hidden", currentQ === quizData.length - 1);  
@@ -1033,73 +1384,152 @@ window.prevQuestion = () => { if(currentQ > 0) { currentQ--; showQuestion(); } }
   
 window.submitQuiz = async () => {  
     if(!confirm("Are you sure you want to submit?")) return;  
-    quizSubmitted = true; let score = 0; let questionAnalytics = [];  
+    quizSubmitted = true; let score = 0;  
+      
+    quizData.forEach((q, i) => {  
+        if(q.type === "integer") { if(userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim()) score++; } 
+        else { if(userAnswers[i] === q.a) score++; }  
+    });  
+  
+    let questionAnalytics = [];  
     quizData.forEach((q, i) => {  
         let correct = false;  
-        if(q.type === "integer") correct = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());  
+        if (q.type === "integer") correct = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());  
         else correct = userAnswers[i] === q.a;  
-        if(correct) score++;  
         questionAnalytics.push({ question: q.q, studentAnswer: userAnswers[i], correctAnswer: q.a, isCorrect: correct });  
     });  
   
     await setDoc(doc(db, "user_submissions", auth.currentUser.uid + "_" + activeDPPId), { uid: auth.currentUser.uid, studentName: auth.currentUser.displayName, studentEmail: auth.currentUser.email, dppId: activeDPPId, score: score, answers: questionAnalytics, timestamp: Timestamp.now() });  
   
-    let resHtml = `<div class="bg-indigo-50 text-indigo-900 p-8 md:p-10 rounded-3xl text-center mb-8 border border-indigo-200 shadow-sm max-w-xl mx-auto">  
-                    <p class="text-xs font-black uppercase tracking-widest text-indigo-600 mb-3"><i class="fas fa-trophy mr-2"></i>Test Result Completed</p>  
-                    <h2 class="text-5xl font-black">${score} <span class="text-2xl text-indigo-400">/ ${quizData.length}</span></h2>  
-                  </div><div class="space-y-4 max-w-3xl mx-auto">`;  
+    let resHtml = `<div class="bg-orange-100 text-orange-700 p-6 rounded-3xl text-center mb-6 border border-orange-200">  
+                    <p class="text-[10px] font-black uppercase tracking-widest">Test Result</p>  
+                    <h2 class="text-3xl font-black">${score} / ${quizData.length}</h2>  
+                  </div><div class="space-y-4">`;  
   
     quizData.forEach((q, i) => {  
         let isCorrect = false;  
-        if(q.type === "integer") isCorrect = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim()); else isCorrect = (userAnswers[i] === q.a);  
+        if(q.type === "integer") isCorrect = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());  
+        else isCorrect = (userAnswers[i] === q.a);  
+  
         let userText = userAnswers[i] === null ? 'Skipped' : (q.type === 'integer' ? userAnswers[i] : q.o[userAnswers[i]]);  
         let solText = q.type === 'integer' ? q.a : q.o[q.a];  
-        resHtml += `<div class="p-5 md:p-6 bg-slate-50 rounded-2xl border border-slate-200">  
-            <p class="text-[13px] md:text-sm font-bold text-slate-800 mb-4">${i+1}. ${q.q}</p>  
-            <div class="flex flex-col sm:flex-row gap-3">
-                <div class="flex-1 p-3 rounded-xl ${isCorrect?'bg-emerald-100 border border-emerald-200 text-emerald-800':'bg-red-100 border border-red-200 text-red-800'}">
-                    <span class="text-[10px] font-black uppercase block mb-1 opacity-70">YOUR ANSWER</span>
-                    <span class="text-xs md:text-sm font-bold">${userText}</span>
-                </div>
-                <div class="flex-1 p-3 rounded-xl bg-indigo-100 border border-indigo-200 text-indigo-800">
-                    <span class="text-[10px] font-black uppercase block mb-1 opacity-70">CORRECT ANSWER</span>
-                    <span class="text-xs md:text-sm font-bold">${solText}</span>
-                </div>
-            </div>  
+  
+        resHtml += `<div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">  
+            <p class="text-[11px] font-bold text-slate-900 mb-2">${i+1}. ${q.q}</p>  
+            <p class="text-[10px] ${isCorrect?'text-green-600':'text-red-600'} font-black uppercase">  
+                YOURS: ${userText}  
+            </p>  
+            <p class="text-[10px] text-orange-600 font-black uppercase mt-1">SOLUTION: ${solText}</p>  
         </div>`;  
     });  
+  
     document.getElementById("quiz-screen").innerHTML = resHtml + `</div>`;  
-    document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-xl font-black text-xs tracking-wider uppercase shadow-lg transition-colors">DONE & EXIT</button>`;  
+    document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">DONE</button>`;  
 };  
   
 window.closeQuiz = () => { quizStarted = false; document.getElementById("quiz-modal").style.display = "none"; };  
   
 function loadAdminData() {  
     onSnapshot(collection(db, "lectures"), s => {  
-        const g = document.getElementById("manageLecGrid"); g.innerHTML = "";  
-        s.forEach(d => { const l = d.data(); g.innerHTML += `<div class="bg-black/30 p-4 rounded-xl flex flex-col gap-3 text-[11px] border border-white/10 hover:border-white/20 transition-all"><div><span class="text-indigo-400 font-bold block mb-1">[${l.batch}]</span><span class="font-bold text-white leading-relaxed">${l.title}</span></div><div class="flex gap-2 mt-auto pt-2 border-t border-white/5"><button onclick='window.editItem("lec", ${JSON.stringify({...l, id:d.id})})' class="bg-indigo-600/20 text-indigo-400 font-bold px-3 py-1.5 rounded-lg flex-1">EDIT</button><button onclick="window.delDoc('lectures','${d.id}')" class="bg-red-600/20 text-red-400 font-bold px-3 py-1.5 rounded-lg flex-1">DEL</button></div></div>`; });  
+        const g = document.getElementById("manageLecGrid"); g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black'>Lectures</p>";  
+        s.forEach(d => { const l = d.data(); g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900"><span><b>[${l.batch}]</b> ${l.title}</span><div class="flex gap-2"><button onclick='window.editItem("lec", ${JSON.stringify({...l, id:d.id})})' class="text-orange-600 font-bold">EDIT</button><button onclick="window.delDoc('lectures','${d.id}')" class="text-red-600 font-bold">DEL</button></div></div>`; });  
     });  
     onSnapshot(collection(db, "dpps"), s => {  
-        const g = document.getElementById("manageDPPGrid"); g.innerHTML = "";  
-        s.forEach(d => { const dp = d.data(); g.innerHTML += `<div class="bg-black/30 p-4 rounded-xl flex flex-col gap-3 text-[11px] border border-white/10 hover:border-white/20 transition-all"><div><span class="text-amber-400 font-bold block mb-1">[${dp.batch}]</span><span class="font-bold text-white leading-relaxed">${dp.title}</span></div><div class="flex gap-2 mt-auto pt-2 border-t border-white/5"><button onclick='window.editItem("dpp", ${JSON.stringify({...dp, id:d.id})})' class="bg-indigo-600/20 text-indigo-400 font-bold px-3 py-1.5 rounded-lg flex-1">EDIT</button><button onclick="window.delDoc('dpps','${d.id}')" class="bg-red-600/20 text-red-400 font-bold px-3 py-1.5 rounded-lg flex-1">DEL</button></div></div>`; });  
+        const g = document.getElementById("manageDPPGrid"); g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black mt-2'>DPP Tests</p>";  
+        s.forEach(d => { const dp = d.data(); g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900"><span><b>[${dp.batch}]</b> ${dp.title}</span><div class="flex gap-2"><button onclick='window.editItem("dpp", ${JSON.stringify({...dp, id:d.id})})' class="text-orange-600 font-bold">EDIT</button><button onclick="window.delDoc('dpps','${d.id}')" class="text-red-600 font-bold">DEL</button></div></div>`; });  
     });  
     onSnapshot(collection(db, "secure_ebooks"), s => {  
-        const g = document.getElementById("manageBookGrid"); g.innerHTML = "";  
-        s.forEach(d => { const b = d.data(); g.innerHTML += `<div class="bg-black/30 p-4 rounded-xl flex flex-col gap-3 text-[11px] border border-white/10 hover:border-white/20 transition-all"><span class="font-bold text-white leading-relaxed">${b.title}</span><div class="flex gap-2 mt-auto pt-2 border-t border-white/5"><button onclick='window.editItem("book", ${JSON.stringify({...b, id:d.id})})' class="bg-indigo-600/20 text-indigo-400 font-bold px-3 py-1.5 rounded-lg flex-1">EDIT</button><button onclick="window.delDoc('secure_ebooks','${d.id}')" class="bg-red-600/20 text-red-400 font-bold px-3 py-1.5 rounded-lg flex-1">DEL</button></div></div>`; });  
+        const g = document.getElementById("manageBookGrid"); g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black mt-2'>Books</p>";  
+        s.forEach(d => { const b = d.data(); g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900"><span>${b.title}</span><div class="flex gap-2"><button onclick='window.editItem("book", ${JSON.stringify({...b, id:d.id})})' class="text-orange-600 font-bold">EDIT</button><button onclick="window.delDoc('secure_ebooks','${d.id}')" class="text-red-600 font-bold">DEL</button></div></div>`; });  
     });  
     onSnapshot(collection(db, "users"), s => { allUsers = []; s.forEach(d => allUsers.push({...d.data(), id: d.id})); renderUserList(allUsers); });  
 }  
   
 window.editItem = (type, data) => {  
     window.switchTab('admin'); window.showAdminSection('publish');  
-    if(type === 'lec') { editLecId = data.id; document.getElementById('lec-batch').value = data.batch; document.getElementById('lec-chapter').value = data.chapter; document.getElementById('lec-title').value = data.title; document.getElementById('lec-link').value = data.link; document.getElementById('lec-notes').value = data.notes; document.getElementById('lec-save-btn').innerText = "UPDATE LECTURE"; } 
-    else if (type === 'dpp') { editDppId = data.id; document.getElementById('dpp-batch').value = data.batch; document.getElementById('dpp-title').value = data.title; document.getElementById('dpp-data').value = data.data; document.getElementById('dpp-save-btn').innerText = "UPDATE DPP"; } 
-    else if (type === 'book') { editBookId = data.id; document.getElementById('book-title').value = data.title; document.getElementById('book-link').value = data.link; document.getElementById('book-price').value = data.price; document.getElementById('book-access').value = data.access; document.getElementById('book-save-btn').innerText = "UPDATE BOOK"; }  
+    if(type === 'lec') {  
+        editLecId = data.id; document.getElementById('lec-batch').value = data.batch; document.getElementById('lec-chapter').value = data.chapter; document.getElementById('lec-title').value = data.title; document.getElementById('lec-link').value = data.link; document.getElementById('lec-notes').value = data.notes; document.getElementById('lec-save-btn').innerText = "UPDATE LECTURE";  
+    } else if (type === 'dpp') {  
+        editDppId = data.id; document.getElementById('dpp-batch').value = data.batch; document.getElementById('dpp-title').value = data.title; document.getElementById('dpp-data').value = data.data; document.getElementById('dpp-save-btn').innerText = "UPDATE DPP";  
+    } else if (type === 'book') {  
+        editBookId = data.id; document.getElementById('book-title').value = data.title; document.getElementById('book-link').value = data.link; document.getElementById('book-price').value = data.price; document.getElementById('book-access').value = data.access; document.getElementById('book-save-btn').innerText = "UPDATE BOOK";  
+    }  
+};  
+
+// --- SIGNATURE MANAGEMENT FUNCTIONS START ---
+window.saveSignature = async () => {
+    const className = document.getElementById('sig-class').value.toUpperCase().trim();
+    const url = document.getElementById('sig-url').value.trim();
+    if (!className || !url) { alert("Please enter both Class and Signature URL"); return; }
+
+    classTeacherSignatures[className] = url;
+    await setDoc(doc(db, "settings", "app"), { signatures: classTeacherSignatures }, {merge: true});
+    alert("Signature Saved Successfully!");
+    
+    document.getElementById('sig-class').value = "";
+    document.getElementById('sig-url').value = "";
+    document.getElementById('sig-save-btn').innerText = "SAVE SIGNATURE";
+    window.renderSignatures();
+};
+
+window.deleteSignature = async (className) => {
+    if (className === "DEFAULT") { alert("Cannot delete DEFAULT signature. You can only edit it."); return; }
+    if (confirm("Are you sure you want to delete the signature for class " + className + "?")) {
+        delete classTeacherSignatures[className];
+        await setDoc(doc(db, "settings", "app"), { signatures: classTeacherSignatures }, {merge: true});
+        alert("Signature Deleted!");
+        window.renderSignatures();
+    }
+};
+
+window.editSignature = (className, url) => {
+    window.switchTab('admin'); 
+    window.showAdminSection('publish');
+    document.getElementById('sig-class').value = className;
+    document.getElementById('sig-url').value = url;
+    document.getElementById('sig-save-btn').innerText = "UPDATE SIGNATURE";
+};
+
+window.renderSignatures = () => {
+    const g = document.getElementById("manageSigGrid");
+    if(!g) return;
+    g.innerHTML = "<p class='text-[10px] text-blue-600 uppercase font-black mt-2'>Class Teacher Signatures</p>";
+    Object.keys(classTeacherSignatures).forEach(key => {
+        const url = classTeacherSignatures[key];
+        g.innerHTML += `<div class="bg-blue-50 p-3 rounded-xl flex justify-between items-center text-[10px] border border-blue-200 shadow-sm text-slate-900">
+            <div class="flex items-center gap-3">
+                <img src="${url}" class="h-8 w-16 object-contain bg-white border border-slate-200 rounded px-1">
+                <span><b>Class: ${key}</b></span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick='window.editSignature("${key}", "${url}")' class="text-orange-600 font-bold">EDIT</button>
+                ${key !== 'DEFAULT' ? `<button onclick='window.deleteSignature("${key}")' class="text-red-600 font-bold">DEL</button>` : ''}
+            </div>
+        </div>`;
+    });
+};
+// --- SIGNATURE MANAGEMENT FUNCTIONS END ---
+  
+window.saveLecture = async () => {  
+    const id = editLecId || ("lec_" + Date.now());  
+    await setDoc(doc(db,"lectures", id), { batch: document.getElementById('lec-batch').value.toUpperCase(), chapter: document.getElementById('lec-chapter').value, title: document.getElementById('lec-title').value, link: document.getElementById('lec-link').value, notes: document.getElementById('lec-notes').value }, {merge: true});  
+    alert("Saved!"); editLecId = null; document.getElementById('lec-save-btn').innerText = "SAVE LECTURE";  
+    ['lec-batch','lec-chapter','lec-title','lec-link','lec-notes'].forEach(i=>document.getElementById(i).value="");  
 };  
   
-window.saveLecture = async () => { const id = editLecId || ("lec_" + Date.now()); await setDoc(doc(db,"lectures", id), { batch: document.getElementById('lec-batch').value.toUpperCase(), chapter: document.getElementById('lec-chapter').value, title: document.getElementById('lec-title').value, link: document.getElementById('lec-link').value, notes: document.getElementById('lec-notes').value }, {merge: true}); alert("Saved!"); editLecId = null; document.getElementById('lec-save-btn').innerText = "SAVE LECTURE"; ['lec-batch','lec-chapter','lec-title','lec-link','lec-notes'].forEach(i=>document.getElementById(i).value=""); };  
-window.saveDPP = async () => { const id = editDppId || ("dpp_" + Date.now()); await setDoc(doc(db, "dpps", id), { batch: document.getElementById("dpp-batch").value.toUpperCase(), title: document.getElementById("dpp-title").value, data: document.getElementById("dpp-data").value }, {merge: true}); alert("Saved!"); editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE DPP"; ['dpp-batch','dpp-title','dpp-data'].forEach(i=>document.getElementById(i).value=""); };  
-window.saveBook = async () => { const id = editBookId || ("book_" + Date.now()); await setDoc(doc(db,"secure_ebooks", id), { title: document.getElementById('book-title').value, link: document.getElementById('book-link').value, price: document.getElementById('book-price').value, access: document.getElementById('book-access').value }, {merge: true}); alert("Saved!"); editBookId = null; document.getElementById('book-save-btn').innerText = "SAVE BOOK"; ['book-title','book-link','book-price','book-access'].forEach(i=>document.getElementById(i).value=""); };  
+window.saveDPP = async () => {  
+    const id = editDppId || ("dpp_" + Date.now());  
+    await setDoc(doc(db, "dpps", id), { batch: document.getElementById("dpp-batch").value.toUpperCase(), title: document.getElementById("dpp-title").value, data: document.getElementById("dpp-data").value }, {merge: true});   
+    alert("Saved!"); editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE DPP";  
+    ['dpp-batch','dpp-title','dpp-data'].forEach(i=>document.getElementById(i).value="");  
+};  
+  
+window.saveBook = async () => {  
+    const id = editBookId || ("book_" + Date.now());  
+    await setDoc(doc(db,"secure_ebooks", id), { title: document.getElementById('book-title').value, link: document.getElementById('book-link').value, price: document.getElementById('book-price').value, access: document.getElementById('book-access').value }, {merge: true});  
+    alert("Saved!"); editBookId = null; document.getElementById('book-save-btn').innerText = "SAVE BOOK";  
+    ['book-title','book-link','book-price','book-access'].forEach(i=>document.getElementById(i).value="");  
+};  
   
 function loadBooks() {  
     onSnapshot(collection(db, "secure_ebooks"), snap => {  
@@ -1108,7 +1538,7 @@ function loadBooks() {
             const b = d.data(); const userEmail = auth.currentUser.email.toLowerCase().trim();  
             const accessList = b.access ? b.access.toLowerCase().split(',').map(e => e.trim()) : [];  
             const ok = accessList.includes('all') || accessList.includes(userEmail) || userEmail === adminEmail.toLowerCase();   
-            g.innerHTML += `<div class="glass flex flex-col justify-between p-6 hover:bg-white/10 transition-colors group"><div class="mb-4"><b class="text-sm uppercase text-white leading-tight block mb-2">${b.title}</b><p class="text-emerald-400 font-black text-xs bg-emerald-900/30 px-3 py-1 rounded-lg w-fit border border-emerald-800/50">₹${b.price}</p></div><button onclick="${ok?`window.openMedia('${b.link}', '${b.title}')`:`window.open('https://wa.me/919229809156')`}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[11px] font-black tracking-wider uppercase shadow-lg transition-all"><i class="fas ${ok?'fa-book-open':'fa-shopping-cart'} mr-2"></i>${ok?'READ NOW':'BUY NOW'}</button></div>`;   
+            g.innerHTML += `<div class="glass flex justify-between items-center p-4"><div><b class="text-xs uppercase text-slate-900">${b.title}</b><p class="text-orange-600 font-bold text-[10px]">₹${b.price}</p></div><button onclick="${ok?`window.openMedia('${b.link}', '${b.title}')`:`window.open('https://wa.me/919229809156')`}" class="bg-orange-600 text-white px-5 py-2 rounded-xl text-[9px] font-bold shadow-lg">${ok?'READ':'BUY'}</button></div>`;   
         });  
     });  
 }  
@@ -1117,39 +1547,108 @@ function renderUserList(users) {
     const list = document.getElementById("adminUserList"); list.innerHTML = "";  
     users.forEach(u => {  
         const active = u.erpExpiry?.toDate() > new Date();  
-        let btns = appBatches.map(b => `<button onclick="window.grant('${u.id}', '${b.name}')" class="bg-white/5 text-indigo-300 text-[9px] px-2 py-2 rounded-lg font-bold border border-white/10 hover:bg-indigo-600 hover:text-white transition-all uppercase truncate">+ ${b.name}</button>`).join('');  
-        list.innerHTML += `<div class="glass !p-5 border-l-4 ${active?'border-indigo-500':'border-white/10'} flex flex-col h-full">  
-            <div class="flex justify-between items-start text-xs text-white mb-4">  
-                <div class="space-y-1"><b class="text-sm">${u.name || 'User'}</b><br><span class="opacity-60 text-[10px] break-all">${u.email}</span><br>  
-                <span class="text-indigo-400 font-black text-[10px] uppercase bg-indigo-900/30 px-2 py-1 rounded-md inline-block mt-2 border border-indigo-800/50">BATCH: ${u.activeBatchCode || 'NONE'}</span><br>  
-                <span class="${u.deviceLocked?'text-red-400 bg-red-900/30 border-red-800/50':'text-emerald-400 bg-emerald-900/30 border-emerald-800/50'} font-bold text-[10px] uppercase px-2 py-1 rounded-md inline-block mt-1 border">LOCKED: ${u.deviceLocked || 'NO'}</span></div>  
-                <button onclick="window.resetD('${u.id}')" class="text-red-400 font-bold bg-red-900/20 px-3 py-2 rounded-xl border border-red-900/30 hover:bg-red-900/40 transition-colors text-[10px]">UNLOCK</button>  
+        let btns = appBatches.map(b => `<button onclick="window.grant('${u.id}', '${b.name}')" class="bg-slate-50 text-orange-600 text-[8px] px-2 py-1.5 rounded-lg font-bold border border-slate-200 hover:bg-orange-600 hover:text-white transition-all">+ ${b.name}</button>`).join('');  
+        list.innerHTML += `<div class="glass !p-4 border-l-4 ${active?'border-orange-500':'border-slate-300'} mb-2">  
+            <div class="flex justify-between items-start text-[10px] text-slate-900">  
+                <div><b>${u.name || 'User'}</b><br><span class="text-slate-500">${u.email}</span><br>  
+                <span class="text-orange-600 font-black">BATCH: ${u.activeBatchCode || 'NONE'}</span><br>  
+                <span class="${u.deviceLocked?'text-red-600':'text-green-600'} font-bold">LOCKED: ${u.deviceLocked || 'NO'}</span></div>  
+                <button onclick="window.resetD('${u.id}')" class="text-red-600 font-bold bg-red-50 px-3 py-2 rounded-xl border border-red-200">UNLOCK</button>  
             </div>  
-            <div class="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-white/5">${btns}</div></div>`;  
+            <div class="grid grid-cols-3 gap-2 mt-4">${btns}</div></div>`;  
     });  
 }  
   
 window.addNewPlanInput = (name = '', price = '') => {  
-    const pi = document.getElementById("plan-inputs"); const div = document.createElement('div'); div.className = "flex flex-col sm:flex-row gap-2 plan-row mb-2 bg-white/5 p-3 rounded-xl border border-white/10"; div.innerHTML = `<input class="p-name publisher-input !m-0 !bg-transparent border-none flex-1 font-bold" placeholder="Batch Name" value="${name}"> <input class="p-price publisher-input !m-0 !bg-transparent border-none w-full sm:w-24 text-emerald-400 font-bold" placeholder="Price ₹" value="${price}"> <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 px-3 py-2 bg-red-900/20 rounded-lg"><i class="fas fa-trash"></i></button>`;  
+    const pi = document.getElementById("plan-inputs"); const div = document.createElement('div');  
+    div.className = "flex gap-1 plan-row mb-1"; div.innerHTML = `<input class="p-name publisher-input !m-0" placeholder="Batch" value="${name}"> <input class="p-price publisher-input !m-0" placeholder="Price" value="${price}"> <button onclick="this.parentElement.remove()" class="text-red-500 px-2"><i class="fas fa-trash"></i></button>`;  
     pi.appendChild(div);  
 };  
+
+window.addNewSessionInput = (val = '') => {
+    const pi = document.getElementById("dynamic-session-inputs"); const div = document.createElement('div');
+    div.className = "flex gap-1 session-row mb-1"; div.innerHTML = `<input class="s-name publisher-input !m-0" placeholder="e.g. 2025-26" value="${val}"> <button onclick="this.parentElement.remove()" class="text-red-500 px-2"><i class="fas fa-trash"></i></button>`;
+    pi.appendChild(div);
+};
+
+window.addNewExamInput = (val = '') => {
+    const pi = document.getElementById("dynamic-exam-inputs"); const div = document.createElement('div');
+    div.className = "flex gap-1 exam-row mb-1"; div.innerHTML = `<input class="e-name publisher-input !m-0" placeholder="e.g. PMT" value="${val}"> <button onclick="this.parentElement.remove()" class="text-red-500 px-2"><i class="fas fa-trash"></i></button>`;
+    pi.appendChild(div);
+};
+
+function renderExamSessionUI() {
+    const sContainer = document.getElementById("dynamic-session-inputs"); sContainer.innerHTML = "";
+    const eContainer = document.getElementById("dynamic-exam-inputs"); eContainer.innerHTML = "";
+    appSessions.forEach(s => window.addNewSessionInput(s));
+    appExams.forEach(e => window.addNewExamInput(e));
+}
+
+function populateDropdowns() {
+    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session'];
+    const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam'];
+
+    sessionSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = appSessions.map(s => `<option value="${s}">${s}</option>`).join('');
+    });
+
+    examSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = appExams.map(e => `<option value="${e}">${e.replace(/_/g, ' ')}</option>`).join('');
+    });
+}
   
 async function loadSettings() {   
     const s = await getDoc(doc(db,"settings","app"));   
     if(s.exists()) {  
-        appBatches = s.data().batches || [];   
+        const data = s.data();
+        appBatches = data.batches || [];   
+        appSessions = data.sessions && data.sessions.length > 0 ? data.sessions : appSessions;
+        appExams = data.exams && data.exams.length > 0 ? data.exams : appExams;
+        
+        // Sync Signatures from Firestore database to our variable
+        if (data.signatures) {
+            classTeacherSignatures = { ...classTeacherSignatures, ...data.signatures };
+        }
+
         const pc = document.getElementById("plans-container"); pc.innerHTML = "";  
         const pi = document.getElementById("plan-inputs"); pi.innerHTML = "";  
         appBatches.forEach(b => {  
             window.addNewPlanInput(b.name, b.price);  
-            pc.innerHTML += `<div class="bg-white/5 border border-white/10 p-5 rounded-2xl flex justify-between items-center"><b class="text-xs uppercase text-white tracking-wide">${b.name}</b><button onclick="window.open('https://wa.me/919229809156?text=Enroll in ${b.name}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg transition-all uppercase">₹${b.price} ENROLL</button></div>`;  
+            pc.innerHTML += `<div class="bg-white border border-slate-200 p-4 rounded-2xl flex justify-between items-center shadow-sm"><b class="text-xs uppercase text-slate-900">${b.name}</b><button onclick="window.open('https://wa.me/919229809156?text=Enroll in ${b.name}')" class="bg-orange-600 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg">₹${b.price} ENROLL</button></div>`;  
         });  
-        if(auth.currentUser?.email === adminEmail) renderUserList(allUsers);  
-    }  
+
+        renderExamSessionUI();
+        populateDropdowns();
+
+        if(auth.currentUser?.email === adminEmail) {
+            renderUserList(allUsers);
+            window.renderSignatures();
+        } 
+    } else {
+        renderExamSessionUI();
+        populateDropdowns();
+        if(auth.currentUser?.email === adminEmail) {
+            window.renderSignatures();
+        }
+    }
 }  
+
+window.saveExamSettings = async () => {
+    let sessions = []; document.querySelectorAll('.session-row .s-name').forEach(i => { if(i.value.trim()) sessions.push(i.value.trim().toUpperCase()); });
+    let exams = []; document.querySelectorAll('.exam-row .e-name').forEach(i => { if(i.value.trim()) exams.push(i.value.trim().toUpperCase().replace(/ /g, '_')); });
+
+    await setDoc(doc(db,"settings","app"), { sessions: sessions, exams: exams }, {merge:true});
+    alert("Exam & Session Settings Saved! Changes are active globally.");
+    loadSettings();
+};
   
 window.saveSettings = async () => {   
-    let batches = []; document.querySelectorAll('.plan-row').forEach(row => { const n = row.querySelector('.p-name').value.toUpperCase(); const p = row.querySelector('.p-price').value; if(n) batches.push({ name: n, price: p }); });  
+    let batches = []; document.querySelectorAll('.plan-row').forEach(row => {  
+        const n = row.querySelector('.p-name').value.toUpperCase(); const p = row.querySelector('.p-price').value;  
+        if(n) batches.push({ name: n, price: p });  
+    });  
     await setDoc(doc(db,"settings","app"), { batches }, {merge:true}); alert("Batches Saved!"); loadSettings();   
 };  
   
@@ -1157,7 +1656,7 @@ window.openChapter = (ch) => {
     document.getElementById("chapter-view").classList.add("hidden"); document.getElementById("lecture-list-view").classList.remove("hidden");  
     document.getElementById("current-chapter-title").innerText = ch; const container = document.getElementById("lecture-container"); container.innerHTML = "";  
     currentLectures.filter(l => l.chapter === ch).forEach(l => {  
-        container.innerHTML += `<div class="glass !p-5 flex flex-col justify-between gap-4 hover:bg-white/10 transition-colors"><b class="text-xs uppercase text-white font-black leading-relaxed">${l.title}</b><div class="flex gap-3"><button onclick="window.openMedia('${l.link}', '${l.title}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg transition-all"><i class="fas fa-play mr-2"></i>Watch</button>${l.notes ? `<button onclick="window.openMedia('${l.notes}', 'Notes')" class="flex-1 bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider border border-white/10 transition-all"><i class="fas fa-file-pdf mr-2"></i>Notes</button>` : ''}</div></div>`;  
+        container.innerHTML += `<div class="glass !p-4 space-y-3"><b class="text-[12px] uppercase text-slate-900 font-black">${l.title}</b><div class="flex gap-2"><button onclick="window.openMedia('${l.link}', '${l.title}')" class="bg-orange-600 text-white px-4 py-2 rounded-xl text-[9px] font-bold uppercase shadow-lg">Watch</button>${l.notes ? `<button onclick="window.openMedia('${l.notes}', 'Notes')" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-[9px] font-bold uppercase border border-slate-300">Notes</button>` : ''}</div></div>`;  
     });  
 };  
   
@@ -1166,47 +1665,58 @@ window.showChapters = () => { document.getElementById("chapter-view").classList.
 window.openMedia = (link, title) => {  
     let url = link.replace('/view','/preview');   
     document.getElementById("modal-title").innerText = title;  
-    document.getElementById("modal-content").innerHTML = `<div class="media-wrapper h-full w-full max-w-5xl mx-auto"><div class="protection-overlay"></div><iframe id="media-frame" src="${url}" sandbox="allow-scripts allow-same-origin" allow="autoplay" class="w-full h-full"></iframe></div>`;  
+    document.getElementById("modal-content").innerHTML = `  
+        <div class="media-wrapper h-full">  
+            <div class="protection-overlay"></div>  
+            <iframe id="media-frame" src="${url}" sandbox="allow-scripts allow-same-origin" allow="autoplay"></iframe>  
+        </div>`;  
     document.getElementById("main-modal").style.display = "flex";  
 };  
   
-window.toggleFullScreen = () => { const elem = document.getElementById("modal-content"); if (!document.fullscreenElement) { elem.requestFullscreen().catch(err => { alert(`Error: ${err.message}`); }); } else { document.exitFullscreen(); } };  
-window.delDoc = async (col, id) => { if(confirm("Are you sure?")) await deleteDoc(doc(db, col, id)); };  
+window.toggleFullScreen = () => {  
+    const elem = document.getElementById("modal-content");  
+    if (!document.fullscreenElement) {  
+        elem.requestFullscreen().catch(err => { alert(`Error: ${err.message}`); });  
+    } else {  
+        document.exitFullscreen();  
+    }  
+};  
   
-// Top & Mobile Tab Switching Logic
+window.delDoc = async (col, id) => { if(confirm("Are you sure?")) await deleteDoc(doc(db, col, id)); };  
+
+window.deleteSpecificResults = async () => {
+    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized"); return; }
+    const session = document.getElementById("del-session").value;
+    const exam = document.getElementById("del-exam").value;
+    
+    if(!session || !exam) { alert("Please select both Session and Exam Type."); return; }
+
+    const confirmMsg = `WARNING: Are you sure you want to delete ALL results for:\nSession: ${session}\nExam Type: ${exam.replace(/_/g, ' ')}\n\nThis cannot be undone!`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const q = query(collection(db, "school_results"), where("academic_year", "==", session), where("exam_type", "==", exam));
+        const snap = await getDocs(q);
+        if (snap.empty) { alert("No results found for this selection."); return; }
+
+        let count = 0;
+        snap.forEach(async (d) => {
+            await deleteDoc(doc(db, "school_results", d.id));
+            count++;
+        });
+        alert(`Successfully deleted ${count} results.`);
+    } catch (err) {
+        console.error(err);
+        alert("Failed to delete results.");
+    }
+};
+  
 window.switchTab = (t) => {   
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));   
     document.getElementById('tab-'+t).classList.add('active');   
-    
-    // Reset desktop nav
-    document.querySelectorAll('.nav-btn-desk').forEach(b => { 
-        b.classList.remove('text-indigo-400', 'bg-indigo-500/10'); 
-        if(b.id !== 'btn-account-desktop') b.classList.add('text-slate-400');
-    });
-    
-    // Reset mobile nav
-    document.querySelectorAll('.nav-btn-mob').forEach(b => { 
-        b.classList.remove('text-indigo-400', 'bg-indigo-500/10', 'border', 'border-indigo-500/30'); 
-        b.classList.add('text-slate-300', 'bg-white/5'); 
-    });
-    
-    // Set active desktop
-    let dBtn = document.getElementById('btn-'+t+'-desktop');
-    if(dBtn) { dBtn.classList.remove('text-slate-400'); dBtn.classList.add('text-indigo-400', 'bg-indigo-500/10'); }
-    
-    // Set active mobile
-    let mBtn = document.getElementById('btn-'+t+'-mobile');
-    if(mBtn) { mBtn.classList.remove('text-slate-300', 'bg-white/5'); mBtn.classList.add('text-indigo-400', 'bg-indigo-500/10', 'border', 'border-indigo-500/30'); }
-    
-    // Close mobile menu
-    document.getElementById('mobile-menu').classList.add('hidden');
-    
-    window.scrollTo(0,0);
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));   
+    if(document.getElementById('btn-'+t)) document.getElementById('btn-'+t).classList.add('nav-active');   
 };  
-
-window.toggleMobileMenu = () => {
-    document.getElementById('mobile-menu').classList.toggle('hidden');
-};
   
 window.showAdminSection = (s) => {   
     document.querySelectorAll('.admin-section').forEach(sec => sec.classList.add('hidden'));   
@@ -1215,61 +1725,72 @@ window.showAdminSection = (s) => {
     document.getElementById('sub-btn-'+s).classList.add('active');   
 };  
   
-window.closeModal = () => { if(document.fullscreenElement) document.exitFullscreen(); document.getElementById("main-modal").style.display = "none"; document.getElementById("modal-content").innerHTML=""; };  
-window.login = () => signInWithPopup(auth, prov);  
+window.closeModal = () => {   
+    if(document.fullscreenElement) document.exitFullscreen();  
+    document.getElementById("main-modal").style.display = "none";   
+    document.getElementById("modal-content").innerHTML="";   
+};  
+
+window.login = () => {
+    const btn = document.getElementById("login-btn");
+    const oldText = btn.innerHTML;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> LOGGING IN...`;
+    signInWithPopup(auth, prov).catch(() => {
+        btn.innerHTML = oldText; 
+    });
+};
+
 window.logout = () => signOut(auth);  
-window.resetD = async (id) => { await updateDoc(doc(db, "users", id), { deviceID: null, deviceLocked: false, resetWarnings: true }); alert("User Unlocked & Device Reset Signal Sent Successfully!"); };  
+
+window.resetD = async (id) => {   
+    await updateDoc(doc(db, "users", id), { deviceID: null, deviceLocked: false, resetWarnings: true });   
+    alert("User Unlocked & Device Reset Signal Sent Successfully!");   
+};  
+
 window.grant = async (id, b) => { let exp = new Date(); exp.setFullYear(exp.getFullYear() + 1); await updateDoc(doc(db,"users",id), { erpExpiry: Timestamp.fromDate(exp), activeBatchCode: b }); alert("Batch Assigned!"); };  
   
 window.searchAnalytics = () => {  
     const searchText = document.getElementById("analyticsSearch").value.toLowerCase().trim();  
-    const analyticsDiv = document.getElementById("dppAnalytics"); analyticsDiv.innerHTML = "";  
+    const analyticsDiv = document.getElementById("dppAnalytics");  
+    analyticsDiv.innerHTML = "";  
     if (!searchText) { analyticsDiv.classList.add("hidden"); return; }  
       
     onSnapshot(collection(db, "user_submissions"), snap => {  
-        analyticsDiv.innerHTML = ""; let found = false;  
+        analyticsDiv.innerHTML = "";  
+        let found = false;  
         snap.forEach(docSnap => {  
-            const data = docSnap.data(); const studentName = (data.studentName || "").toLowerCase(); const studentEmail = (data.studentEmail || "").toLowerCase();  
+            const data = docSnap.data();  
+            const studentName = (data.studentName || "").toLowerCase();  
+            const studentEmail = (data.studentEmail || "").toLowerCase();  
             if (studentName.includes(searchText) || studentEmail.includes(searchText)) {  
                 found = true;  
-                let html = `<div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm hover:shadow-md transition-shadow">  
-                    <div class="mb-5 border-b border-slate-100 pb-4">  
-                        <p class="text-black font-black text-sm uppercase">${data.studentName || 'Student'}</p>  
-                        <p class="text-gray-500 text-[11px] mt-1 break-all">${data.studentEmail || ''}</p>  
-                        <p class="text-indigo-600 text-xs font-black uppercase mt-2 bg-indigo-50 px-3 py-1 rounded-lg inline-block"><i class="fas fa-file-signature mr-2"></i>${data.dppId}</p>  
-                    </div><div class="space-y-3">`;  
+                let html = `<div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 mb-4">  
+                    <div class="mb-4">  
+                        <p class="text-slate-900 font-black text-sm">${data.studentName || 'Student'}</p>  
+                        <p class="text-slate-500 text-[10px]">${data.studentEmail || ''}</p>  
+                        <p class="text-orange-600 text-[10px] font-black uppercase mt-1">TEST: ${data.dppId}</p>  
+                    </div>`;  
                 if (data.answers && Array.isArray(data.answers)) {  
                     data.answers.forEach((ans, index) => {  
-                        html += `<div class="rounded-xl p-4 border ${ans.isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}">  
-                            <p class="text-black text-xs font-bold mb-3">${index + 1}. ${ans.question}</p>  
-                            <p class="text-[10px] font-black uppercase tracking-wider ${ans.isCorrect ? 'text-emerald-700' : 'text-red-700'} bg-white px-3 py-1.5 rounded-lg inline-block shadow-sm">${ans.isCorrect ? '<i class="fas fa-check text-emerald-500 mr-2"></i>CORRECT' : '<i class="fas fa-times text-red-500 mr-2"></i>WRONG'}</p>  
+                        html += `<div class="rounded-xl p-3 mb-2 border ${ans.isCorrect ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}">  
+                            <p class="text-slate-900 text-[11px] font-bold mb-2">Q${index + 1}. ${ans.question}</p>  
+                            <p class="text-[10px] font-black uppercase ${ans.isCorrect ? 'text-green-700' : 'text-red-700'}">${ans.isCorrect ? 'CORRECT' : 'WRONG'}</p>  
                         </div>`;  
                     });  
                 }  
-                html += `</div></div>`; analyticsDiv.innerHTML += html;  
+                html += `</div>`;  
+                analyticsDiv.innerHTML += html;  
             }  
         });  
         analyticsDiv.classList.remove("hidden");  
-        if (!found) { analyticsDiv.innerHTML = `<div class="text-center text-gray-500 text-xs py-8 col-span-full font-bold uppercase"><i class="fas fa-search-minus text-3xl mb-3 block text-slate-300"></i>No student data found</div>`; }  
+        if (!found) { analyticsDiv.innerHTML = `<div class="text-center text-slate-500 text-[11px] py-6">No student data found</div>`; }  
     });  
 };  
   
 window.downloadResult = async () => {  
     const element = document.getElementById("result-display-panel");  
     if (!element || element.classList.contains("hidden")) { alert("No result to download!"); return; }  
-    
-    // Add a temporary class to ensure it's fully visible and styled correctly for the canvas
-    const originalWidth = element.style.width;
-    const originalMaxWidth = element.style.maxWidth;
-    element.style.width = '800px'; 
-    element.style.maxWidth = '800px';
-
     const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });  
-    
-    // Restore styling
-    element.style.width = originalWidth;
-    element.style.maxWidth = originalMaxWidth;
-
     const imgData = canvas.toDataURL("image/png");  
     const { jsPDF } = window.jspdf;  
     const pdf = new jsPDF("p", "mm", "a4");  
@@ -1278,8 +1799,9 @@ window.downloadResult = async () => {
       
     let imgWidth = usableWidth; let imgHeight = (canvas.height * imgWidth) / canvas.width;  
     if (imgHeight > usableHeight) { imgHeight = usableHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }  
-    pdf.addImage(imgData, "PNG", (pageWidth - imgWidth) / 2, margin, imgWidth, imgHeight);  
-    pdf.save("Aarav_EdTech_Result.pdf");  
+    const x = (pageWidth - imgWidth) / 2; const y = margin;  
+    pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);  
+    pdf.save("result_A4.pdf");  
 };  
 </script>  
 </body>  
