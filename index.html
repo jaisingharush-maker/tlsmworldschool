@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>  
   /* Pure White Background & App Load Animation */  
   @keyframes popAnimation {
@@ -209,6 +210,7 @@
         <div onclick="showAdminSection('manage')" id="sub-btn-manage" class="admin-sub-tab">MANAGE</div>  
         <div onclick="showAdminSection('users')" id="sub-btn-users" class="admin-sub-tab">USERS</div>  
         <div onclick="showAdminSection('excel-results')" id="sub-btn-excel-results" class="admin-sub-tab">EXCEL RESULTS</div>  
+        <div onclick="showAdminSection('reeval')" id="sub-btn-reeval" class="admin-sub-tab text-blue-600">RE-EVAL</div>
         <div onclick="showAdminSection('feedback')" id="sub-btn-feedback" class="admin-sub-tab">FEEDBACK</div>  
     </div>  
     
@@ -339,6 +341,30 @@
         </div>
     </div>
     
+    <div id="sec-reeval" class="admin-section hidden pb-20">
+        <div class="glass !p-4 border-2 border-blue-200 max-w-2xl mx-auto mb-6">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-file-signature mr-1"></i> Re-evaluation & Dispute Desk</p>
+            <p class="text-[10px] text-slate-500 mb-4">Manage copy uploads and live active doubts/chats from students here.</p>
+            <div id="adminReevalList" class="space-y-4">
+                <p class="text-xs font-bold text-slate-400 text-center py-4">Loading Desk Engine...</p>
+            </div>
+        </div>
+
+        <div class="glass !p-5 border-2 border-emerald-500 max-w-2xl mx-auto">
+            <p class="text-[12px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-edit mr-1"></i> Update Student Marks Directly</p>
+            <p class="text-[10px] text-slate-500 mb-4">Admin can directly rewrite or change marks for any student subject here.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="admin-update-scholar" class="publisher-input" placeholder="Scholar ID (e.g. 2026101)">
+                <select id="admin-update-session" class="publisher-input bg-white text-slate-900"></select>
+                <select id="admin-update-exam" class="publisher-input bg-white text-slate-900"></select>
+                <input type="text" id="admin-update-subject" class="publisher-input" placeholder="Subject Name (e.g. MATHEMATICS)">
+                <input type="number" id="admin-update-theory" class="publisher-input" placeholder="New Theory Marks">
+                <input type="number" id="admin-update-practical" class="publisher-input" placeholder="New Practical / IA Marks">
+            </div>
+            <button onclick="window.adminDirectUpdateMarks()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] mt-4 shadow-lg uppercase tracking-wider"><i class="fas fa-save mr-1"></i> Apply & Update Marks</button>
+        </div>
+    </div>
+
     <div id="sec-feedback" class="admin-section hidden pb-20">
         <div class="glass !p-4 border border-orange-200 text-center max-w-md mx-auto">
             <p class="text-[12px] font-black text-slate-900 mb-2 uppercase"><i class="fas fa-chart-pie mr-1 text-orange-600"></i> App Feedback Overview</p>
@@ -390,6 +416,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, Timestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";  
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";  
 
+// EmailJS Initialization
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Apna EmailJS Public Key yahan lagana bhaiya
+
 window.toggleMobileMenu = () => {
     const nav = document.getElementById('top-nav');
     nav.classList.toggle('hidden');
@@ -414,7 +443,6 @@ window.getGrade = function(percent) {
     return "E";  
 };
 
-// Naya function: Subject codes ko automatically match aur assign karne ke liye
 window.getSubjectCode = function(subName, fallbackCode) {
     if (!subName) return fallbackCode || '---';
     const name = subName.toUpperCase().trim();
@@ -427,7 +455,6 @@ window.getSubjectCode = function(subName, fallbackCode) {
     return fallbackCode || '---';
 };
 
-// DYNAMIC SIGNATURES STATE
 let classTeacherSignatures = {
     "DEFAULT": "https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png" 
 };
@@ -444,7 +471,7 @@ let editLecId = null; let editDppId = null; let editBookId = null;
 let userCompletedDPPs = {};  
 let quizStarted = false; let quizSubmitted = false;  
 let isResultsPortalVisible = false;
-let feedbackChartInstance = null; // Graph instance
+let feedbackChartInstance = null;
 
 async function buildPerformanceChartData(scholarId, currentExam, academicYear, currentSubjects) {
     let datasets = [];
@@ -564,7 +591,6 @@ function lockDevice(reason) {
     document.getElementById("lock-reason").innerText = reason;  
 }  
 
-// Function to handle student feedback submission
 window.submitFeedback = async (vote) => {
     if (!globalUID || !auth.currentUser) {
         alert("Please login first to submit feedback.");
@@ -592,7 +618,6 @@ window.submitFeedback = async (vote) => {
     }
 };
 
-// Function to load and render admin feedback pie chart
 function loadFeedbackData() {
     onSnapshot(collection(db, "app_feedback"), snap => {
         let yesCount = 0;
@@ -628,7 +653,7 @@ function loadFeedbackData() {
                 labels: ['Yes', 'No'],
                 datasets: [{
                     data: [yesCount, noCount],
-                    backgroundColor: ['#10b981', '#ef4444'], // Emerald for Yes, Red for No
+                    backgroundColor: ['#10b981', '#ef4444'], 
                     borderColor: '#ffffff',
                     borderWidth: 2
                 }]
@@ -772,6 +797,132 @@ window.toggleResultVisibility = async () => {
     }
 };
 
+// Student applies for Re-evaluation Framework with Multiple Parameter Selection
+window.applyReevaluation = async (docId) => {
+    const sessionSel = document.getElementById(`reeval-session-${docId}`).value;
+    const examSel = document.getElementById(`reeval-exam-${docId}`).value;
+    
+    // Multiple checkboxes selection handling
+    const checkedBoxes = document.querySelectorAll(`.reeval-subject-checkbox-${docId}:checked`);
+    let selectedSubjects = [];
+    checkedBoxes.forEach(cb => selectedSubjects.push(cb.value));
+
+    if(selectedSubjects.length === 0) {
+        alert("Please select at least one subject for re-evaluation!");
+        return;
+    }
+
+    const subjectString = selectedSubjects.join(', ');
+
+    if(!confirm(`Are you sure you want to apply for Re-evaluation of ${subjectString}?`)) return;
+    try {
+        await updateDoc(doc(db, "school_results", docId), { 
+            reevaluation_status: "PENDING",
+            reeval_selected_session: sessionSel,
+            reeval_selected_exam: examSel,
+            reeval_selected_subject: subjectString, // Stored as comma separated string
+            student_email: auth.currentUser.email || ""
+        });
+        alert("Applied Successfully! Admin panel has been notified with selected choices.");
+        window.fetchStudentResult(); 
+    } catch(e) {
+        alert("Failed to submit request.");
+    }
+};
+
+// Student sends a Chat message (Dispute Mini-Chat)
+window.sendDisputeMessage = async (docId) => {
+    const input = document.getElementById("dispute-msg-input");
+    const msg = input.value.trim();
+    if(!msg) return;
+
+    try {
+        const docRef = doc(db, "school_results", docId);
+        const docSnap = await getDoc(docRef);
+        let messages = docSnap.data().dispute_messages || [];
+        
+        messages.push({ sender: 'student', text: msg, timestamp: new Date().toISOString() });
+        
+        await updateDoc(docRef, { 
+            dispute_messages: messages,
+            dispute_status: "ACTIVE" 
+        });
+        
+        input.value = "";
+        window.fetchStudentResult(); 
+    } catch(e) {
+        alert("Failed to send message.");
+    }
+};
+
+// Admin Direct Marks Update Execution Pipeline
+window.adminDirectUpdateMarks = async () => {
+    if (!isCurrentUserAdmin) return;
+    const sId = document.getElementById("admin-update-scholar").value.trim().toUpperCase();
+    const session = document.getElementById("admin-update-session").value;
+    const exam = document.getElementById("admin-update-exam").value;
+    const subjectName = document.getElementById("admin-update-subject").value.trim().toUpperCase();
+    const newTheory = document.getElementById("admin-update-theory").value;
+    const newPractical = document.getElementById("admin-update-practical").value;
+
+    if(!sId || !subjectName || newTheory === "" || newPractical === "") {
+        alert("Please fill all the operational configuration details completely!");
+        return;
+    }
+
+    const targetDocId = `${sId}_${exam}_${session}`;
+    try {
+        const docRef = doc(db, "school_results", targetDocId);
+        const docSnap = await getDoc(docRef);
+
+        if(!docSnap.exists()) {
+            alert("No report record matches this Scholar ID, Exam Type, and Session.");
+            return;
+        }
+
+        let data = docSnap.data();
+        let subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json;
+        let subjectFound = false;
+
+        subjects = subjects.map(sub => {
+            if(sub.name.toUpperCase().trim() === subjectName) {
+                subjectFound = true;
+                let th = Number(newTheory);
+                let pr = Number(newPractical);
+                let tot = th + pr;
+                let max = sub.fullMarks || 100;
+                let percent = (tot / max) * 100;
+                let newGrade = window.getGrade(percent);
+
+                return {
+                    ...sub,
+                    theory: th,
+                    practical: pr,
+                    total: tot,
+                    grade: newGrade
+                };
+            }
+            return sub;
+        });
+
+        if(!subjectFound) {
+            alert("This subject does not exist in the student's class record grid!");
+            return;
+        }
+
+        await updateDoc(docRef, { subjects_json: subjects });
+        alert(`Success! Marks updated securely for ${subjectName}.`);
+        
+        // Reset Inputs
+        document.getElementById("admin-update-subject").value = "";
+        document.getElementById("admin-update-theory").value = "";
+        document.getElementById("admin-update-practical").value = "";
+    } catch(e) {
+        console.error(e);
+        alert("Marks rewrite transmission failure.");
+    }
+};
+
 window.fetchStudentResult = async () => {  
     if (!isResultsPortalVisible && !isCurrentUserAdmin) {
         alert("Action Forbidden. Results portal is offline right now.");
@@ -885,7 +1036,6 @@ window.fetchStudentResult = async () => {
             }
         }  
 
-        // ADDING MEDAL ICONS LOGIC
         let medalIcon = "";
         if (classRank === 1) medalIcon = "<span class='text-lg ml-1' title='Rank 1'>🥇</span>";
         else if (classRank === 2) medalIcon = "<span class='text-lg ml-1' title='Rank 2'>🥈</span>";
@@ -897,7 +1047,7 @@ window.fetchStudentResult = async () => {
             let calculatedMax = Number(sub.fullMarks || 100);  
             let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;  
             let dynamicGrade = (sub.grade && sub.grade !== "E" && sub.grade.trim() !== "") ? sub.grade : window.getGrade(subPercent);  
-            let displayCode = window.getSubjectCode(sub.name, sub.code); // Dynamically getting the new subject code
+            let displayCode = window.getSubjectCode(sub.name, sub.code); 
   
             subjectRows += `  
             <tr class="border-b border-slate-300 text-[11px] text-center text-slate-800">  
@@ -931,6 +1081,69 @@ window.fetchStudentResult = async () => {
             } else {
                 daysPresentStr = dp + " Days";
             }
+        }
+
+        // UPDATED MULTIPLE SUBJECTS UI PIPELINE WITH CHECKBOXES
+        let reevalUI = "";
+        if (data.reevaluation_status === "PENDING") {
+            reevalUI = `<div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <p class="text-[10px] font-bold text-amber-700 uppercase"><i class="fas fa-clock mr-1"></i> Re-evaluation Request Pending...</p>
+                <p class="text-[9px] font-bold text-slate-700 mt-1">Subjects Chosen: <span class="text-orange-600">${data.reeval_selected_subject || 'N/A'}</span></p>
+                <p class="text-[8px] text-amber-600 mt-0.5">Admin will upload your digital copy shortly.</p>
+            </div>`;
+        } else if (data.reevaluation_status === "COMPLETED" && data.answer_sheet_url) {
+            let chatHtml = "";
+            if (data.dispute_messages && data.dispute_messages.length > 0) {
+                chatHtml = `<div class="mt-2 text-left bg-white p-2 rounded-xl border border-slate-200 h-28 overflow-y-auto mb-2 text-[9px]">`;
+                data.dispute_messages.forEach(msg => {
+                    let isAdmin = (msg.sender === 'admin');
+                    chatHtml += `<div class="mb-1.5 ${isAdmin ? 'text-blue-700 text-left' : 'text-slate-800 text-right'}">
+                        <span class="font-black">${isAdmin ? 'ADMIN' : 'YOU'}:</span> ${msg.text}
+                    </div>`;
+                });
+                chatHtml += `</div>`;
+            }
+
+            let chatInputHtml = data.dispute_status !== "RESOLVED" ? `
+                <div class="flex gap-2 mt-2">
+                    <input type="text" id="dispute-msg-input" class="publisher-input !mb-0 flex-1 text-[10px]" placeholder="Type your dynamic doubt here...">
+                    <button onclick="window.sendDisputeMessage('${targetDocId}')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-bold shadow-md"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            ` : `<p class="text-[9px] text-green-600 font-bold mt-2 uppercase tracking-wider"><i class="fas fa-check-double mr-1"></i> This dispute has been marked as RESOLVED</p>`;
+
+            reevalUI = `<div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
+                <p class="text-[10px] font-black text-blue-800 uppercase mb-1"><i class="fas fa-check-circle mr-1"></i> RE-EVALUATION DESK LIVE</p>
+                <p class="text-[9px] font-bold text-slate-700 mb-2">Subjects: <span class="text-orange-600">${data.reeval_selected_subject || 'N/A'}</span></p>
+                <button onclick="window.open('${data.answer_sheet_url}', '_blank')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-md w-full uppercase mb-3 transition-all"><i class="fas fa-file-pdf mr-1"></i> View Digital Answer Sheet</button>
+                
+                <div class="border-t border-blue-200 pt-3">
+                    <p class="text-[9px] font-black text-slate-700 mb-1 uppercase text-left"><i class="fas fa-comments mr-1 text-blue-600"></i> Dispute Resolution Window</p>
+                    ${chatHtml}
+                    ${chatInputHtml}
+                </div>
+            </div>`;
+        } else {
+            // Checkboxes Injection logic for multiple subject selection
+            let subjectCheckboxes = subjects.map(s => `
+                <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-xl cursor-pointer text-xs font-bold text-slate-800 hover:bg-slate-50">
+                    <input type="checkbox" value="${s.name.toUpperCase()}" class="reeval-subject-checkbox-${targetDocId} w-4 h-4 accent-orange-600">
+                    <span>${s.name.toUpperCase()}</span>
+                </label>
+            `).join('');
+
+            reevalUI = `<div class="mt-4 p-4 bg-slate-100 border border-slate-200 rounded-2xl">
+                <p class="text-[10px] font-black text-slate-800 uppercase mb-2 tracking-wide"><i class="fas fa-redo mr-1 text-orange-600"></i> Request Re-evaluation</p>
+                <div class="grid grid-cols-1 gap-2 mb-3">
+                    <input type="hidden" id="reeval-session-${targetDocId}" value="${displayAcademicYear}">
+                    <input type="hidden" id="reeval-exam-${targetDocId}" value="${examType}">
+                    
+                    <label class="text-[9px] font-bold text-slate-600 uppercase block">Select Target Subjects (Multiple Allowed):</label>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        ${subjectCheckboxes}
+                    </div>
+                </div>
+                <button onclick="window.applyReevaluation('${targetDocId}')" class="w-full bg-slate-800 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-md uppercase transition-all hover:bg-slate-900 mt-2"><i class="fas fa-paper-plane mr-1"></i> Submit Request to Admin</button>
+            </div>`;
         }
 
         targetPanel.innerHTML = `  
@@ -1022,7 +1235,7 @@ window.fetchStudentResult = async () => {
                         <img src="${teacherSignUrl}" alt="Signature" class="mx-auto object-contain" style="width: 100px; height: 40px; max-height: 40px;">
                         <p class="text-[9px] font-black text-blue-900 uppercase border-t border-blue-900/30 mt-1 pt-0.5">Class Teacher</p>
                     </div>
-                </div>
+                </div>  
                   
                 ${auth.currentUser.email === adminEmail ? `  
                 <div class="mt-4 text-center">  
@@ -1032,6 +1245,8 @@ window.fetchStudentResult = async () => {
                 </div>  
                 ` : ''}  
                   
+                ${reevalUI}
+
                 <p class="text-[7px] text-slate-500 text-center uppercase tracking-tighter mt-4 leading-tight font-bold text-black">  
                 Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB [MIHIR JAI VISHWANATH SINGH & AARAV JAI VISHWANATH SINGH]. Any unauthorized use, reproduction, modification, or distribution is prohibited and may result in legal action. © 2026 All Rights Reserved | Unauthorized duplication or misuse is prohibited. DEVELOPER CONTACT NUM: 9430444443 / 8986900009
                 </p>  
@@ -1040,21 +1255,21 @@ window.fetchStudentResult = async () => {
         
         targetPanel.classList.remove("hidden");  
 
-        // TRIGGER CONFETTI ANIMATION IF RANK IS 1
         if (classRank === 1) {
             confetti({
                 particleCount: 150,
                 spread: 70,
                 origin: { y: 0.6 },
-                colors: ['#fbbf24', '#f59e0b', '#d97706'] // Golden vibe
+                colors: ['#fbbf24', '#f59e0b', '#d97706'] 
             });
         }
 
         let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
         let ctx = document.getElementById('student-analysis-chart').getContext('2d');
         
+        // Changed Chart Type from 'line' to 'bar' for Subject-wise Analysis
         new Chart(ctx, {
-            type: 'line', 
+            type: 'bar', 
             data: chartData,
             options: {
                 responsive: true,
@@ -1164,7 +1379,6 @@ window.printBulkClassResults = async () => {
                 else daysPresentStr = dp + " Days";
             }
 
-            // MEDAL LOGIC FOR PDF
             let bulkMedalIcon = "";
             if (classRank === 1) bulkMedalIcon = "🥇";
             else if (classRank === 2) bulkMedalIcon = "🥈";
@@ -1262,8 +1476,9 @@ window.printBulkClassResults = async () => {
             let ctx = document.getElementById(`bulk-chart-${idx}`).getContext('2d');
             
             await new Promise((resolve) => {
+                // Changed Bulk Print Chart Type from 'line' to 'bar'
                 new Chart(ctx, {
-                    type: 'line', 
+                    type: 'bar', 
                     data: chartData,
                     options: {
                         responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() },
@@ -1491,6 +1706,72 @@ window.submitQuiz = async () => {
 };  
   
 window.closeQuiz = () => { quizStarted = false; document.getElementById("quiz-modal").style.display = "none"; };  
+
+// ADVANCED EMAILJS ALERTS ENGINE + FIREBASE SYSTEM ASSIGNMENT
+window.approveReeval = async (docId, studentEmail, studentName) => {
+    const urlInput = document.getElementById(`ans-url-${docId}`).value.trim();
+    if(!urlInput) { alert("Please provide the answer sheet URL first!"); return; }
+    
+    const targetBtn = event.target;
+    const oldText = targetBtn.innerText;
+    targetBtn.innerText = "UPLOADING & NOTIFYING...";
+    targetBtn.disabled = true;
+
+    try {
+        await updateDoc(doc(db, "school_results", docId), {
+            reevaluation_status: "COMPLETED",
+            answer_sheet_url: urlInput,
+            dispute_status: "NONE",
+            dispute_messages: [] 
+        });
+
+        // EmailJS Execution Pipeline
+        if (studentEmail && studentEmail.trim() !== "") {
+            await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+                to_email: studentEmail,
+                to_name: studentName,
+                message: "Great news! Your re-evaluated digital answer sheet has been prepared and published by TLSM World School. Please log in to your examination dashboard to analyze it."
+            });
+        }
+
+        alert("Answer sheet successfully bound & auto email dispatcher pipeline completed!");
+    } catch(e) {
+        console.error(e);
+        alert("Firestore transmission fault or EmailJS infrastructure failure.");
+    } finally {
+        targetBtn.innerText = oldText;
+        targetBtn.disabled = false;
+    }
+};
+
+// Admin replies to an active student dispute message
+window.replyDispute = async (docId) => {
+    const inputEl = document.getElementById(`admin-reply-${docId}`);
+    const msg = inputEl.value.trim();
+    if(!msg) return;
+
+    try {
+        const docRef = doc(db, "school_results", docId);
+        const docSnap = await getDoc(docRef);
+        let messages = docSnap.data().dispute_messages || [];
+        
+        messages.push({ sender: 'admin', text: msg, timestamp: new Date().toISOString() });
+        await updateDoc(docRef, { dispute_messages: messages });
+        
+        inputEl.value = "";
+        alert("Reply broadcasted securely!");
+    } catch(e) {
+        alert("Transmission dropped.");
+    }
+};
+
+// Admin completes/resolves the dispute completely
+window.resolveDispute = async (docId) => {
+    if(confirm("Are you absolute sure you want to mark this student ticket dispute as RESOLVED? This locks the discussion timeline.")) {
+        await updateDoc(doc(db, "school_results", docId), { dispute_status: "RESOLVED" });
+        alert("Ticket Closed!");
+    }
+};
   
 function loadAdminData() {  
     onSnapshot(collection(db, "lectures"), s => {  
@@ -1507,7 +1788,60 @@ function loadAdminData() {
     });  
     onSnapshot(collection(db, "users"), s => { allUsers = []; s.forEach(d => allUsers.push({...d.data(), id: d.id})); renderUserList(allUsers); });  
     
-    // Admin ke login hone par feedback data load hoga
+    // RE-EVALUATION REALTIME ADMIN SYNC FRAMEWORK WITH STREAM DESK CONTROLS
+    onSnapshot(query(collection(db, "school_results"), where("reevaluation_status", "in", ["PENDING", "COMPLETED"])), snapshot => {
+        const list = document.getElementById("adminReevalList");
+        list.innerHTML = "";
+        let deskTracker = false;
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            
+            // Render Pending Queue with Subject Specific Information
+            if(data.reevaluation_status === "PENDING") {
+                deskTracker = true;
+                list.innerHTML += `
+                <div class="bg-white border-2 border-amber-400 p-3 rounded-xl shadow-sm">
+                    <span class="bg-amber-100 text-amber-800 text-[8px] font-black px-2 py-0.5 rounded-full uppercase">Pending Processing</span>
+                    <p class="text-[10px] font-black text-slate-900 mt-2 uppercase">${data.name} (${data.scholar_id})</p>
+                    <p class="text-[9px] text-slate-500">Class Target: ${data.class} | Exam Scheme: ${data.exam_type} | Session: ${data.academic_year}</p>
+                    <p class="text-[10px] font-bold text-slate-800 bg-orange-50 p-1.5 rounded border border-orange-100 my-2 uppercase">Requested Subjects: <span class="text-orange-600 font-black">${data.reeval_selected_subject || 'ALL'}</span></p>
+                    <input type="text" id="ans-url-${docSnap.id}" class="publisher-input !mb-2 text-[10px]" placeholder="Paste Secure Drive/PDF Answer Sheet URL Link">
+                    <button onclick="window.approveReeval('${docSnap.id}', '${data.student_email || ''}', '${data.name}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-[9px] font-bold shadow-md uppercase transition-all">UPLOAD AND EMIT SYSTEM ALERTS</button>
+                </div>`;
+            }
+
+            // Render Active Chats / Dispute Timeline Queue
+            if(data.reevaluation_status === "COMPLETED" && data.dispute_status === "ACTIVE") {
+                deskTracker = true;
+                let chatStringTimeline = (data.dispute_messages || []).map(message => 
+                    `<div class="mb-1.5 ${message.sender === 'admin' ? 'text-blue-700 text-right' : 'text-slate-800 text-left'}">
+                        <span class="font-bold">${message.sender === 'admin' ? 'YOU' : 'STUDENT'}:</span> ${message.text}
+                    </div>`
+                ).join("");
+
+                list.innerHTML += `
+                <div class="bg-white border-2 border-red-400 p-3 rounded-xl shadow-sm">
+                    <span class="bg-red-100 text-red-800 text-[8px] font-black px-2 py-0.5 rounded-full uppercase"><i class="fas fa-exclamation-triangle mr-1"></i> Active Discrepancy Doubt</span>
+                    <p class="text-[10px] font-black text-slate-900 mt-2 uppercase">${data.name} (${data.scholar_id})</p>
+                    <p class="text-[9px] text-slate-600 font-bold uppercase">Subjects: ${data.reeval_selected_subject || 'N/A'}</p>
+                    <div class="bg-slate-50 p-2 h-28 overflow-y-auto my-2 rounded text-[9px] border border-slate-200 font-medium">
+                        ${chatStringTimeline}
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="admin-reply-${docSnap.id}" class="publisher-input !mb-0 flex-1 text-[10px]" placeholder="Type resolution data...">
+                        <button onclick="window.replyDispute('${docSnap.id}')" class="bg-slate-800 text-white px-4 rounded-xl text-[10px]"><i class="fas fa-reply"></i></button>
+                        <button onclick="window.resolveDispute('${docSnap.id}')" class="bg-emerald-600 text-white px-4 rounded-xl text-[10px]" title="Resolve Dispute Completely"><i class="fas fa-check"></i></button>
+                    </div>
+                </div>`;
+            }
+        });
+
+        if(!deskTracker) {
+            list.innerHTML = `<p class="text-xs font-bold text-slate-400 text-center py-6 uppercase tracking-wider">Re-evaluation console queue is clear.</p>`;
+        }
+    });
+
     loadFeedbackData();
 }  
   
@@ -1522,7 +1856,6 @@ window.editItem = (type, data) => {
     }  
 };  
 
-// --- SIGNATURE MANAGEMENT FUNCTIONS START ---
 window.saveSignature = async () => {
     const className = document.getElementById('sig-class').value.toUpperCase().trim();
     const url = document.getElementById('sig-url').value.trim();
@@ -1574,7 +1907,6 @@ window.renderSignatures = () => {
         </div>`;
     });
 };
-// --- SIGNATURE MANAGEMENT FUNCTIONS END ---
   
 window.saveLecture = async () => {  
     const id = editLecId || ("lec_" + Date.now());  
@@ -1651,8 +1983,8 @@ function renderExamSessionUI() {
 }
 
 function populateDropdowns() {
-    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session'];
-    const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam'];
+    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session'];
+    const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam', 'admin-update-exam'];
 
     sessionSelects.forEach(id => {
         const el = document.getElementById(id);
@@ -1673,7 +2005,6 @@ async function loadSettings() {
         appSessions = data.sessions && data.sessions.length > 0 ? data.sessions : appSessions;
         appExams = data.exams && data.exams.length > 0 ? data.exams : appExams;
         
-        // Sync Signatures from Firestore database to our variable
         if (data.signatures) {
             classTeacherSignatures = { ...classTeacherSignatures, ...data.signatures };
         }
@@ -1775,7 +2106,7 @@ window.deleteSpecificResults = async () => {
         console.error(err);
         alert("Failed to delete results.");
     }
-};
+};  
   
 window.switchTab = (t) => {   
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));   
