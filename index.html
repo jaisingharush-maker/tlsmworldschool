@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>  
 <html lang="en">  
 <head>    
@@ -1443,7 +1444,14 @@ window.printBulkClassResults = async () => {
         const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
         const maxCardHeight = pageHeight - margin * 2;
 
+        window.showProgress("Generating Bulk Class Results PDF...");
+        const totalStudents = classStudents.length;
+
         for (let idx = 0; idx < classStudents.length; idx++) {
+            await new Promise(r => setTimeout(r, 10));
+            const percent = Math.round(((idx + 1) / totalStudents) * 100);
+            window.updateProgress(percent, `Compiled ${idx + 1} of ${totalStudents} report cards`);
+
             let data = classStudents[idx];
             let classRank = rankedStudentsMap[data.scholar_id];
             let subjects = data.subjects_json || [];
@@ -1599,12 +1607,15 @@ window.printBulkClassResults = async () => {
 
         pdf.save(`Bulk_Class_${targetClass}_Results.pdf`);
         sandbox.innerHTML = ""; 
+        window.hideProgress();
         alert("Success! All student data compiled safely inside your local storage bundle.");
     } catch(err) {
         console.error(err);
+        window.hideProgress();
         alert("An extraction processing fault occurred within dynamic renderer engines.");
     }
 };
+
   
 window.processExcelUpload = () => {  
     const fileInput = document.getElementById("excel-file-input");  
@@ -1625,8 +1636,14 @@ window.processExcelUpload = () => {
               
             if(parsedJsonRows.length === 0) { alert("Target Worksheet array structure evaluates completely empty mapping rows."); return; }  
               
-            let loadCounter = 0;  
-            for(let row of parsedJsonRows) {  
+            let loadCounter = 0;
+            const totalRows = parsedJsonRows.length;
+            window.showProgress("Uploading Bulk Student Results...");
+            for(let row of parsedJsonRows) {
+                if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
+                
+                const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
+                window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);  
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;  
                 if(!scholarIdRaw) continue;  
                   
@@ -1688,15 +1705,18 @@ window.processExcelUpload = () => {
                 await setDoc(doc(db, "school_results", uniqueDocId), processedPayload, { merge: true });  
                 loadCounter++;  
             }  
+            window.hideProgress();
             alert(`Success! Uploaded ${loadCounter} student records for ${selectedExamType} exam (${selectedAcademicYear}).`);  
             fileInput.value = "";  
         } catch(err) {  
-            console.error(err);  
+            console.error(err);
+            window.hideProgress();
             alert("Error encounter during structural runtime processing parsing index schemas.");  
         }  
     };  
     fileReader.readAsBinaryString(targetFile);  
-};  
+};
+
 
 window.toggleDatesheetType = () => {
     const type = document.getElementById("datesheet-type").value;
@@ -1893,7 +1913,13 @@ window.processAdmitCardExcel = () => {
             const parsedJsonRows = XLSX.utils.sheet_to_json(parsedWorkbook.Sheets[initialSheetName]);
             
             let loadCounter = 0;
+            const totalRows = parsedJsonRows.length;
+            window.showProgress("Uploading Admit Card Master Data...");
             for(let row of parsedJsonRows) {
+                if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
+                
+                const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
+                window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;
                 if(!scholarIdRaw) continue;
 
@@ -1918,10 +1944,12 @@ window.processAdmitCardExcel = () => {
                 await setDoc(doc(db, "students_master", docId), payload, { merge: true });
                 loadCounter++;
             }
+            window.hideProgress();
             alert(`Successfully uploaded ${loadCounter} student records for admit cards.`);
             fileInput.value = "";
         } catch(err) {
             console.error(err);
+            window.hideProgress();
             alert("Error processing excel. Check headers.");
         }
     };
@@ -2003,11 +2031,29 @@ window.printBulkAdmitCards = async () => {
     const examName = document.getElementById("print-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
     const sandbox = document.getElementById("admit-card-sandbox");
     
+    const btn = event.target;
+    const oldText = btn ? btn.innerHTML : "GENERATE ADMIT CARDS PDF";
+    
     if (!targetClass) { alert("Please Enter Class First"); return; }
     
-    alert("Fetching students and datesheet... Please wait.");
+    if (btn) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING (DO NOT CLOSE)...`;
+        btn.disabled = true;
+    }
     
     let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
+    
+    const waitForImages = (container) => {
+        const images = container.getElementsByTagName('img');
+        const promises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; 
+            });
+        });
+        return Promise.all(promises);
+    };
     
     try {
         const dsSnap = await getDoc(doc(db, "datesheets", targetClass));
@@ -2017,14 +2063,26 @@ window.printBulkAdmitCards = async () => {
             const dsData = dsSnap.data();
             const dsType = dsData.type || 'single';
             
+            const formatToDDMMYYYY = (dStr) => {
+                if (!dStr) return "---";
+                let match = String(dStr).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+                if (match) {
+                    return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
+                }
+                return dStr;
+            };
+            
             if (dsType === 'single') {
                 let rowsHtml = "";
-                dsData.schedule.forEach((s, i) => {
+                (dsData.schedule || []).forEach((s, i) => {
+                    let finalDate = formatToDDMMYYYY(s.date);
+                    let subj = s.subject ? String(s.subject).toUpperCase() : "---";
+                    let time = s.time ? String(s.time) : "---";
                     rowsHtml += `
                     <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${s.subject.toUpperCase()}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${s.date}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-size: 13px; font-weight: bold;">${s.time}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-size: 13px; font-weight: bold;">${time}</td>
                     </tr>`;
                 });
                 
@@ -2041,32 +2099,35 @@ window.printBulkAdmitCards = async () => {
                 </table>`;
             } else {
                 let rowsHtml = "";
-                dsData.schedule.forEach((s, i) => {
-                    let sub1 = s.subject1 ? s.subject1.toUpperCase() : "---";
-                    let sub2 = s.subject2 ? s.subject2.toUpperCase() : "---";
+                (dsData.schedule || []).forEach((s, i) => {
+                    let finalDate = formatToDDMMYYYY(s.date);
+                    let sub1 = s.subject1 ? String(s.subject1).toUpperCase() : "---";
+                    let sub2 = s.subject2 ? String(s.subject2).toUpperCase() : "---";
                     rowsHtml += `
                     <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-weight: bold;">${s.date}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
                         <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub1}</td>
                         <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub2}</td>
                     </tr>`;
                 });
                 
-                // Timing ko bagal me set kar diya hai font size badha kar
+                let t1 = dsData.time1 ? String(dsData.time1) : '---';
+                let t2 = dsData.time2 ? String(dsData.time2) : '---';
+                
                 datesheetTableHtml = `
                 <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
                     <thead>
                         <tr style="background: #1e3a8a; color: white; font-size: 11px;">
                             <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">1ST SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${dsData.time1 || ''}</span></th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${dsData.time2 || ''}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">1ST SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>`;
             }
         } else {
-            datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Please create it first.</td></tr></table>`;
+            datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
         }
         
         const qStudents = query(
@@ -2076,12 +2137,13 @@ window.printBulkAdmitCards = async () => {
         );
         const snap = await getDocs(qStudents);
         
-        if (snap.empty) { alert("No student data found for this Class and Session. Upload Master Data first."); return; }
+        if (snap.empty) { throw new Error("No Student Data Found! Make sure Master Data is uploaded for this Class & Session."); }
         
         let students = [];
         snap.forEach(d => students.push(d.data()));
         students.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
         
+        if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("PDF Engine not loaded. Refresh the page.");
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF("p", "mm", "a4");
         const pageWidth = 210;
@@ -2091,8 +2153,15 @@ window.printBulkAdmitCards = async () => {
         const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
         const cardWidth = pageWidth - (margin * 2);
         
+        window.showProgress("Generating Bulk Admit Cards PDF...");
+        const totalStudents = students.length;
         for (let idx = 0; idx < students.length; idx++) {
+            const percent = Math.round(((idx + 1) / totalStudents) * 100);
+            window.updateProgress(percent, `Compiled ${idx + 1} of ${totalStudents} admit cards`);
+
             let s = students[idx];
+            
+            let safePhotoHtml = s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">` : `<div style="padding-top:50px;">STUDENT<br>PHOTOGRAPH</div>`;
             
             sandbox.innerHTML = `
             <div id="admit-container-${idx}" style="width: 950px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
@@ -2100,56 +2169,59 @@ window.printBulkAdmitCards = async () => {
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 15px;">
                         <div style="width: 100px; text-align: center;">
-                            <img src="${logoUrl}" style="width: 80px; height: 80px; object-fit: contain;">
+                            <img src="${logoUrl}" style="width: 80px; height: 80px; object-fit: contain;" crossorigin="anonymous">
                         </div>
                         
                         <div style="flex: 1; text-align: center; padding: 0 15px;">
                             <h1 style="margin: 0 0 5px 0; font-size: 36px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
                             <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
-                            <p style="margin: 0; font-size: 11px; color: #333;">(AFFILIATIOΝ ΝΟ.: 331251        SCHOOL CODE: 67074)</p>
-                            <br>
-                            <p style="margin: 0; font-size: 11px; color: #333;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>
+                            <p style="margin: 0; font-size: 11px; color: #333;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
                             
-                            
+                     <p style="margin: 0; font-size: 11px; color: #333;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
                         </div>
                         
                         <div style="width: 140px; text-align: center;">
                             <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 6px; border-radius: 4px; font-size: 14px; margin-bottom: 8px;">ADMIT CARD</div>
-                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">CLASS ${s.class}</div>
+                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">CLASS ${s.class || '---'}</div>
                             <div style="font-weight: bold; font-size: 12px;">SESSION: ${session}</div>
                         </div>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 12px; font-weight: bold; align-items: stretch;">
                         
-                        <div style="flex: 1.2;">
-                            <table style="width: 100%; border-collapse: collapse;">
+                        <div style="flex: 2.2;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
                                 <tbody>
-                                    <tr><td style="padding: 3px 0; width: 140px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class} ${s.section}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id}</span></td></tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
+                                        <td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                         
-                        <div style="flex: 1;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tbody>
-                                    <tr><td style="padding: 3px 0; width: 150px; vertical-align: top; color: #0f172a;">EXAM NAME</td><td style="padding: 3px 0; vertical-align: top; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td></tr>
-                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div style="width: 120px; height: 150px; border: 1px solid #1e3a8a; display: flex; align-items: center; justify-content: center; text-align: center; color: #64748b; font-size: 11px; margin-left: 10px; overflow: hidden; background: #f8fafc;">
-                            ${s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;">` : `STUDENT<br>PHOTOGRAPH`}
+                        <div style="width: 120px; height: 150px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; margin-left: 10px; overflow: hidden; background: #f8fafc;">
+                            ${safePhotoHtml}
                         </div>
                     </div>
 
@@ -2159,15 +2231,16 @@ window.printBulkAdmitCards = async () => {
                         
                         <div style="flex: 1.5; padding-right: 20px;">
                             <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
-                            <ol style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.6; color: #0f172a;">
+                            <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.6; color: #0f172a; list-style-type: disc;">
                                 <li>Student must carry this Admit Card to the Examination Centre.</li>
-                                <li>Please keep this admit card safe for future reference. </li>
+                   <li>Please keep this admit card safe for future reference. </li>
                                 
                    <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
+                                           
                                 <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
                                 <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
                                 <li>Follow all the instructions given by the invigilators.</li>
-                            </ol>
+                            </ul>
                         </div>
                         
                         <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
@@ -2191,12 +2264,35 @@ window.printBulkAdmitCards = async () => {
                             </div>
                         </div>
                     </div>
+                    
+                    <p style="text-align: center; font-size: 9px; font-weight: 900; color: #475569; margin: 15px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                        © Developed by AARAV TECH-HUB (AJ VNS)
+                    </p>
+
                 </div>
             </div>
             `;
             
-            let canvas = await html2canvas(document.getElementById(`admit-container-${idx}`), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-            let imgData = canvas.toDataURL("image/png");
+            const elementToCapture = document.getElementById(`admit-container-${idx}`);
+            await waitForImages(elementToCapture);
+            
+            await new Promise(r => setTimeout(r, 100));
+            
+            let canvas;
+            try {
+                canvas = await html2canvas(elementToCapture, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: "#ffffff"
+                });
+            } catch (canvasErr) {
+                window.hideProgress();
+                throw new Error(`Rendering Failed for Student: ${s.name || 'Unknown'} (Roll: ${s.roll_no}). Unki photo link me koi problem hai.`);
+            }
+            
+            let imgData = canvas.toDataURL("image/jpeg", 1.0); 
             
             let imgWidth = cardWidth;
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -2210,17 +2306,27 @@ window.printBulkAdmitCards = async () => {
             const x = margin + (cardWidth - imgWidth) / 2;
             const y = isTop ? margin : (margin + cardHeight + gap);
             
-            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+            pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight); 
+            
+            sandbox.innerHTML = "";
         }
         
         pdf.save(`Admit_Cards_Class_${targetClass}.pdf`);
-        sandbox.innerHTML = "";
-        alert("Success! Admit cards downloaded.");
+        window.hideProgress();
+        alert("Success! Admit cards PDF generated perfectly.");
     } catch (e) {
         console.error(e);
-        alert("Error generating admit cards.");
+        window.hideProgress();
+        alert("ERROR DETECTED:\n\n" + e.message);
+    } finally {
+        sandbox.innerHTML = "";
+        if (btn) {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+        }
     }
 };
+
 
 window.deleteAdmitCardData = async () => {
     if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Admin Access Only!"); return; }
@@ -2831,5 +2937,38 @@ window.downloadResult = async () => {
     pdf.save("result_A4.pdf");  
 };  
 </script>  
+
+<div id="progress-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 20000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <div id="progress-title" style="font-size: 14px; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 15px;">Processing...</div>
+        <div style="width: 100%; background: #f1f5f9; height: 12px; border-radius: 9999px; overflow: hidden; margin-bottom: 10px; border: 1px solid #e2e8f0;">
+            <div id="progress-fill" style="width: 0%; height: 100%; background: #ea580c; transition: width 0.1s linear;"></div>
+        </div>
+        <div id="progress-text" style="font-size: 12px; font-weight: bold; color: #ea580c;">0% Complete</div>
+    </div>
+</div>
+
+<script>
+window.showProgress = (title) => {
+    const modal = document.getElementById('progress-modal');
+    if(!modal) return;
+    document.getElementById('progress-title').innerText = title;
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').innerText = '0% Complete';
+    modal.style.display = 'flex';
+};
+window.updateProgress = (percent, text) => {
+    const modal = document.getElementById('progress-modal');
+    if(!modal) return;
+    document.getElementById('progress-fill').style.width = percent + '%';
+    document.getElementById('progress-text').innerText = text + ` (${percent}%)`;
+};
+window.hideProgress = () => {
+    const modal = document.getElementById('progress-modal');
+    if(modal) modal.style.display = 'none';
+};
+</script>
+
+
 </body>  
 </html>
