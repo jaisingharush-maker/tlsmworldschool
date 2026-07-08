@@ -211,6 +211,7 @@
         <div onclick="showAdminSection('users')" id="sub-btn-users" class="admin-sub-tab">USERS</div>  
         <div onclick="showAdminSection('excel-results')" id="sub-btn-excel-results" class="admin-sub-tab">EXCEL RESULTS</div>  
         <div onclick="showAdminSection('reeval')" id="sub-btn-reeval" class="admin-sub-tab text-blue-600">RE-EVAL</div>
+        <div onclick="showAdminSection('admit')" id="sub-btn-admit" class="admin-sub-tab text-purple-600">ADMIT CARDS</div>
         <div onclick="showAdminSection('feedback')" id="sub-btn-feedback" class="admin-sub-tab">FEEDBACK</div>  
     </div>  
     
@@ -365,6 +366,102 @@
         </div>
     </div>
 
+    <div id="sec-admit" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div class="glass !p-4 border-2 border-purple-200 col-span-1 md:col-span-2">
+            <p class="text-[12px] font-black text-purple-600 mb-2 uppercase"><i class="fas fa-calendar-alt mr-1"></i> Class-wise Datesheet Builder</p>
+            <p class="text-[9px] text-slate-500 mb-3">Har class ke exam schedule yahan save karein. Ye hi schedule Admit Card pe print hoga.</p>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="datesheet-class" class="publisher-input !mb-0 text-center uppercase font-bold" placeholder="ENTER CLASS (e.g. 10)">
+                <button onclick="window.loadDatesheet()" class="bg-slate-800 text-white px-4 rounded-xl text-[10px] font-bold shadow-md">LOAD</button>
+            </div>
+            
+            <div class="flex gap-2 mb-3">
+                <select id="datesheet-type" onchange="window.toggleDatesheetType()" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900">
+                    <option value="single">Single Sitting (1 Exam/Day)</option>
+                    <option value="double">Double Sitting (2 Exams/Day)</option>
+                </select>
+            </div>
+
+                                    <div id="double-sitting-times" class="hidden flex-col gap-2 mb-3">
+                <div class="flex flex-col bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-500 mb-1">1st Sitting Time:</span>
+                    <div class="flex items-center gap-2">
+                        <input type="time" id="ds-time1-start" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                        <span class="font-bold text-slate-400 text-[10px]">TO</span>
+                        <input type="time" id="ds-time1-end" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                    </div>
+                </div>
+                <div class="flex flex-col bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-500 mb-1">2nd Sitting Time:</span>
+                    <div class="flex items-center gap-2">
+                        <input type="time" id="ds-time2-start" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                        <span class="font-bold text-slate-400 text-[10px]">TO</span>
+                        <input type="time" id="ds-time2-end" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="datesheet-rows" class="space-y-2 mb-3"></div>
+            <button onclick="window.addDatesheetRow()" class="w-full border-2 border-dashed border-purple-300 text-purple-600 py-2 rounded-xl font-bold text-[10px] mb-2">+ ADD EXAM DATE</button>
+            <button onclick="window.saveDatesheet()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg uppercase tracking-wider">SAVE DATESHEET</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-emerald-200">
+            <p class="text-[12px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-file-excel mr-1"></i> Upload Master Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Admit card ke liye saal me ek baar Excel upload karein. 
+                <br>Headers hone chahiye: <code class="text-emerald-600">scholar_id, roll_no, name, father, mother, dob, class, section, photo_url, pen_no, candidate_aadhar, mother_aadhar, father_aadhar</code></p>
+            <select id="admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="file" id="admit-excel-file" accept=".xlsx, .xls" class="publisher-input text-xs pt-2 mb-3">
+            <button onclick="window.processAdmitCardExcel()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase">UPLOAD MASTER DATA</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-orange-200">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Admit Cards</p>
+            <p class="text-[9px] text-slate-500 mb-3">Puri class ka admit card ek hi A4 multi-page PDF me generate aur print karein.</p>
+            <input type="text" id="print-admit-class" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER CLASS (e.g. 10)">
+            <select id="print-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="text" id="print-admit-exam-name" class="publisher-input text-center text-xs font-bold uppercase mb-3" placeholder="EXAM NAME (e.g. SECONDARY SCHOOL EXAM)">
+            <button onclick="window.printBulkAdmitCards()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg">GENERATE ADMIT CARDS PDF</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-blue-200 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-edit mr-1"></i> Edit Individual Student Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek student ka data galat ho gaya ho toh yahan se direct theek karein bina puri file wapas upload kiye.</p>
+            
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="edit-admit-scholar" class="publisher-input !mb-0 text-center uppercase font-bold" placeholder="SCHOLAR ID (e.g. 2026101)">
+                <select id="edit-admit-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900"></select>
+                <button onclick="window.fetchSingleAdmitCard()" class="bg-blue-600 text-white px-5 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide">FETCH</button>
+            </div>
+
+            <div id="edit-admit-form" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3 border-t border-slate-200 pt-4 mt-2">
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Name</label><input type="text" id="ea-name" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Roll No</label><input type="text" id="ea-roll" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">PEN No</label><input type="text" id="ea-pen" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Name</label><input type="text" id="ea-father" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="ea-mother" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="ea-dob" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Class</label><input type="text" id="ea-class" class="publisher-input !mb-0 uppercase"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Section</label><input type="text" id="ea-section" class="publisher-input !mb-0 uppercase"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Aadhaar</label><input type="text" id="ea-caadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Aadhaar</label><input type="text" id="ea-maadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Aadhaar</label><input type="text" id="ea-faadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Photo URL</label><input type="text" id="ea-photo" class="publisher-input !mb-0"></div>
+                
+                <button onclick="window.updateSingleAdmitCard()" class="md:col-span-3 bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2">UPDATE STUDENT RECORD</button>
+            </div>
+        </div>
+
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Master Data (Admit Cards)</p>
+            <p class="text-[9px] text-slate-600 mb-3">Select the Session to permanently delete all uploaded student admit card master records for that specific session.</p>
+            <select id="del-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <button onclick="window.deleteAdmitCardData()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">DELETE SESSION DATA</button>
+        </div>
+    </div>
+
     <div id="sec-feedback" class="admin-section hidden pb-20">
         <div class="glass !p-4 border border-orange-200 text-center max-w-md mx-auto">
             <p class="text-[12px] font-black text-slate-900 mb-2 uppercase"><i class="fas fa-chart-pie mr-1 text-orange-600"></i> App Feedback Overview</p>
@@ -383,7 +480,8 @@
   </div>    
 </div>  
 
-<div id="bulk-print-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 450px; background: white; color: black; padding: 15px;"></div>
+<div id="bulk-print-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 600px; background: white; color: black; padding: 20px;"></div>
+<div id="admit-card-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 950px; background: white; color: black; padding: 10px;"></div>
 
 <div id="main-modal" class="fs-modal">  
     <div id="modal-header">  
@@ -417,7 +515,7 @@ import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, d
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";  
 
 // EmailJS Initialization
-emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Apna EmailJS Public Key yahan lagana bhaiya
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); 
 
 window.toggleMobileMenu = () => {
     const nav = document.getElementById('top-nav');
@@ -797,12 +895,10 @@ window.toggleResultVisibility = async () => {
     }
 };
 
-// Student applies for Re-evaluation Framework with Multiple Parameter Selection
 window.applyReevaluation = async (docId) => {
     const sessionSel = document.getElementById(`reeval-session-${docId}`).value;
     const examSel = document.getElementById(`reeval-exam-${docId}`).value;
     
-    // Multiple checkboxes selection handling
     const checkedBoxes = document.querySelectorAll(`.reeval-subject-checkbox-${docId}:checked`);
     let selectedSubjects = [];
     checkedBoxes.forEach(cb => selectedSubjects.push(cb.value));
@@ -820,7 +916,7 @@ window.applyReevaluation = async (docId) => {
             reevaluation_status: "PENDING",
             reeval_selected_session: sessionSel,
             reeval_selected_exam: examSel,
-            reeval_selected_subject: subjectString, // Stored as comma separated string
+            reeval_selected_subject: subjectString,
             student_email: auth.currentUser.email || ""
         });
         alert("Applied Successfully! Admin panel has been notified with selected choices.");
@@ -830,7 +926,6 @@ window.applyReevaluation = async (docId) => {
     }
 };
 
-// Student sends a Chat message (Dispute Mini-Chat)
 window.sendDisputeMessage = async (docId) => {
     const input = document.getElementById("dispute-msg-input");
     const msg = input.value.trim();
@@ -855,7 +950,6 @@ window.sendDisputeMessage = async (docId) => {
     }
 };
 
-// Admin Direct Marks Update Execution Pipeline
 window.adminDirectUpdateMarks = async () => {
     if (!isCurrentUserAdmin) return;
     const sId = document.getElementById("admin-update-scholar").value.trim().toUpperCase();
@@ -913,7 +1007,6 @@ window.adminDirectUpdateMarks = async () => {
         await updateDoc(docRef, { subjects_json: subjects });
         alert(`Success! Marks updated securely for ${subjectName}.`);
         
-        // Reset Inputs
         document.getElementById("admin-update-subject").value = "";
         document.getElementById("admin-update-theory").value = "";
         document.getElementById("admin-update-practical").value = "";
@@ -1083,7 +1176,6 @@ window.fetchStudentResult = async () => {
             }
         }
 
-        // UPDATED MULTIPLE SUBJECTS UI PIPELINE WITH CHECKBOXES
         let reevalUI = "";
         if (data.reevaluation_status === "PENDING") {
             reevalUI = `<div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
@@ -1123,7 +1215,6 @@ window.fetchStudentResult = async () => {
                 </div>
             </div>`;
         } else {
-            // Checkboxes Injection logic for multiple subject selection
             let subjectCheckboxes = subjects.map(s => `
                 <label class="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-xl cursor-pointer text-xs font-bold text-slate-800 hover:bg-slate-50">
                     <input type="checkbox" value="${s.name.toUpperCase()}" class="reeval-subject-checkbox-${targetDocId} w-4 h-4 accent-orange-600">
@@ -1267,7 +1358,6 @@ window.fetchStudentResult = async () => {
         let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
         let ctx = document.getElementById('student-analysis-chart').getContext('2d');
         
-        // Changed Chart Type from 'line' to 'bar' for Subject-wise Analysis
         new Chart(ctx, {
             type: 'bar', 
             data: chartData,
@@ -1348,12 +1438,10 @@ window.printBulkClassResults = async () => {
         
         const pageWidth = 297; 
         const pageHeight = 210; 
-        const margin = 10;
-        const gap = 10; 
+        const margin = 5; 
+        const gap = 5;    
         const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
         const maxCardHeight = pageHeight - margin * 2;
-
-        alert(`Processing ${totalInClass} students data grids. Compiling your multi-page PDF document...`);
 
         for (let idx = 0; idx < classStudents.length; idx++) {
             let data = classStudents[idx];
@@ -1393,7 +1481,7 @@ window.printBulkClassResults = async () => {
                 let displayCode = window.getSubjectCode(sub.name, sub.code); 
 
                 subjectRows += `
-                <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
+                <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
                     <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
                     <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
                     <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
@@ -1404,19 +1492,19 @@ window.printBulkClassResults = async () => {
             });
 
             sandbox.innerHTML = `
-                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black;">
+                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 20px; background: #f8fafc; font-family: sans-serif; color: black;">
                     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
-                        <div style="margin-right: 10px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 55px; height: 55px; object-fit: contain;"></div>
+                        <div style="margin-right: 10px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
                         <div style="text-align: center; flex: 1;">
-                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 15px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
-                            <p style="font-size: 8px; font-weight: bold; color: #475569; margin: 2px 0 0 0; text-transform: uppercase;">Affiliated to CBSE Delhi Upto+2 Level</p>
-                            <p style="color: #334155; font-size: 11px; font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
-                            <p style="color: #ea580c; font-size: 10px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
+                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 18px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
+                            <p style="font-size: 10px; font-weight: bold; color: #475569; margin: 2px 0 0 0; text-transform: uppercase;">Affiliated to CBSE Delhi Upto+2 Level</p>
+                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
+                            <p style="color: #ea580c; font-size: 11px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
                         </div>
-                        <div style="width: 55px;"></div>
+                        <div style="width: 60px;"></div>
                     </div>
                       
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 10px; border-bottom: 1px dashed #94a3b8; padding-bottom: 10px; margin-bottom: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; border-bottom: 1px dashed #94a3b8; padding-bottom: 10px; margin-bottom: 12px;">
                         <div><span style="color: #64748b; font-weight: bold;">Roll No:</span></div><div style="font-weight: bold;">${data.roll_no || 'N/A'}</div>
                         <div><span style="color: #64748b; font-weight: bold;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase;">${data.name || ''}</div>
                         <div><span style="color: #64748b; font-weight: bold;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase;">${data.mother || ''}</div>
@@ -1428,7 +1516,7 @@ window.printBulkClassResults = async () => {
                       
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 12px; background: white;">  
                         <thead>  
-                            <tr style="background: #1e3a8a; color: white; font-size: 9px; font-weight: 900; text-transform: uppercase;">  
+                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">  
                                 <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th>  
                                 <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>  
                                 <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>  
@@ -1440,16 +1528,16 @@ window.printBulkClassResults = async () => {
                         <tbody>${subjectRows}</tbody>  
                     </table>  
                       
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
                     </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
                     </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} ${bulkMedalIcon} of ${totalInClass} | Attd: ${daysPresentStr}</span>
                     </div>  
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #1e3a8a; color: white; border-radius: 8px; font-size: 11px; font-weight: bold; margin-top: 10px;">  
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #1e3a8a; color: white; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 10px;">  
                         <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 10px; border-radius: 20px;">${autoResultStatus}</span>  
                     </div>  
 
@@ -1460,13 +1548,13 @@ window.printBulkClassResults = async () => {
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; margin-top: 15px; margin-bottom: 5px;">
-                        <div style="text-align: center; width: 90px;">
+                        <div style="text-align: center; width: 100px;">
                             <img src="${teacherSignUrl}" style="width: 100px; height: 40px; max-height: 40px; object-fit: contain; margin: 0 auto;">
-                            <p style="font-size: 9px; font-weight: 900; color: #1e3a8a; border-top: 1px solid rgba(30,58,138,0.3); margin: 4px 0 0 0; padding-top: 2px; text-transform: uppercase;">Class Teacher</p>
+                            <p style="font-size: 10px; font-weight: 900; color: #1e3a8a; border-top: 1px solid rgba(30,58,138,0.3); margin: 4px 0 0 0; padding-top: 2px; text-transform: uppercase;">Class Teacher</p>
                         </div>
                     </div>
 
-                    <p style="font-size: 7px; color: #64748b; text-align: center; text-transform: uppercase; margin-top: 12px; line-height: 1.2; font-weight: bold;">
+                    <p style="font-size: 8px; color: #64748b; text-align: center; text-transform: uppercase; margin-top: 12px; line-height: 1.2; font-weight: bold;">
                     Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB.
                     </p>
                 </div>
@@ -1476,19 +1564,18 @@ window.printBulkClassResults = async () => {
             let ctx = document.getElementById(`bulk-chart-${idx}`).getContext('2d');
             
             await new Promise((resolve) => {
-                // Changed Bulk Print Chart Type from 'line' to 'bar'
                 new Chart(ctx, {
                     type: 'bar', 
                     data: chartData,
                     options: {
                         responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() },
                         plugins: { 
-                            legend: { labels: { font: { size: 7 } } },
+                            legend: { labels: { font: { size: 8 } } },
                             tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
                         },
                         scales: { 
-                            y: { beginAtZero: true, max:100, ticks: { font: { size: 6 }, callback: function(value) { return value + "%"; } } }, 
-                            x: { ticks: { font: { size: 6 } } } 
+                            y: { beginAtZero: true, max:100, ticks: { font: { size: 7 }, callback: function(value) { return value + "%"; } } }, 
+                            x: { ticks: { font: { size: 7 } } } 
                         }
                     }
                 });
@@ -1610,7 +1697,531 @@ window.processExcelUpload = () => {
     };  
     fileReader.readAsBinaryString(targetFile);  
 };  
-  
+
+window.toggleDatesheetType = () => {
+    const type = document.getElementById("datesheet-type").value;
+    const timesDiv = document.getElementById("double-sitting-times");
+    if (type === 'double') {
+        timesDiv.classList.remove('hidden');
+    } else {
+        timesDiv.classList.add('hidden');
+    }
+    document.getElementById("datesheet-rows").innerHTML = "";
+    window.addDatesheetRow();
+};
+
+window.addDatesheetRow = (date = '', day = '', col1 = '', col2 = '', tStart = '', tEnd = '') => {
+    const type = document.getElementById("datesheet-type").value;
+    const container = document.getElementById("datesheet-rows");
+    const div = document.createElement("div");
+    
+    // Har nayi date ke liye ek alag gray box banaya hai taaki design saaf dikhe
+    div.className = "datesheet-row bg-slate-50 border border-slate-200 p-3 rounded-xl relative mb-3 mt-2";
+
+    const dayOptions = ['MONDAY', 'TUEDAY', 'WEDNESDAY', 'THRUSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    const daySelectHtml = `
+        <select class="ds-day publisher-input !m-0 flex-1 bg-white font-bold text-[10px]">
+            <option value="">DAY</option>
+            ${dayOptions.map(d => `<option value="${d}" ${day === d ? 'selected' : ''}>${d}</option>`).join('')}
+        </select>
+    `;
+
+    if (type === 'single') {
+        div.innerHTML = `
+            <button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md"><i class="fas fa-times text-[10px]"></i></button>
+            <div class="flex gap-2 mb-2">
+                <input type="date" class="ds-date publisher-input !m-0 flex-1 font-bold text-[10px]" value="${date}">
+                ${daySelectHtml}
+            </div>
+            <input type="text" class="ds-sub publisher-input !m-0 w-full text-[10px] mb-2" placeholder="Subject Name" value="${col1}">
+            <div class="flex items-center gap-2">
+                <input type="time" class="ds-time-start publisher-input !m-0 text-[10px] flex-1" value="${tStart}">
+                <span class="text-slate-400 font-bold text-[10px]">TO</span>
+                <input type="time" class="ds-time-end publisher-input !m-0 text-[10px] flex-1" value="${tEnd}">
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md"><i class="fas fa-times text-[10px]"></i></button>
+            <div class="flex gap-2 mb-2">
+                <input type="date" class="ds-date publisher-input !m-0 flex-1 font-bold text-[10px]" value="${date}">
+                ${daySelectHtml}
+            </div>
+            <div class="flex gap-2">
+                <input type="text" class="ds-sub1 publisher-input !m-0 flex-1 text-[10px]" placeholder="1st Sitting Subject" value="${col1}">
+                <input type="text" class="ds-sub2 publisher-input !m-0 flex-1 text-[10px]" placeholder="2nd Sitting Subject" value="${col2}">
+            </div>
+        `;
+    }
+    container.appendChild(div);
+};
+
+window.saveDatesheet = async () => {
+    const targetClass = document.getElementById("datesheet-class").value.trim().toUpperCase();
+    if(!targetClass) { alert("Please enter a class first!"); return; }
+
+    const type = document.getElementById("datesheet-type").value;
+    
+    // Double Sitting Time Fetching
+    const t1Start = document.getElementById("ds-time1-start") ? document.getElementById("ds-time1-start").value : '';
+    const t1End = document.getElementById("ds-time1-end") ? document.getElementById("ds-time1-end").value : '';
+    const time1 = (t1Start && t1End) ? `${t1Start} - ${t1End}` : '';
+    
+    const t2Start = document.getElementById("ds-time2-start") ? document.getElementById("ds-time2-start").value : '';
+    const t2End = document.getElementById("ds-time2-end") ? document.getElementById("ds-time2-end").value : '';
+    const time2 = (t2Start && t2End) ? `${t2Start} - ${t2End}` : '';
+
+    let schedule = [];
+    document.querySelectorAll('.datesheet-row').forEach(row => {
+        const date = row.querySelector('.ds-date').value.trim();
+        const day = row.querySelector('.ds-day').value.trim();
+        const formattedDate = date ? (day ? `${date} (${day})` : date) : '';
+
+        if(type === 'single') {
+            const sub = row.querySelector('.ds-sub').value.trim();
+            const tStart = row.querySelector('.ds-time-start').value;
+            const tEnd = row.querySelector('.ds-time-end').value;
+            const time = (tStart && tEnd) ? `${tStart} - ${tEnd}` : '';
+            
+            if(formattedDate && sub) schedule.push({ 
+                date: formattedDate, rawDate: date, rawDay: day, subject: sub, time: time, rawTStart: tStart, rawTEnd: tEnd 
+            });
+        } else {
+            const sub1 = row.querySelector('.ds-sub1').value.trim();
+            const sub2 = row.querySelector('.ds-sub2').value.trim();
+            
+            if(formattedDate && (sub1 || sub2)) schedule.push({ 
+                date: formattedDate, rawDate: date, rawDay: day, subject1: sub1, subject2: sub2 
+            });
+        }
+    });
+
+    await setDoc(doc(db, "datesheets", targetClass), { 
+        class: targetClass, 
+        type: type,
+        time1: time1,
+        time2: time2,
+        rawT1Start: t1Start,
+        rawT1End: t1End,
+        rawT2Start: t2Start,
+        rawT2End: t2End,
+        schedule: schedule 
+    }, { merge: true });
+    
+    alert("Datesheet Saved Successfully with updated Calendar & Clock slots!");
+};
+
+window.loadDatesheet = async () => {
+    const targetClass = document.getElementById("datesheet-class").value.trim().toUpperCase();
+    if(!targetClass) { alert("Enter class to load datesheet"); return; }
+    
+    const snap = await getDoc(doc(db, "datesheets", targetClass));
+    const container = document.getElementById("datesheet-rows");
+    container.innerHTML = "";
+    
+    if(snap.exists()) {
+        const data = snap.data();
+        
+        const type = data.type || 'single';
+        document.getElementById("datesheet-type").value = type;
+        window.toggleDatesheetType();
+        
+        // Load Double Sitting Times
+        if(document.getElementById("ds-time1-start")) {
+            document.getElementById("ds-time1-start").value = data.rawT1Start || '';
+            document.getElementById("ds-time1-end").value = data.rawT1End || '';
+            document.getElementById("ds-time2-start").value = data.rawT2Start || '';
+            document.getElementById("ds-time2-end").value = data.rawT2End || '';
+        }
+
+        if(data.schedule && data.schedule.length > 0) {
+            container.innerHTML = "";
+            data.schedule.forEach(item => {
+                const date = item.rawDate || (item.date ? item.date.split(' ')[0] : '');
+                const day = item.rawDay || (item.date && item.date.includes('(') ? item.date.split('(')[1].replace(')','') : '');
+                
+                if(type === 'single') {
+                    const tStart = item.rawTStart || (item.time ? item.time.split(' - ')[0] : '');
+                    const tEnd = item.rawTEnd || (item.time ? item.time.split(' - ')[1] : '');
+                    window.addDatesheetRow(date, day, item.subject, '', tStart, tEnd);
+                } else {
+                    window.addDatesheetRow(date, day, item.subject1, item.subject2);
+                }
+            });
+        } else { 
+            if(container.children.length === 0) window.addDatesheetRow(); 
+        }
+    } else {
+        document.getElementById("datesheet-type").value = 'single';
+        window.toggleDatesheetType();
+        alert("No previous datesheet found. Create a new one.");
+    }
+};
+
+
+window.processAdmitCardExcel = () => {
+    const fileInput = document.getElementById("admit-excel-file");
+    const session = document.getElementById("admit-session").value;
+    if(!fileInput.files || fileInput.files.length === 0) { alert("Select Excel file first!"); return; }
+
+    const fileReader = new FileReader();
+    fileReader.onload = async (e) => {
+        try {
+            const rawBuffer = e.target.result;
+            const parsedWorkbook = XLSX.read(rawBuffer, { type: 'binary' });
+            const initialSheetName = parsedWorkbook.SheetNames[0];
+            const parsedJsonRows = XLSX.utils.sheet_to_json(parsedWorkbook.Sheets[initialSheetName]);
+            
+            let loadCounter = 0;
+            for(let row of parsedJsonRows) {
+                let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;
+                if(!scholarIdRaw) continue;
+
+                let payload = {
+                    scholar_id: scholarIdRaw,
+                    roll_no: row.roll_no ? row.roll_no.toString() : "---",
+                    name: row.name || "Unknown",
+                    father: row.father || "---",
+                    mother: row.mother || "---",
+                    dob: row.dob || "---",
+                    class: row.class ? row.class.toString().trim().toUpperCase() : "N/A",
+                    section: row.section ? row.section.toString().trim().toUpperCase() : "A",
+                    photo_url: row.photo_url ? row.photo_url.toString().trim() : "",
+                    pen_no: row.pen_no ? row.pen_no.toString().trim() : "---",
+                    candidate_aadhar: row.candidate_aadhar ? row.candidate_aadhar.toString().trim() : "---",
+                    mother_aadhar: row.mother_aadhar ? row.mother_aadhar.toString().trim() : "---",
+                    father_aadhar: row.father_aadhar ? row.father_aadhar.toString().trim() : "---",
+                    session: session
+                };
+                
+                let docId = `${scholarIdRaw}_${session}`;
+                await setDoc(doc(db, "students_master", docId), payload, { merge: true });
+                loadCounter++;
+            }
+            alert(`Successfully uploaded ${loadCounter} student records for admit cards.`);
+            fileInput.value = "";
+        } catch(err) {
+            console.error(err);
+            alert("Error processing excel. Check headers.");
+        }
+    };
+    fileReader.readAsBinaryString(fileInput.files[0]);
+};
+
+// NEW FEATURE: Fetch Single Student Admit Card Data
+window.fetchSingleAdmitCard = async () => {
+    const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
+    const session = document.getElementById("edit-admit-session").value;
+    if(!scholarId) return alert("Please enter Scholar ID first!");
+    
+    const docId = `${scholarId}_${session}`;
+    try {
+        const snap = await getDoc(doc(db, "students_master", docId));
+        if(!snap.exists()) {
+            document.getElementById("edit-admit-form").classList.add("hidden");
+            return alert("No record found! Pehle master excel upload karein is student ke liye.");
+        }
+        
+        const d = snap.data();
+        document.getElementById("ea-name").value = d.name || "";
+        document.getElementById("ea-roll").value = d.roll_no || "";
+        document.getElementById("ea-pen").value = d.pen_no || "";
+        document.getElementById("ea-father").value = d.father || "";
+        document.getElementById("ea-mother").value = d.mother || "";
+        document.getElementById("ea-dob").value = d.dob || "";
+        document.getElementById("ea-class").value = d.class || "";
+        document.getElementById("ea-section").value = d.section || "";
+        document.getElementById("ea-caadhar").value = d.candidate_aadhar || "";
+        document.getElementById("ea-maadhar").value = d.mother_aadhar || "";
+        document.getElementById("ea-faadhar").value = d.father_aadhar || "";
+        document.getElementById("ea-photo").value = d.photo_url || "";
+        
+        document.getElementById("edit-admit-form").classList.remove("hidden");
+    } catch(e) {
+        console.error(e);
+        alert("Error fetching student data.");
+    }
+};
+
+// NEW FEATURE: Update Single Student Admit Card Data
+window.updateSingleAdmitCard = async () => {
+    const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
+    const session = document.getElementById("edit-admit-session").value;
+    const docId = `${scholarId}_${session}`;
+    
+    if(!confirm("Are you sure you want to update this student's master data?")) return;
+    
+    try {
+        await updateDoc(doc(db, "students_master", docId), {
+            name: document.getElementById("ea-name").value.trim(),
+            roll_no: document.getElementById("ea-roll").value.trim(),
+            pen_no: document.getElementById("ea-pen").value.trim(),
+            father: document.getElementById("ea-father").value.trim(),
+            mother: document.getElementById("ea-mother").value.trim(),
+            dob: document.getElementById("ea-dob").value.trim(),
+            class: document.getElementById("ea-class").value.trim().toUpperCase(),
+            section: document.getElementById("ea-section").value.trim().toUpperCase(),
+            candidate_aadhar: document.getElementById("ea-caadhar").value.trim(),
+            mother_aadhar: document.getElementById("ea-maadhar").value.trim(),
+            father_aadhar: document.getElementById("ea-faadhar").value.trim(),
+            photo_url: document.getElementById("ea-photo").value.trim()
+        });
+        
+        alert("Student Record Updated Successfully! Ab aap naya Admit Card print kar sakte hain.");
+        document.getElementById("edit-admit-form").classList.add("hidden");
+        document.getElementById("edit-admit-scholar").value = "";
+    } catch(e) {
+        console.error(e);
+        alert("Update failed. Please check network connection.");
+    }
+};
+
+window.printBulkAdmitCards = async () => {
+    if (!isCurrentUserAdmin) return;
+    const targetClass = document.getElementById("print-admit-class").value.trim().toUpperCase();
+    const session = document.getElementById("print-admit-session").value;
+    const examName = document.getElementById("print-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
+    const sandbox = document.getElementById("admit-card-sandbox");
+
+    if(!targetClass) { alert("Please Enter Class First"); return; }
+
+    alert("Fetching students and datesheet... Please wait.");
+
+    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+    let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
+
+    try {
+        const dsSnap = await getDoc(doc(db, "datesheets", targetClass));
+        let datesheetTableHtml = "";
+
+        if(dsSnap.exists() && dsSnap.data().schedule) {
+            const dsData = dsSnap.data();
+            const dsType = dsData.type || 'single';
+
+            if (dsType === 'single') {
+                let rowsHtml = "";
+                dsData.schedule.forEach((s, i) => {
+                    rowsHtml += `
+                    <tr style="text-align: center; font-size: 11px; color: #000;">
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${s.subject.toUpperCase()}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${s.date}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${s.time}</td>
+                    </tr>`;
+                });
+                
+                datesheetTableHtml = `
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
+                    <thead>
+                        <tr style="background: #1e3a8a; color: white; font-size: 12px;">
+                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
+                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
+                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>`;
+            } else {
+                let rowsHtml = "";
+                dsData.schedule.forEach((s, i) => {
+                    let sub1 = s.subject1 ? s.subject1.toUpperCase() : "---";
+                    let sub2 = s.subject2 ? s.subject2.toUpperCase() : "---";
+                    rowsHtml += `
+                    <tr style="text-align: center; font-size: 11px; color: #000;">
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-weight: bold;">${s.date}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub1}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub2}</td>
+                    </tr>`;
+                });
+
+                datesheetTableHtml = `
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
+                    <thead>
+                        <tr style="background: #1e3a8a; color: white; font-size: 11px;">
+                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%;">1ST SITTING<br><span style="font-size: 9px; font-weight: normal; color: #e2e8f0;">${dsData.time1 || ''}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%;">2ND SITTING<br><span style="font-size: 9px; font-weight: normal; color: #e2e8f0;">${dsData.time2 || ''}</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>`;
+            }
+        } else {
+            datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Please create it first.</td></tr></table>`;
+        }
+
+        const qStudents = query(
+            collection(db, "students_master"),
+            where("class", "==", targetClass),
+            where("session", "==", session)
+        );
+        const snap = await getDocs(qStudents);
+        
+        if(snap.empty) { alert("No student data found for this Class and Session. Upload Master Data first."); return; }
+
+        let students = [];
+        snap.forEach(d => students.push(d.data()));
+        students.sort((a,b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4"); 
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 5;
+        const gap = 10;
+        const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
+        const cardWidth = pageWidth - (margin * 2);
+
+        for (let idx = 0; idx < students.length; idx++) {
+            let s = students[idx];
+            
+            sandbox.innerHTML = `
+            <div id="admit-container-${idx}" style="width: 950px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
+                <div style="border: 1px solid #1e3a8a; padding: 15px; box-sizing: border-box; background: white;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 15px;">
+                        <div style="width: 100px; text-align: center;">
+                            <img src="${logoUrl}" style="width: 80px; height: 80px; object-fit: contain;">
+                        </div>
+                        
+                        <div style="flex: 1; text-align: center; padding: 0 15px;">
+                            <h1 style="margin: 0 0 5px 0; font-size: 36px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
+                            <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
+                            <p style="margin: 0; font-size: 11px; color: #333;">Piro, Bhojpur, Bihar - 802108 | Mob.: 9229809156 | Email: info@tlsmworldschool.com</p>
+                        </div>
+                        
+                        <div style="width: 140px; text-align: center;">
+                            <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 6px; border-radius: 4px; font-size: 14px; margin-bottom: 8px;">ADMIT CARD</div>
+                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">CLASS ${s.class}</div>
+                            <div style="font-weight: bold; font-size: 12px;">SESSION: ${session}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 12px; font-weight: bold; align-items: stretch;">
+                        
+                        <div style="flex: 1.2;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tbody>
+                                    <tr><td style="padding: 3px 0; width: 140px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class} ${s.section}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id}</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tbody>
+                                    <tr><td style="padding: 3px 0; width: 150px; vertical-align: top; color: #0f172a;">EXAM NAME</td><td style="padding: 3px 0; vertical-align: top; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a; padding-top: 15px;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="width: 120px; height: 150px; border: 1px solid #1e3a8a; display: flex; align-items: center; justify-content: center; text-align: center; color: #64748b; font-size: 11px; margin-left: 10px; overflow: hidden; background: #f8fafc;">
+                            ${s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;">` : `STUDENT<br>PHOTOGRAPH`}
+                        </div>
+                    </div>
+
+                    ${datesheetTableHtml}
+
+                    <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 10px;">
+                        
+                        <div style="flex: 1.5; padding-right: 20px;">
+                            <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
+                            <ol style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.6; color: #0f172a;">
+                                <li>Student must carry this Admit Card to the Examination Centre.</li>
+                                <li>Report at the examination centre at least 30 minutes before the commencement of the exam.</li>
+                                <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
+                                <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
+                                <li>Follow all the instructions given by the invigilators.</li>
+                            </ol>
+                        </div>
+                        
+                        <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
+                            <div style="width: 50px; height: 50px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
+                            <div style="font-size: 10px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
+                        </div>
+                        
+                        <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: space-between; margin-left: 15px;">
+                            
+                            <div style="text-align: right; width: 100%; height: 40px;">
+                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 4px; float: right; text-align: center; margin-top: 25px;">SIGNATURE OF CANDIDATE</div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 20px;">
+                                <div style="text-align: center; position: relative;">
+                                    <img src="${teacherSignUrl}" style="height: 30px; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);">
+                                    <div style="border-top: 1px solid #0f172a; width: 130px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF PRINCIPAL</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF PARENT/GUARDIAN</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            let canvas = await html2canvas(document.getElementById(`admit-container-${idx}`), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            let imgData = canvas.toDataURL("image/png");
+
+            let imgWidth = cardWidth;
+            let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            if (imgHeight > cardHeight) { imgHeight = cardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
+            
+            const isTop = (idx % 2 === 0);
+            if (isTop && idx > 0) pdf.addPage();
+            
+            const x = margin + (cardWidth - imgWidth) / 2;
+            const y = isTop ? margin : (margin + cardHeight + gap);
+
+            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+        }
+
+        pdf.save(`Admit_Cards_Class_${targetClass}.pdf`);
+        sandbox.innerHTML = "";
+        alert("Success! Admit cards downloaded.");
+    } catch (e) {
+        console.error(e);
+        alert("Error generating admit cards.");
+    }
+};
+
+window.deleteAdmitCardData = async () => {
+    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Admin Access Only!"); return; }
+    const session = document.getElementById("del-admit-session").value;
+    
+    if(!session) { alert("Please select a Session first."); return; }
+
+    const confirmMsg = `WARNING: Are you sure you want to delete ALL admit card master data for Session: ${session}?\n\nThis cannot be undone!`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const q = query(collection(db, "students_master"), where("session", "==", session));
+        const snap = await getDocs(q);
+        if (snap.empty) { alert("No student records found for this session."); return; }
+
+        let count = 0;
+        snap.forEach(async (d) => {
+            await deleteDoc(doc(db, "students_master", d.id));
+            count++;
+        });
+        alert(`Success! Deleted ${count} student admit card records for session ${session}.`);
+    } catch (err) {
+        console.error(err);
+        alert("Failed to delete master data.");
+    }
+};
+
 let quizData = []; let currentQ = 0; let userAnswers = []; let activeDPPId = null;  
   
 window.startQuiz = (id) => {  
@@ -1707,7 +2318,6 @@ window.submitQuiz = async () => {
   
 window.closeQuiz = () => { quizStarted = false; document.getElementById("quiz-modal").style.display = "none"; };  
 
-// ADVANCED EMAILJS ALERTS ENGINE + FIREBASE SYSTEM ASSIGNMENT
 window.approveReeval = async (docId, studentEmail, studentName) => {
     const urlInput = document.getElementById(`ans-url-${docId}`).value.trim();
     if(!urlInput) { alert("Please provide the answer sheet URL first!"); return; }
@@ -1725,7 +2335,6 @@ window.approveReeval = async (docId, studentEmail, studentName) => {
             dispute_messages: [] 
         });
 
-        // EmailJS Execution Pipeline
         if (studentEmail && studentEmail.trim() !== "") {
             await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
                 to_email: studentEmail,
@@ -1744,7 +2353,6 @@ window.approveReeval = async (docId, studentEmail, studentName) => {
     }
 };
 
-// Admin replies to an active student dispute message
 window.replyDispute = async (docId) => {
     const inputEl = document.getElementById(`admin-reply-${docId}`);
     const msg = inputEl.value.trim();
@@ -1765,7 +2373,6 @@ window.replyDispute = async (docId) => {
     }
 };
 
-// Admin completes/resolves the dispute completely
 window.resolveDispute = async (docId) => {
     if(confirm("Are you absolute sure you want to mark this student ticket dispute as RESOLVED? This locks the discussion timeline.")) {
         await updateDoc(doc(db, "school_results", docId), { dispute_status: "RESOLVED" });
@@ -1788,7 +2395,6 @@ function loadAdminData() {
     });  
     onSnapshot(collection(db, "users"), s => { allUsers = []; s.forEach(d => allUsers.push({...d.data(), id: d.id})); renderUserList(allUsers); });  
     
-    // RE-EVALUATION REALTIME ADMIN SYNC FRAMEWORK WITH STREAM DESK CONTROLS
     onSnapshot(query(collection(db, "school_results"), where("reevaluation_status", "in", ["PENDING", "COMPLETED"])), snapshot => {
         const list = document.getElementById("adminReevalList");
         list.innerHTML = "";
@@ -1797,7 +2403,6 @@ function loadAdminData() {
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
             
-            // Render Pending Queue with Subject Specific Information
             if(data.reevaluation_status === "PENDING") {
                 deskTracker = true;
                 list.innerHTML += `
@@ -1811,7 +2416,6 @@ function loadAdminData() {
                 </div>`;
             }
 
-            // Render Active Chats / Dispute Timeline Queue
             if(data.reevaluation_status === "COMPLETED" && data.dispute_status === "ACTIVE") {
                 deskTracker = true;
                 let chatStringTimeline = (data.dispute_messages || []).map(message => 
@@ -1983,7 +2587,7 @@ function renderExamSessionUI() {
 }
 
 function populateDropdowns() {
-    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session'];
+    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session', 'admit-session', 'print-admit-session', 'edit-admit-session', 'del-admit-session'];
     const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam', 'admin-update-exam'];
 
     sessionSelects.forEach(id => {
