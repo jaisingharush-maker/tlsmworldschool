@@ -1718,7 +1718,7 @@ window.addDatesheetRow = (date = '', day = '', col1 = '', col2 = '', tStart = ''
     // Har nayi date ke liye ek alag gray box banaya hai taaki design saaf dikhe
     div.className = "datesheet-row bg-slate-50 border border-slate-200 p-3 rounded-xl relative mb-3 mt-2";
 
-    const dayOptions = ['MONDAY', 'TUEDAY', 'WEDNESDAY', 'THRUSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    const dayOptions = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THRUSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
     const daySelectHtml = `
         <select class="ds-day publisher-input !m-0 flex-1 bg-white font-bold text-[10px]">
             <option value="">DAY</option>
@@ -1762,26 +1762,46 @@ window.saveDatesheet = async () => {
 
     const type = document.getElementById("datesheet-type").value;
     
-    // Double Sitting Time Fetching
+    // Time picker ke 24hr format ko beautiful 12hr AM/PM me convert karne ka helper
+    const convertTo12Hour = (timeStr) => {
+        if (!timeStr) return '';
+        let [hrs, mins] = timeStr.split(':');
+        hrs = parseInt(hrs);
+        let suffix = hrs >= 12 ? 'PM' : 'AM';
+        hrs = hrs % 12;
+        hrs = hrs ? hrs : 12;
+        return `${hrs < 10 ? '0'+hrs : hrs}:${mins} ${suffix}`;
+    };
+    
     const t1Start = document.getElementById("ds-time1-start") ? document.getElementById("ds-time1-start").value : '';
     const t1End = document.getElementById("ds-time1-end") ? document.getElementById("ds-time1-end").value : '';
-    const time1 = (t1Start && t1End) ? `${t1Start} - ${t1End}` : '';
+    const time1 = (t1Start && t1End) ? `${convertTo12Hour(t1Start)} - ${convertTo12Hour(t1End)}` : '';
     
     const t2Start = document.getElementById("ds-time2-start") ? document.getElementById("ds-time2-start").value : '';
     const t2End = document.getElementById("ds-time2-end") ? document.getElementById("ds-time2-end").value : '';
-    const time2 = (t2Start && t2End) ? `${t2Start} - ${t2End}` : '';
+    const time2 = (t2Start && t2End) ? `${convertTo12Hour(t2Start)} - ${convertTo12Hour(t2End)}` : '';
 
     let schedule = [];
     document.querySelectorAll('.datesheet-row').forEach(row => {
         const date = row.querySelector('.ds-date').value.trim();
+        
+        // yyyy-mm-dd input format ko badal kar dd/mm/yyyy format me convert karne ka logic
+        let displayDate = date;
+        if (date.includes('-')) {
+            const parts = date.split('-');
+            if (parts[0].length === 4) {
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+        }
+
         const day = row.querySelector('.ds-day').value.trim();
-        const formattedDate = date ? (day ? `${date} (${day})` : date) : '';
+        const formattedDate = displayDate ? (day ? `${displayDate} (${day})` : displayDate) : '';
 
         if(type === 'single') {
             const sub = row.querySelector('.ds-sub').value.trim();
             const tStart = row.querySelector('.ds-time-start').value;
             const tEnd = row.querySelector('.ds-time-end').value;
-            const time = (tStart && tEnd) ? `${tStart} - ${tEnd}` : '';
+            const time = (tStart && tEnd) ? `${convertTo12Hour(tStart)} - ${convertTo12Hour(tEnd)}` : '';
             
             if(formattedDate && sub) schedule.push({ 
                 date: formattedDate, rawDate: date, rawDay: day, subject: sub, time: time, rawTStart: tStart, rawTEnd: tEnd 
@@ -1808,7 +1828,7 @@ window.saveDatesheet = async () => {
         schedule: schedule 
     }, { merge: true });
     
-    alert("Datesheet Saved Successfully with updated Calendar & Clock slots!");
+    alert("Datesheet Saved Successfully!");
 };
 
 window.loadDatesheet = async () => {
@@ -1982,22 +2002,21 @@ window.printBulkAdmitCards = async () => {
     const session = document.getElementById("print-admit-session").value;
     const examName = document.getElementById("print-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
     const sandbox = document.getElementById("admit-card-sandbox");
-
-    if(!targetClass) { alert("Please Enter Class First"); return; }
-
+    
+    if (!targetClass) { alert("Please Enter Class First"); return; }
+    
     alert("Fetching students and datesheet... Please wait.");
-
-    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+    
     let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
-
+    
     try {
         const dsSnap = await getDoc(doc(db, "datesheets", targetClass));
         let datesheetTableHtml = "";
-
-        if(dsSnap.exists() && dsSnap.data().schedule) {
+        
+        if (dsSnap.exists() && dsSnap.data().schedule) {
             const dsData = dsSnap.data();
             const dsType = dsData.type || 'single';
-
+            
             if (dsType === 'single') {
                 let rowsHtml = "";
                 dsData.schedule.forEach((s, i) => {
@@ -2005,7 +2024,7 @@ window.printBulkAdmitCards = async () => {
                     <tr style="text-align: center; font-size: 11px; color: #000;">
                         <td style="padding: 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${s.subject.toUpperCase()}</td>
                         <td style="padding: 8px; border: 1px solid #1e3a8a;">${s.date}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${s.time}</td>
+                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-size: 13px; font-weight: bold;">${s.time}</td>
                     </tr>`;
                 });
                 
@@ -2032,14 +2051,15 @@ window.printBulkAdmitCards = async () => {
                         <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub2}</td>
                     </tr>`;
                 });
-
+                
+                // Timing ko bagal me set kar diya hai font size badha kar
                 datesheetTableHtml = `
                 <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
                     <thead>
                         <tr style="background: #1e3a8a; color: white; font-size: 11px;">
                             <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%;">1ST SITTING<br><span style="font-size: 9px; font-weight: normal; color: #e2e8f0;">${dsData.time1 || ''}</span></th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%;">2ND SITTING<br><span style="font-size: 9px; font-weight: normal; color: #e2e8f0;">${dsData.time2 || ''}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">1ST SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${dsData.time1 || ''}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${dsData.time2 || ''}</span></th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
@@ -2048,7 +2068,7 @@ window.printBulkAdmitCards = async () => {
         } else {
             datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Please create it first.</td></tr></table>`;
         }
-
+        
         const qStudents = query(
             collection(db, "students_master"),
             where("class", "==", targetClass),
@@ -2056,21 +2076,21 @@ window.printBulkAdmitCards = async () => {
         );
         const snap = await getDocs(qStudents);
         
-        if(snap.empty) { alert("No student data found for this Class and Session. Upload Master Data first."); return; }
-
+        if (snap.empty) { alert("No student data found for this Class and Session. Upload Master Data first."); return; }
+        
         let students = [];
         snap.forEach(d => students.push(d.data()));
-        students.sort((a,b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
-
+        students.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
+        
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF("p", "mm", "a4"); 
+        const pdf = new jsPDF("p", "mm", "a4");
         const pageWidth = 210;
         const pageHeight = 297;
         const margin = 5;
         const gap = 10;
         const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
         const cardWidth = pageWidth - (margin * 2);
-
+        
         for (let idx = 0; idx < students.length; idx++) {
             let s = students[idx];
             
@@ -2086,7 +2106,11 @@ window.printBulkAdmitCards = async () => {
                         <div style="flex: 1; text-align: center; padding: 0 15px;">
                             <h1 style="margin: 0 0 5px 0; font-size: 36px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
                             <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
-                            <p style="margin: 0; font-size: 11px; color: #333;">Piro, Bhojpur, Bihar - 802108 | Mob.: 9229809156 | Email: info@tlsmworldschool.com</p>
+                            <p style="margin: 0; font-size: 11px; color: #333;">(AFFILIATIOΝ ΝΟ.: 331251        SCHOOL CODE: 67074)</p>
+                            <br>
+                            <p style="margin: 0; font-size: 11px; color: #333;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>
+                            
+                            
                         </div>
                         
                         <div style="width: 140px; text-align: center;">
@@ -2137,7 +2161,9 @@ window.printBulkAdmitCards = async () => {
                             <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
                             <ol style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.6; color: #0f172a;">
                                 <li>Student must carry this Admit Card to the Examination Centre.</li>
-                                <li>Report at the examination centre at least 30 minutes before the commencement of the exam.</li>
+                                <li>Please keep this admit card safe for future reference. </li>
+                                
+                   <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
                                 <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
                                 <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
                                 <li>Follow all the instructions given by the invigilators.</li>
@@ -2157,8 +2183,7 @@ window.printBulkAdmitCards = async () => {
                             
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 20px;">
                                 <div style="text-align: center; position: relative;">
-                                    <img src="${teacherSignUrl}" style="height: 30px; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);">
-                                    <div style="border-top: 1px solid #0f172a; width: 130px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF PRINCIPAL</div>
+                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF CLASS TEACHER</div>
                                 </div>
                                 <div style="text-align: center;">
                                     <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF PARENT/GUARDIAN</div>
@@ -2169,24 +2194,25 @@ window.printBulkAdmitCards = async () => {
                 </div>
             </div>
             `;
-
+            
             let canvas = await html2canvas(document.getElementById(`admit-container-${idx}`), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
             let imgData = canvas.toDataURL("image/png");
-
+            
             let imgWidth = cardWidth;
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            if (imgHeight > cardHeight) { imgHeight = cardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
+            
+            if (imgHeight > cardHeight) { imgHeight = cardHeight;
+                imgWidth = (canvas.width * imgHeight) / canvas.height; }
             
             const isTop = (idx % 2 === 0);
             if (isTop && idx > 0) pdf.addPage();
             
             const x = margin + (cardWidth - imgWidth) / 2;
             const y = isTop ? margin : (margin + cardHeight + gap);
-
+            
             pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
         }
-
+        
         pdf.save(`Admit_Cards_Class_${targetClass}.pdf`);
         sandbox.innerHTML = "";
         alert("Success! Admit cards downloaded.");
