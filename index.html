@@ -213,6 +213,8 @@
         <div onclick="showAdminSection('reeval')" id="sub-btn-reeval" class="admin-sub-tab text-blue-600">RE-EVAL</div>
         <div onclick="showAdminSection('admit')" id="sub-btn-admit" class="admin-sub-tab text-purple-600">ADMIT CARDS</div>
         <div onclick="showAdminSection('feedback')" id="sub-btn-feedback" class="admin-sub-tab">FEEDBACK</div>  
+        <div onclick="showAdminSection('sub-admins')" id="sub-btn-sub-admins" class="admin-sub-tab text-red-600 font-bold">MANAGE SUB-ADMINS</div>
+  
     </div>  
     
     <div id="sec-publish" class="admin-section grid grid-cols-1 md:grid-cols-2 gap-4">  
@@ -366,7 +368,7 @@
         </div>
     </div>
 
-    <div id="sec-admit" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="sec-admit" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <div class="glass !p-4 border-2 border-purple-200 col-span-1 md:col-span-2">
             <p class="text-[12px] font-black text-purple-600 mb-2 uppercase"><i class="fas fa-calendar-alt mr-1"></i> Class-wise Datesheet Builder</p>
@@ -382,8 +384,8 @@
                     <option value="double">Double Sitting (2 Exams/Day)</option>
                 </select>
             </div>
-
-                                    <div id="double-sitting-times" class="hidden flex-col gap-2 mb-3">
+            
+            <div id="double-sitting-times" class="hidden flex-col gap-2 mb-3">
                 <div class="flex flex-col bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
                     <span class="text-[10px] font-bold text-slate-500 mb-1">1st Sitting Time:</span>
                     <div class="flex items-center gap-2">
@@ -401,22 +403,22 @@
                     </div>
                 </div>
             </div>
-
-
+            
             <div id="datesheet-rows" class="space-y-2 mb-3"></div>
             <button onclick="window.addDatesheetRow()" class="w-full border-2 border-dashed border-purple-300 text-purple-600 py-2 rounded-xl font-bold text-[10px] mb-2">+ ADD EXAM DATE</button>
             <button onclick="window.saveDatesheet()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg uppercase tracking-wider">SAVE DATESHEET</button>
         </div>
-
+        
         <div class="glass !p-4 border-2 border-emerald-200">
             <p class="text-[12px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-file-excel mr-1"></i> Upload Master Data</p>
-            <p class="text-[9px] text-slate-500 mb-3">Admit card ke liye saal me ek baar Excel upload karein. 
-                <br>Headers hone chahiye: <code class="text-emerald-600">scholar_id, roll_no, name, father, mother, dob, class, section, photo_url, pen_no, candidate_aadhar, mother_aadhar, father_aadhar</code></p>
+            <p class="text-[9px] text-slate-500 mb-3">Admit card ke liye saal me ek baar Excel upload karein.
+                <br>Headers hone chahiye: <code class="text-emerald-600">scholar_id, roll_no, name, father, mother, dob, class, section, photo_url, pen_no, candidate_aadhar, mother_aadhar, father_aadhar</code>
+            </p>
             <select id="admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
             <input type="file" id="admit-excel-file" accept=".xlsx, .xls" class="publisher-input text-xs pt-2 mb-3">
             <button onclick="window.processAdmitCardExcel()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase">UPLOAD MASTER DATA</button>
         </div>
-
+        
         <div class="glass !p-4 border-2 border-orange-200">
             <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Admit Cards</p>
             <p class="text-[9px] text-slate-500 mb-3">Puri class ka admit card ek hi A4 multi-page PDF me generate aur print karein.</p>
@@ -425,24 +427,33 @@
             <input type="text" id="print-admit-exam-name" class="publisher-input text-center text-xs font-bold uppercase mb-3" placeholder="EXAM NAME (e.g. SECONDARY SCHOOL EXAM)">
             <button onclick="window.printBulkAdmitCards()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg">GENERATE ADMIT CARDS PDF</button>
         </div>
-
+        
+        <div class="glass !p-4 border-2 border-orange-200 mt-2">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Print Specific Admit Card(s)</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar admit card generate karein. Comma (,) lagayein (e.g. 2026101, 2026105).</p>
+            <input type="text" id="print-specific-admit-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S)">
+            <select id="print-specific-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="text" id="print-specific-admit-exam-name" class="publisher-input text-center text-xs font-bold uppercase mb-3" placeholder="EXAM NAME (e.g. SECONDARY SCHOOL EXAM)">
+            <button onclick="window.printSpecificAdmitCards()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">GENERATE SELECTED ADMIT CARDS</button>
+        </div>
+        
         <div class="glass !p-4 border-2 border-blue-200 md:col-span-2 mt-2">
-            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-edit mr-1"></i> Edit Individual Student Data</p>
-            <p class="text-[9px] text-slate-500 mb-3">Kisi ek student ka data galat ho gaya ho toh yahan se direct theek karein bina puri file wapas upload kiye.</p>
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-plus mr-1"></i> Add or Edit Student Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Naya admission aaye ya kisi ka data galat ho jaye, Scholar ID daal kar fetch karein aur direct yahin se add/update karein bina Excel ke.</p>
             
             <div class="flex gap-2 mb-4">
                 <input type="text" id="edit-admit-scholar" class="publisher-input !mb-0 text-center uppercase font-bold" placeholder="SCHOLAR ID (e.g. 2026101)">
                 <select id="edit-admit-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900"></select>
-                <button onclick="window.fetchSingleAdmitCard()" class="bg-blue-600 text-white px-5 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide">FETCH</button>
+                <button onclick="window.fetchSingleAdmitCard()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide">FETCH / ADD</button>
             </div>
-
+            
             <div id="edit-admit-form" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3 border-t border-slate-200 pt-4 mt-2">
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Name</label><input type="text" id="ea-name" class="publisher-input !mb-0"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Roll No</label><input type="text" id="ea-roll" class="publisher-input !mb-0"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">PEN No</label><input type="text" id="ea-pen" class="publisher-input !mb-0"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Name</label><input type="text" id="ea-father" class="publisher-input !mb-0"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="ea-mother" class="publisher-input !mb-0"></div>
-                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="ea-dob" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="ea-dob" class="publisher-input !mb-0" placeholder="DD/MM/YYYY"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Class</label><input type="text" id="ea-class" class="publisher-input !mb-0 uppercase"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Section</label><input type="text" id="ea-section" class="publisher-input !mb-0 uppercase"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Aadhaar</label><input type="text" id="ea-caadhar" class="publisher-input !mb-0"></div>
@@ -450,19 +461,31 @@
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Aadhaar</label><input type="text" id="ea-faadhar" class="publisher-input !mb-0"></div>
                 <div><label class="text-[9px] font-bold text-slate-500 ml-1">Photo URL</label><input type="text" id="ea-photo" class="publisher-input !mb-0"></div>
                 
-                <button onclick="window.updateSingleAdmitCard()" class="md:col-span-3 bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2">UPDATE STUDENT RECORD</button>
+                <button id="btn-update-admit" onclick="window.updateSingleAdmitCard()" class="md:col-span-3 bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2 transition-all hover:bg-emerald-700">SAVE STUDENT RECORD</button>
             </div>
         </div>
-
+        
         <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 mt-2">
             <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Master Data (Admit Cards)</p>
             <p class="text-[9px] text-slate-600 mb-3">Select the Session to permanently delete all uploaded student admit card master records for that specific session.</p>
             <select id="del-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
             <button onclick="window.deleteAdmitCardData()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">DELETE SESSION DATA</button>
         </div>
+        
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-user-minus mr-1"></i> Delete Specific Student(s)</p>
+            <p class="text-[9px] text-slate-600 mb-3">Ek ya ek se zyada baccho ka Admit Card data delete karne ke liye unka Scholar ID daalein. Multiple delete karne ke liye comma (,) lagayein.</p>
+            
+            <div class="flex gap-2 mb-2">
+                <input type="text" id="del-specific-scholars" class="publisher-input !mb-0 text-center uppercase font-bold flex-1" placeholder="Scholar ID(s) e.g. 2026101, 2026105">
+                <select id="del-specific-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-32"></select>
+            </div>
+            <button onclick="window.deleteSpecificAdmitCards()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg mt-2">DELETE STUDENT(S)</button>
+        </div>
+        
     </div>
 
-    <div id="sec-feedback" class="admin-section hidden pb-20">
+        <div id="sec-feedback" class="admin-section hidden pb-20">
         <div class="glass !p-4 border border-orange-200 text-center max-w-md mx-auto">
             <p class="text-[12px] font-black text-slate-900 mb-2 uppercase"><i class="fas fa-chart-pie mr-1 text-orange-600"></i> App Feedback Overview</p>
             <p class="text-[10px] text-slate-500 mb-4">Percentage of students satisfied with the app.</p>
@@ -475,6 +498,74 @@
                 Loading Data...
             </div>
         </div>
+    </div>
+
+       <div id="sec-sub-admins" class="admin-section hidden pb-20 max-w-2xl mx-auto">
+        <div class="glass !p-5 border-2 border-orange-200 mb-6">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-user-shield mr-1"></i> Create New Sub-Admin</p>
+            <p class="text-[10px] text-slate-500 mb-4">Email aur School ka naam daalein aur select karein ki is user ko Admin panel ke kaun-kaun se tabs ka access dena hai.</p>
+            
+            <input type="email" id="subadmin-email" class="publisher-input text-sm font-bold py-3 mb-2" placeholder="ENTER SUB-ADMIN EMAIL (e.g. school@gmail.com)">
+            <input type="text" id="subadmin-school" class="publisher-input text-sm font-bold py-3 mb-2" placeholder="ENTER SCHOOL NAME (e.g. TLSM World School)">
+            
+            <p class="text-[10px] font-black text-slate-700 mt-3 mb-2 uppercase">Assign Permissions (Select Sub-Tabs):</p>
+            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="publish" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> PUBLISH LECTURES</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="manage" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> MANAGE CONTENT</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="users" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> USERS ANALYTICS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="excel-results" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> EXCEL RESULTS / BULK PRINT</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="reeval" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> RE-EVALUATION DESK</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="admit" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> ADMIT CARDS PANEL</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="feedback" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> APP FEEDBACKS</label>
+            </div>
+            
+            <button onclick="window.saveSubAdmin()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all"><i class="fas fa-plus-circle mr-1"></i> Grant Sub-Admin Access</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-slate-200">
+            <p class="text-[11px] font-black text-slate-800 uppercase mb-3"><i class="fas fa-users-cog mr-1 text-slate-600"></i> Active Sub-Admins List</p>
+            
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="search-subadmin-school" onkeyup="window.filterSubAdmins()" class="publisher-input !mb-0 text-xs font-bold w-full border-blue-300" placeholder="SEARCH BY SCHOOL NAME... (e.g. TLSM)">
+            </div>
+
+            <div id="subAdminListContainer" class="space-y-3">
+                <p class="text-xs font-bold text-slate-400 text-center py-4">No sub-admins configured yet.</p>
+            </div>
+        </div>
+    </div>
+
+
+        
+            <div id="sec-sub-admins" class="admin-section hidden pb-20 max-w-2xl mx-auto">
+        <div class="glass !p-5 border-2 border-orange-200 mb-6">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-user-shield mr-1"></i> Create New Sub-Admin</p>
+            <p class="text-[10px] text-slate-500 mb-4">Email daalein aur select karein ki is user ko Admin panel ke kaun-kaun se tabs ka access dena hai.</p>
+            
+            <input type="email" id="subadmin-email" class="publisher-input text-sm font-bold py-3" placeholder="ENTER SUB-ADMIN EMAIL (e.g. school@gmail.com)">
+            
+            <p class="text-[10px] font-black text-slate-700 mt-3 mb-2 uppercase">Assign Permissions (Select Sub-Tabs):</p>
+            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="publish" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> PUBLISH LECTURES</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="manage" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> MANAGE CONTENT</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="users" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> USERS ANALYTICS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="excel-results" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> EXCEL RESULTS / BULK PRINT</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="reeval" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> RE-EVALUATION DESK</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="admit" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> ADMIT CARDS PANEL</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="feedback" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> APP FEEDBACKS</label>
+            </div>
+            
+            <button onclick="window.saveSubAdmin()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all"><i class="fas fa-plus-circle mr-1"></i> Grant Sub-Admin Access</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-slate-200">
+            <p class="text-[11px] font-black text-slate-800 uppercase mb-3"><i class="fas fa-users-cog mr-1 text-slate-600"></i> Active Sub-Admins List</p>
+            <div id="subAdminListContainer" class="space-y-3">
+                <p class="text-xs font-bold text-slate-400 text-center py-4">No sub-admins configured yet.</p>
+            </div>
+        </div>
+    </div>
+
     </div>
 
   </div>    
@@ -633,11 +724,28 @@ async function buildPerformanceChartData(scholarId, currentExam, academicYear, c
 
 let globalUID = null;
 let isCurrentUserAdmin = false;
+let isSubAdmin = false;
+let subAdminAllowedTabs = [];
+
   
 onAuthStateChanged(auth, async user => {  
     if (user) {  
         globalUID = user.uid;
         isCurrentUserAdmin = (user.email === adminEmail);
+        isSubAdmin = false;
+        subAdminAllowedTabs = [];
+
+        // Check if user is a Sub-Admin from database
+        const cleanEmail = user.email.toLowerCase().trim();
+        const subAdminSnap = await getDoc(doc(db, "sub_admins", cleanEmail));
+        
+        if (subAdminSnap.exists()) {
+            const saData = subAdminSnap.data();
+            if (saData.active === true) {
+                isSubAdmin = true;
+                subAdminAllowedTabs = saData.allowedTabs || [];
+            }
+        }
 
         const uRef = doc(db, "users", user.uid);   
         const uSnap = await getDoc(uRef);  
@@ -655,9 +763,9 @@ onAuthStateChanged(auth, async user => {
                 window.location.reload(); 
                 return;
             }
-            if(userData.deviceLocked && !isCurrentUserAdmin) { lockDevice("Account Locked by Admin."); return; }  
+            if(userData.deviceLocked && !isCurrentUserAdmin && !isSubAdmin) { lockDevice("Account Locked by Admin."); return; }  
             if (!userData.deviceID) await updateDoc(uRef, { deviceID: token });  
-            else if (!isCurrentUserAdmin && userData.deviceID !== token) { lockDevice("Multiple Device Login Detected."); return; }  
+            else if (!isCurrentUserAdmin && !isSubAdmin && userData.deviceID !== token) { lockDevice("Multiple Device Login Detected."); return; }  
         }  
           
         document.getElementById("lock-screen").style.display = "none";  
@@ -670,18 +778,35 @@ onAuthStateChanged(auth, async user => {
         appDiv.classList.add("animate-pop");
         
         document.getElementById("user-display").innerText = user.displayName;  
-        if(isCurrentUserAdmin) { document.getElementById("btn-admin").classList.remove("hidden"); loadAdminData(); }  
+        
+        // Agar main admin ho YA sub-admin active ho, toh ADMIN tab dikhao
+        if(isCurrentUserAdmin || isSubAdmin) { 
+            document.getElementById("btn-admin").classList.remove("hidden"); 
+            if(isCurrentUserAdmin) {
+                loadAdminData(); 
+                document.getElementById("sub-btn-sub-admins").classList.remove("hidden");
+            } else {
+                // Agar sub-admin login hua hai, toh use manage sub-admin tab mat dikhao
+                document.getElementById("sub-btn-sub-admins").classList.add("hidden");
+            }
+            window.applySubAdminTabRestrictions();
+        } else {
+            document.getElementById("btn-admin").classList.add("hidden");
+        }
+        
         checkAccess(user.uid); loadBooks(); loadSettings(); loadUserSubmissions(user.uid);  
         listenResultVisibility(); 
     } else {  
         globalUID = null;
         isCurrentUserAdmin = false;
+        isSubAdmin = false;
         document.getElementById("login-screen").style.display = "flex";   
         document.getElementById("app").style.display = "none";  
         const loginBtn = document.getElementById("login-btn");
         if(loginBtn) loginBtn.innerHTML = "CONTINUE WITH GOOGLE";
     }  
-});  
+});
+
   
 function lockDevice(reason) {  
     document.getElementById("lock-screen").style.display = "flex";   
@@ -1914,37 +2039,42 @@ window.processAdmitCardExcel = () => {
             let loadCounter = 0;
             const totalRows = parsedJsonRows.length;
             window.showProgress("Uploading Admit Card Master Data...");
+            
             for(let row of parsedJsonRows) {
                 if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
                 
                 const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
                 window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);
+                
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;
                 if(!scholarIdRaw) continue;
 
+                // SMART PARTIAL UPDATE LOGIC
                 let payload = {
                     scholar_id: scholarIdRaw,
-                    roll_no: row.roll_no ? row.roll_no.toString() : "---",
-                    name: row.name || "Unknown",
-                    father: row.father || "---",
-                    mother: row.mother || "---",
-                    dob: row.dob || "---",
-                    class: row.class ? row.class.toString().trim().toUpperCase() : "N/A",
-                    section: row.section ? row.section.toString().trim().toUpperCase() : "A",
-                    photo_url: row.photo_url ? row.photo_url.toString().trim() : "",
-                    pen_no: row.pen_no ? row.pen_no.toString().trim() : "---",
-                    candidate_aadhar: row.candidate_aadhar ? row.candidate_aadhar.toString().trim() : "---",
-                    mother_aadhar: row.mother_aadhar ? row.mother_aadhar.toString().trim() : "---",
-                    father_aadhar: row.father_aadhar ? row.father_aadhar.toString().trim() : "---",
                     session: session
                 };
+                
+                // Sirf wo data update hoga jiska column aapne Excel me diya hai
+                if(row.roll_no !== undefined) payload.roll_no = row.roll_no.toString().trim();
+                if(row.name !== undefined) payload.name = row.name.toString().trim();
+                if(row.father !== undefined) payload.father = row.father.toString().trim();
+                if(row.mother !== undefined) payload.mother = row.mother.toString().trim();
+                if(row.dob !== undefined) payload.dob = row.dob.toString().trim();
+                if(row.class !== undefined) payload.class = row.class.toString().trim().toUpperCase();
+                if(row.section !== undefined) payload.section = row.section.toString().trim().toUpperCase();
+                if(row.photo_url !== undefined) payload.photo_url = row.photo_url.toString().trim();
+                if(row.pen_no !== undefined) payload.pen_no = row.pen_no.toString().trim();
+                if(row.candidate_aadhar !== undefined) payload.candidate_aadhar = row.candidate_aadhar.toString().trim();
+                if(row.mother_aadhar !== undefined) payload.mother_aadhar = row.mother_aadhar.toString().trim();
+                if(row.father_aadhar !== undefined) payload.father_aadhar = row.father_aadhar.toString().trim();
                 
                 let docId = `${scholarIdRaw}_${session}`;
                 await setDoc(doc(db, "students_master", docId), payload, { merge: true });
                 loadCounter++;
             }
             window.hideProgress();
-            alert(`Successfully uploaded ${loadCounter} student records for admit cards.`);
+            alert(`Successfully processed and safely updated ${loadCounter} student records.`);
             fileInput.value = "";
         } catch(err) {
             console.error(err);
@@ -1955,6 +2085,7 @@ window.processAdmitCardExcel = () => {
     fileReader.readAsBinaryString(fileInput.files[0]);
 };
 
+
 // NEW FEATURE: Fetch Single Student Admit Card Data
 window.fetchSingleAdmitCard = async () => {
     const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
@@ -1964,12 +2095,18 @@ window.fetchSingleAdmitCard = async () => {
     const docId = `${scholarId}_${session}`;
     try {
         const snap = await getDoc(doc(db, "students_master", docId));
+        let d = {};
+        
         if(!snap.exists()) {
-            document.getElementById("edit-admit-form").classList.add("hidden");
-            return alert("No record found! Pehle master excel upload karein is student ke liye.");
+            alert(`Record not found for Scholar ID: ${scholarId}!\n\nYou can now enter the details in the form to ADD this as a NEW student.`);
+            document.getElementById("btn-update-admit").innerText = "ADD NEW STUDENT RECORD";
+            document.getElementById("btn-update-admit").className = "md:col-span-3 bg-blue-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2 transition-all hover:bg-blue-700";
+        } else {
+            d = snap.data();
+            document.getElementById("btn-update-admit").innerText = "UPDATE EXISTING RECORD";
+            document.getElementById("btn-update-admit").className = "md:col-span-3 bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2 transition-all hover:bg-emerald-700";
         }
         
-        const d = snap.data();
         document.getElementById("ea-name").value = d.name || "";
         document.getElementById("ea-roll").value = d.roll_no || "";
         document.getElementById("ea-pen").value = d.pen_no || "";
@@ -1977,7 +2114,7 @@ window.fetchSingleAdmitCard = async () => {
         document.getElementById("ea-mother").value = d.mother || "";
         document.getElementById("ea-dob").value = d.dob || "";
         document.getElementById("ea-class").value = d.class || "";
-        document.getElementById("ea-section").value = d.section || "";
+        document.getElementById("ea-section").value = d.section || "A";
         document.getElementById("ea-caadhar").value = d.candidate_aadhar || "";
         document.getElementById("ea-maadhar").value = d.mother_aadhar || "";
         document.getElementById("ea-faadhar").value = d.father_aadhar || "";
@@ -1990,38 +2127,40 @@ window.fetchSingleAdmitCard = async () => {
     }
 };
 
-// NEW FEATURE: Update Single Student Admit Card Data
 window.updateSingleAdmitCard = async () => {
     const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
     const session = document.getElementById("edit-admit-session").value;
     const docId = `${scholarId}_${session}`;
     
-    if(!confirm("Are you sure you want to update this student's master data?")) return;
+    if(!confirm("Save this student's master data to the database?")) return;
     
     try {
-        await updateDoc(doc(db, "students_master", docId), {
-            name: document.getElementById("ea-name").value.trim(),
-            roll_no: document.getElementById("ea-roll").value.trim(),
-            pen_no: document.getElementById("ea-pen").value.trim(),
-            father: document.getElementById("ea-father").value.trim(),
-            mother: document.getElementById("ea-mother").value.trim(),
-            dob: document.getElementById("ea-dob").value.trim(),
+        // 'setDoc' with 'merge: true' ensures if student is new, it creates it. If it exists, it updates it!
+        await setDoc(doc(db, "students_master", docId), {
+            scholar_id: scholarId,
+            session: session,
+            name: document.getElementById("ea-name").value.trim() || "---",
+            roll_no: document.getElementById("ea-roll").value.trim() || "---",
+            pen_no: document.getElementById("ea-pen").value.trim() || "---",
+            father: document.getElementById("ea-father").value.trim() || "---",
+            mother: document.getElementById("ea-mother").value.trim() || "---",
+            dob: document.getElementById("ea-dob").value.trim() || "---",
             class: document.getElementById("ea-class").value.trim().toUpperCase(),
-            section: document.getElementById("ea-section").value.trim().toUpperCase(),
-            candidate_aadhar: document.getElementById("ea-caadhar").value.trim(),
-            mother_aadhar: document.getElementById("ea-maadhar").value.trim(),
-            father_aadhar: document.getElementById("ea-faadhar").value.trim(),
+            section: document.getElementById("ea-section").value.trim().toUpperCase() || "A",
+            candidate_aadhar: document.getElementById("ea-caadhar").value.trim() || "---",
+            mother_aadhar: document.getElementById("ea-maadhar").value.trim() || "---",
+            father_aadhar: document.getElementById("ea-faadhar").value.trim() || "---",
             photo_url: document.getElementById("ea-photo").value.trim()
-        });
+        }, { merge: true });
         
-        alert("Student Record Updated Successfully! Ab aap naya Admit Card print kar sakte hain.");
+        alert("Student Record Saved/Updated Successfully! Now you can fetch/print their Admit Card.");
         document.getElementById("edit-admit-form").classList.add("hidden");
-        document.getElementById("edit-admit-scholar").value = "";
     } catch(e) {
         console.error(e);
-        alert("Update failed. Please check network connection.");
+        alert("Save failed. Please check your network connection.");
     }
 };
+
 
 window.printBulkAdmitCards = async () => {
     if (!isCurrentUserAdmin) return;
@@ -2079,19 +2218,19 @@ window.printBulkAdmitCards = async () => {
                     let time = s.time ? String(s.time) : "---";
                     rowsHtml += `
                     <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-size: 13px; font-weight: bold;">${time}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td>
                     </tr>`;
                 });
                 
                 datesheetTableHtml = `
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
                     <thead>
-                        <tr style="background: #1e3a8a; color: white; font-size: 12px;">
-                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
-                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
-                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
+                        <tr style="background: #1e3a8a; color: white; font-size: 11px;">
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
@@ -2104,9 +2243,9 @@ window.printBulkAdmitCards = async () => {
                     let sub2 = s.subject2 ? String(s.subject2).toUpperCase() : "---";
                     rowsHtml += `
                     <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub1}</td>
-                        <td style="padding: 8px; border: 1px solid #1e3a8a;">${sub2}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td>
                     </tr>`;
                 });
                 
@@ -2114,19 +2253,19 @@ window.printBulkAdmitCards = async () => {
                 let t2 = dsData.time2 ? String(dsData.time2) : '---';
                 
                 datesheetTableHtml = `
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;">
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
                     <thead>
                         <tr style="background: #1e3a8a; color: white; font-size: 11px;">
-                            <th style="padding: 8px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">1ST SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
+                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
+                            <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
+                            <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>`;
             }
         } else {
-            datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 15px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
+            datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
         }
         
         const qStudents = query(
@@ -2148,7 +2287,7 @@ window.printBulkAdmitCards = async () => {
         const pageWidth = 210;
         const pageHeight = 297;
         const margin = 5;
-        const gap = 10;
+        const gap = 6; // Gap optimized
         const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
         const cardWidth = pageWidth - (margin * 2);
         
@@ -2159,40 +2298,39 @@ window.printBulkAdmitCards = async () => {
             window.updateProgress(percent, `Compiled ${idx + 1} of ${totalStudents} admit cards`);
 
             let s = students[idx];
-            
             let safePhotoHtml = s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">` : `<div style="padding-top:50px;">STUDENT<br>PHOTOGRAPH</div>`;
             
+            // OPTIMIZED: Width set to 1020px for high horizontal stretch space
             sandbox.innerHTML = `
-            <div id="admit-container-${idx}" style="width: 950px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
-                <div style="border: 1px solid #1e3a8a; padding: 15px; box-sizing: border-box; background: white;">
+            <div id="admit-container-${idx}" style="width: 1020px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
+                <div style="border: 1px solid #1e3a8a; padding: 12px; box-sizing: border-box; background: white;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 15px; margin-bottom: 15px;">
-                        <div style="width: 100px; text-align: center;">
-                            <img src="${logoUrl}" style="width: 80px; height: 80px; object-fit: contain;" crossorigin="anonymous">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
+                        <div style="width: 90px; text-align: center;">
+                            <img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous">
                         </div>
                         
-                        <div style="flex: 1; text-align: center; padding: 0 15px;">
-                            <h1 style="margin: 0 0 5px 0; font-size: 36px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
-                            <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
-                            <p style="margin: 0; font-size: 11px; color: #333;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
-                            
-                     <p style="margin: 0; font-size: 11px; color: #333;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
+                        <div style="flex: 1; text-align: center; padding: 0 10px;">
+                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
+                            <h3 style="margin: 0 0 3px 0; font-size: 13px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
+                            <p style="margin: 0; font-size: 10px; color: #333; font-weight: bold;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
+                            <p style="margin: 2px 0 0 0; font-size: 10px; color: #333; font-weight: 500;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
                         </div>
                         
                         <div style="width: 140px; text-align: center;">
-                            <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 6px; border-radius: 4px; font-size: 14px; margin-bottom: 8px;">ADMIT CARD</div>
-                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">CLASS ${s.class || '---'}</div>
-                            <div style="font-weight: bold; font-size: 12px;">SESSION: ${session}</div>
+                            <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 5px; border-radius: 4px; font-size: 13px; margin-bottom: 6px;">ADMIT CARD</div>
+                            <div style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">CLASS ${s.class || '---'}</div>
+                            <div style="font-weight: bold; font-size: 11px;">SESSION: ${session}</div>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 12px; font-weight: bold; align-items: stretch;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; font-weight: bold; align-items: stretch;">
                         
-                        <div style="flex: 2.2;">
+                        <div style="flex: 2.2; margin-right: 15px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
                                 <tbody>
                                     <tr>
-                                        <td style="padding: 3px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
+                                        <td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
                                         <td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td>
                                     </tr>
                                     <tr>
@@ -2219,18 +2357,18 @@ window.printBulkAdmitCards = async () => {
                             </table>
                         </div>
                         
-                        <div style="width: 120px; height: 150px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; margin-left: 10px; overflow: hidden; background: #f8fafc;">
+                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">
                             ${safePhotoHtml}
                         </div>
                     </div>
 
                     ${datesheetTableHtml}
 
-                    <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 5px;">
                         
                         <div style="flex: 1.5; padding-right: 20px;">
-                            <p style="margin: 0 0 5px 0; font-size: 12px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
-                            <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.6; color: #0f172a; list-style-type: disc;">
+                            <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
+                            <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.5; color: #0f172a; list-style-type: disc;">
                                 <li>Student must carry this Admit Card to the Examination Centre.</li>
                                 <li>Please keep this admit card safe for future reference. </li>
                                 <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
@@ -2241,28 +2379,28 @@ window.printBulkAdmitCards = async () => {
                         </div>
                         
                         <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
-                            <div style="width: 50px; height: 50px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
-                            <div style="font-size: 10px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
+                            <div style="width: 45px; height: 45px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
+                            <div style="font-size: 9px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
                         </div>
                         
                         <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: space-between; margin-left: 15px;">
                             
-                            <div style="text-align: right; width: 100%; height: 40px;">
-                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 4px; float: right; text-align: center; margin-top: 25px;">SIGNATURE OF CANDIDATE</div>
+                            <div style="text-align: right; width: 100%; height: 35px;">
+                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div>
                             </div>
                             
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 15px;">
                                 <div style="text-align: center; position: relative;">
-                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF CLASS TEACHER</div>
+                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div>
                                 </div>
                                 <div style="text-align: center;">
-                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 4px; margin-top: 30px;">SIGNATURE OF PARENT/GUARDIAN</div>
+                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT/GUARDIAN</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
                         <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 Tlsm world school, All rights reserved.</span>
                         <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Developed by AARAV TECH-HUB (AJ VNS)</span>
                     </div>
@@ -2273,7 +2411,6 @@ window.printBulkAdmitCards = async () => {
             
             const elementToCapture = document.getElementById(`admit-container-${idx}`);
             await waitForImages(elementToCapture);
-            
             await new Promise(r => setTimeout(r, 100));
             
             let canvas;
@@ -2292,9 +2429,10 @@ window.printBulkAdmitCards = async () => {
             
             let imgData = canvas.toDataURL("image/jpeg", 1.0); 
             
-            let imgWidth = cardWidth;
+            let imgWidth = cardWidth; // Takes full width of 200mm
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
             
+            // Agar optimized height hit karti hai, toh automatically standard handle karega
             if (imgHeight > cardHeight) { 
                 imgHeight = cardHeight;
                 imgWidth = (canvas.width * imgHeight) / canvas.height; 
@@ -2307,7 +2445,6 @@ window.printBulkAdmitCards = async () => {
             const y = isTop ? margin : (margin + cardHeight + gap);
             
             pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight); 
-            
             sandbox.innerHTML = "";
         }
         
@@ -2326,6 +2463,366 @@ window.printBulkAdmitCards = async () => {
         }
     }
 };
+
+
+window.printSpecificAdmitCards = async () => {
+    if (!isCurrentUserAdmin) return;
+    
+    const inputIds = document.getElementById("print-specific-admit-ids").value.trim().toUpperCase();
+    const session = document.getElementById("print-specific-admit-session").value;
+    const examName = document.getElementById("print-specific-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
+    const sandbox = document.getElementById("admit-card-sandbox");
+    
+    const btn = event.target;
+    const oldText = btn ? btn.innerHTML : "GENERATE SELECTED ADMIT CARDS";
+    
+    if (!inputIds) { alert("Please Enter at least one Scholar ID"); return; }
+    
+    const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
+    if(scholarIds.length === 0) return;
+
+    if (btn) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING (DO NOT CLOSE)...`;
+        btn.disabled = true;
+    }
+    
+    let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
+    
+    const waitForImages = (container) => {
+        const images = container.getElementsByTagName('img');
+        const promises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; 
+            });
+        });
+        return Promise.all(promises);
+    };
+
+    const formatToDDMMYYYY = (dStr) => {
+        if (!dStr) return "---";
+        let match = String(dStr).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+        if (match) {
+            return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
+        }
+        return dStr;
+    };
+    
+    try {
+        window.showProgress("Fetching Student Data...");
+        
+        let students = [];
+        // Har ek id ka data database se search karke laana
+        for (let i = 0; i < scholarIds.length; i++) {
+            let docId = `${scholarIds[i]}_${session}`;
+            let snap = await getDoc(doc(db, "students_master", docId));
+            if (snap.exists()) {
+                students.push(snap.data());
+            }
+        }
+        
+        if (students.length === 0) { 
+            window.hideProgress();
+            throw new Error("No valid student data found for the given Scholar IDs and Session!"); 
+        }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("PDF Engine not loaded. Refresh the page.");
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 5;
+        const gap = 6; 
+        const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
+        const cardWidth = pageWidth - (margin * 2);
+        
+        let datesheetCache = {};
+
+        for (let idx = 0; idx < students.length; idx++) {
+            const percent = Math.round(((idx + 1) / students.length) * 100);
+            window.updateProgress(percent, `Compiled ${idx + 1} of ${students.length} admit cards`);
+
+            let s = students[idx];
+            let studentClass = (s.class || "").toUpperCase();
+            
+            let datesheetTableHtml = "";
+            if (studentClass) {
+                if (!datesheetCache[studentClass]) {
+                    const dsSnap = await getDoc(doc(db, "datesheets", studentClass));
+                    if (dsSnap.exists() && dsSnap.data().schedule) {
+                        datesheetCache[studentClass] = dsSnap.data();
+                    } else {
+                        datesheetCache[studentClass] = null; 
+                    }
+                }
+                
+                let dsData = datesheetCache[studentClass];
+                if (dsData && dsData.schedule) {
+                    const dsType = dsData.type || 'single';
+                    if (dsType === 'single') {
+                        let rowsHtml = "";
+                        (dsData.schedule || []).forEach((sch, i) => {
+                            let finalDate = formatToDDMMYYYY(sch.date);
+                            let subj = sch.subject ? String(sch.subject).toUpperCase() : "---";
+                            let time = sch.time ? String(sch.time) : "---";
+                            rowsHtml += `
+                            <tr style="text-align: center; font-size: 11px; color: #000;">
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td>
+                            </tr>`;
+                        });
+                        datesheetTableHtml = `
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
+                            <thead>
+                                <tr style="background: #1e3a8a; color: white; font-size: 11px;">
+                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
+                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
+                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>`;
+                    } else {
+                        let rowsHtml = "";
+                        (dsData.schedule || []).forEach((sch, i) => {
+                            let finalDate = formatToDDMMYYYY(sch.date);
+                            let sub1 = sch.subject1 ? String(sch.subject1).toUpperCase() : "---";
+                            let sub2 = sch.subject2 ? String(sch.subject2).toUpperCase() : "---";
+                            rowsHtml += `
+                            <tr style="text-align: center; font-size: 11px; color: #000;">
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td>
+                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td>
+                            </tr>`;
+                        });
+                        let t1 = dsData.time1 ? String(dsData.time1) : '---';
+                        let t2 = dsData.time2 ? String(dsData.time2) : '---';
+                        datesheetTableHtml = `
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
+                            <thead>
+                                <tr style="background: #1e3a8a; color: white; font-size: 11px;">
+                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
+                                    <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
+                                    <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>`;
+                    }
+                }
+            }
+            if(!datesheetTableHtml) {
+                datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
+            }
+
+            let safePhotoHtml = s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">` : `<div style="padding-top:50px;">STUDENT<br>PHOTOGRAPH</div>`;
+            
+            sandbox.innerHTML = `
+            <div id="admit-container-${idx}" style="width: 1020px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
+                <div style="border: 1px solid #1e3a8a; padding: 12px; box-sizing: border-box; background: white;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
+                        <div style="width: 90px; text-align: center;">
+                            <img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous">
+                        </div>
+                        
+                        <div style="flex: 1; text-align: center; padding: 0 10px;">
+                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
+                            <h3 style="margin: 0 0 3px 0; font-size: 13px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
+                            <p style="margin: 0; font-size: 10px; color: #333; font-weight: bold;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
+                            <p style="margin: 2px 0 0 0; font-size: 10px; color: #333; font-weight: 500;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
+                        </div>
+                        
+                        <div style="width: 140px; text-align: center;">
+                            <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 5px; border-radius: 4px; font-size: 13px; margin-bottom: 6px;">ADMIT CARD</div>
+                            <div style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">CLASS ${s.class || '---'}</div>
+                            <div style="font-weight: bold; font-size: 11px;">SESSION: ${session}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; font-weight: bold; align-items: stretch;">
+                        
+                        <div style="flex: 2.2; margin-right: 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
+                                        <td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td>
+                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">
+                            ${safePhotoHtml}
+                        </div>
+                    </div>
+
+                    ${datesheetTableHtml}
+
+                    <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 5px;">
+                        
+                        <div style="flex: 1.5; padding-right: 20px;">
+                            <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
+                            <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.5; color: #0f172a; list-style-type: disc;">
+                                <li>Student must carry this Admit Card to the Examination Centre.</li>
+                                <li>Please keep this admit card safe for future reference. </li>
+                                <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
+                                <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
+                                <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
+                                <li>Follow all the instructions given by the invigilators.</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
+                            <div style="width: 45px; height: 45px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
+                            <div style="font-size: 9px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
+                        </div>
+                        
+                        <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: space-between; margin-left: 15px;">
+                            
+                            <div style="text-align: right; width: 100%; height: 35px;">
+                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 15px;">
+                                <div style="text-align: center; position: relative;">
+                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT/GUARDIAN</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 Tlsm world school, All rights reserved.</span>
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Developed by AARAV TECH-HUB (AJ VNS)</span>
+                    </div>
+
+                </div>
+            </div>
+            `;
+            
+            const elementToCapture = document.getElementById(`admit-container-${idx}`);
+            await waitForImages(elementToCapture);
+            await new Promise(r => setTimeout(r, 100));
+            
+            let canvas;
+            try {
+                canvas = await html2canvas(elementToCapture, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: "#ffffff"
+                });
+            } catch (canvasErr) {
+                window.hideProgress();
+                throw new Error(`Rendering Failed for Student: ${s.name || 'Unknown'}.`);
+            }
+            
+            let imgData = canvas.toDataURL("image/jpeg", 1.0); 
+            
+            let imgWidth = cardWidth; 
+            let imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            if (imgHeight > cardHeight) { 
+                imgHeight = cardHeight;
+                imgWidth = (canvas.width * imgHeight) / canvas.height; 
+            }
+            
+            const isTop = (idx % 2 === 0);
+            if (isTop && idx > 0) pdf.addPage();
+            
+            const x = margin + (cardWidth - imgWidth) / 2;
+            const y = isTop ? margin : (margin + cardHeight + gap);
+            
+            pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight); 
+            sandbox.innerHTML = "";
+        }
+        
+        pdf.save(`Selected_Admit_Cards.pdf`);
+        window.hideProgress();
+        alert("Success! Selected Admit cards PDF generated perfectly.");
+    } catch (e) {
+        console.error(e);
+        window.hideProgress();
+        alert("ERROR DETECTED:\n\n" + e.message);
+    } finally {
+        sandbox.innerHTML = "";
+        if (btn) {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+        }
+    }
+};
+
+
+
+window.deleteSpecificAdmitCards = async () => {
+    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Admin Access Only!"); return; }
+    
+    const inputIds = document.getElementById("del-specific-scholars").value.trim().toUpperCase();
+    const session = document.getElementById("del-specific-session").value;
+    
+    if (!inputIds) { alert("Please enter at least one Scholar ID."); return; }
+    if (!session) { alert("Please select a Session."); return; }
+    
+    // Comma se alag karke ek list (array) bana lega
+    const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
+    if (scholarIds.length === 0) return;
+
+    const confirmMsg = `WARNING: Are you sure you want to permanently delete Admit Card data for ${scholarIds.length} student(s) in Session ${session}?`;
+    if (!confirm(confirmMsg)) return;
+
+    window.showProgress("Deleting Student Records...");
+    let deletedCount = 0;
+    
+    try {
+        for (let i = 0; i < scholarIds.length; i++) {
+            const docId = `${scholarIds[i]}_${session}`;
+            await deleteDoc(doc(db, "students_master", docId));
+            deletedCount++;
+            
+            // Progress update karega
+            const percent = Math.round(((i + 1) / scholarIds.length) * 100);
+            window.updateProgress(percent, `Deleted ${i + 1} of ${scholarIds.length} records`);
+        }
+        
+        window.hideProgress();
+        alert(`Success! Permanently deleted ${deletedCount} student record(s).`);
+        document.getElementById("del-specific-scholars").value = "";
+    } catch (err) {
+        console.error(err);
+        window.hideProgress();
+        alert("Failed to delete some records. Please check your connection.");
+    }
+};
+
 
 
 window.deleteAdmitCardData = async () => {
@@ -2579,7 +3076,13 @@ function loadAdminData() {
     });
 
     loadFeedbackData();
-}  
+    
+    // Sub Admin List Realtime Load
+    if (typeof window.listenSubAdmins === 'function') {
+        window.listenSubAdmins();
+    }
+}
+
   
 window.editItem = (type, data) => {  
     window.switchTab('admin'); window.showAdminSection('publish');  
@@ -2590,6 +3093,9 @@ window.editItem = (type, data) => {
     } else if (type === 'book') {  
         editBookId = data.id; document.getElementById('book-title').value = data.title; document.getElementById('book-link').value = data.link; document.getElementById('book-price').value = data.price; document.getElementById('book-access').value = data.access; document.getElementById('book-save-btn').innerText = "UPDATE BOOK";  
     }  
+    
+    window.listenSubAdmins();
+
 };  
 
 window.saveSignature = async () => {
@@ -2719,7 +3225,9 @@ function renderExamSessionUI() {
 }
 
 function populateDropdowns() {
-    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session', 'admit-session', 'print-admit-session', 'edit-admit-session', 'del-admit-session'];
+    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session', 'admit-session', 'print-admit-session', 'edit-admit-session', 'del-admit-session', 'del-specific-session', 'print-specific-admit-session'];
+
+
     const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam', 'admin-update-exam'];
 
     sessionSelects.forEach(id => {
@@ -2851,12 +3359,37 @@ window.switchTab = (t) => {
     if(document.getElementById('btn-'+t)) document.getElementById('btn-'+t).classList.add('nav-active');   
 };  
   
+window.applySubAdminTabRestrictions = () => {
+    // Agar Super Admin hai toh saare sub-tabs dikhao
+    if(isCurrentUserAdmin) {
+        document.querySelectorAll('.admin-sub-tab').forEach(el => el.classList.remove('hidden'));
+        return;
+    }
+    // Agar Sub-Admin hai toh sirf permission wale sub-tabs dikhao, baki hide kardo
+    document.querySelectorAll('.admin-sub-tab').forEach(el => {
+        const tabId = el.id.replace('sub-btn-', '');
+        if(subAdminAllowedTabs.includes(tabId)) {
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
+};
+
 window.showAdminSection = (s) => {   
+    // Security layer: Sub admin block if bypass via console try
+    if(!isCurrentUserAdmin && s === 'sub-admins') return;
+    if(!isCurrentUserAdmin && !subAdminAllowedTabs.includes(s)) {
+        alert("Access Denied: You do not have permissions for this module.");
+        return;
+    }
+    
     document.querySelectorAll('.admin-section').forEach(sec => sec.classList.add('hidden'));   
     document.getElementById('sec-'+s).classList.remove('hidden');   
     document.querySelectorAll('.admin-sub-tab').forEach(t => t.classList.remove('active'));   
     document.getElementById('sub-btn-'+s).classList.add('active');   
-};  
+};
+
   
 window.closeModal = () => {   
     if(document.fullscreenElement) document.exitFullscreen();  
@@ -2919,6 +3452,138 @@ window.searchAnalytics = () => {
         if (!found) { analyticsDiv.innerHTML = `<div class="text-center text-slate-500 text-[11px] py-6">No student data found</div>`; }  
     });  
 };  
+
+
+let allSubAdminsData = []; // Naya global variable list search karne ke liye
+
+window.saveSubAdmin = async () => {
+    if(!isCurrentUserAdmin) return;
+    const email = document.getElementById("subadmin-email").value.trim().toLowerCase();
+    const schoolName = document.getElementById("subadmin-school").value.trim().toUpperCase(); // NAYA
+    
+    if(!email) { alert("Please input a valid email structure."); return; }
+    if(!schoolName) { alert("Please enter the School Name."); return; } // NAYA Validation
+    if(email === adminEmail) { alert("You cannot add Super Admin email as sub-admin."); return; }
+
+    let checkedPermissions = [];
+    document.querySelectorAll('.subadmin-perm-cb:checked').forEach(cb => {
+        checkedPermissions.push(cb.value);
+    });
+
+    if(checkedPermissions.length === 0) {
+        alert("Please select at least one permission sub-tab for this email role.");
+        return;
+    }
+
+    try {
+        await setDoc(doc(db, "sub_admins", email), {
+            email: email,
+            schoolName: schoolName, // School name DB me save hoga
+            allowedTabs: checkedPermissions,
+            active: true,
+            createdAt: Timestamp.now()
+        }, { merge: true });
+
+        alert(`Access Granted Successfully to ${email} for ${schoolName}!`);
+        document.getElementById("subadmin-email").value = "";
+        document.getElementById("subadmin-school").value = "";
+        document.querySelectorAll('.subadmin-perm-cb').forEach(cb => cb.checked = false);
+    } catch(e) {
+        alert("Failed to create sub-admin role.");
+    }
+};
+
+window.toggleSubAdminActive = async (email, currentStatus) => {
+    if(!isCurrentUserAdmin) return;
+    try {
+        await updateDoc(doc(db, "sub_admins", email), {
+            active: !currentStatus
+        });
+        alert(`Status updated for ${email}!`);
+    } catch(e) {
+        alert("Failed to switch status state.");
+    }
+};
+
+window.deleteSubAdminRecord = async (email) => {
+    if(!isCurrentUserAdmin) return;
+    if(!confirm(`Are you absolute sure you want to permanently revoke all access from ${email}?`)) return;
+    try {
+        await deleteDoc(doc(db, "sub_admins", email));
+        alert("Access completely deleted!");
+    } catch(e) {
+        alert("Deletation failed.");
+    }
+};
+
+window.listenSubAdmins = () => {
+    if(!isCurrentUserAdmin) return;
+
+    onSnapshot(collection(db, "sub_admins"), snap => {
+        allSubAdminsData = [];
+        snap.forEach(docSnap => {
+            allSubAdminsData.push(docSnap.data());
+        });
+        window.renderSubAdminsList(allSubAdminsData); // Data ko screen pe bhejne wala function
+    });
+};
+
+// NAYA: List Dikhane Wala Function
+window.renderSubAdminsList = (listData) => {
+    const container = document.getElementById("subAdminListContainer");
+    if(!container) return;
+    container.innerHTML = "";
+
+    if(listData.length === 0) {
+        container.innerHTML = `<p class="text-xs font-bold text-slate-400 text-center py-4">No sub-admins found.</p>`;
+        return;
+    }
+
+    listData.forEach(sa => {
+        const tabsString = (sa.allowedTabs || []).map(t => t.toUpperCase()).join(", ");
+        const sName = sa.schoolName || "UNKNOWN SCHOOL"; // Agar school name missing ho
+        
+        container.innerHTML += `
+        <div class="bg-white p-3 rounded-2xl border ${sa.active ? 'border-emerald-200' : 'border-red-200'} shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-2 text-[11px]">
+            <div>
+                <span class="font-black text-slate-900 text-xs block">${sa.email}</span>
+                <span class="text-blue-700 font-black text-[10px] uppercase block mt-1"><i class="fas fa-school mr-1"></i> ${sName}</span>
+                <span class="text-slate-500 font-medium block mt-1"><b>Permissions:</b> ${tabsString || 'NONE'}</span>
+                <span class="font-bold ${sa.active ? 'text-emerald-600' : 'text-red-600'} uppercase text-[9px] tracking-wider block mt-1">
+                    STATUS: ${sa.active ? 'ACTIVE (WORKING)' : 'DISABLED (BLOCKED)'}
+                </span>
+            </div>
+            <div class="flex gap-2 self-end md:self-center mt-2 md:mt-0">
+                <button onclick="window.toggleSubAdminActive('${sa.email}', ${sa.active})" class="px-3 py-1.5 rounded-xl font-bold border ${sa.active ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}">
+                    ${sa.active ? 'DISABLE' : 'ENABLE'}
+                </button>
+                <button onclick="window.deleteSubAdminRecord('${sa.email}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-xl font-bold border border-red-200">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>`;
+    });
+};
+
+// NAYA: Search filter wala logic
+window.filterSubAdmins = () => {
+    const query = document.getElementById("search-subadmin-school").value.trim().toLowerCase();
+    
+    // Agar search box khali hai, toh poori list dikhao
+    if (!query) {
+        window.renderSubAdminsList(allSubAdminsData);
+        return;
+    }
+    
+    // Nahi toh sirf matching school names dhundho
+    const filteredList = allSubAdminsData.filter(sa => {
+        const sName = (sa.schoolName || "").toLowerCase();
+        return sName.includes(query);
+    });
+    
+    window.renderSubAdminsList(filteredList);
+};
+
   
 window.downloadResult = async () => {  
     const element = document.getElementById("result-display-panel");  
