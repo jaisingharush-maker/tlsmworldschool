@@ -726,6 +726,8 @@ let globalUID = null;
 let isCurrentUserAdmin = false;
 let isSubAdmin = false;
 let subAdminAllowedTabs = [];
+let currentSchoolName = "TLSM WORLD SCHOOL"; // Naya Security Variable
+
 
   
 onAuthStateChanged(auth, async user => {  
@@ -735,7 +737,7 @@ onAuthStateChanged(auth, async user => {
         isSubAdmin = false;
         subAdminAllowedTabs = [];
 
-        // Check if user is a Sub-Admin from database
+                // Check if user is a Sub-Admin from database
         const cleanEmail = user.email.toLowerCase().trim();
         const subAdminSnap = await getDoc(doc(db, "sub_admins", cleanEmail));
         
@@ -744,8 +746,12 @@ onAuthStateChanged(auth, async user => {
             if (saData.active === true) {
                 isSubAdmin = true;
                 subAdminAllowedTabs = saData.allowedTabs || [];
+                currentSchoolName = saData.schoolName || "UNKNOWN SCHOOL"; // Sub-admin ka school lock
             }
+        } else if (isCurrentUserAdmin) {
+            currentSchoolName = "TLSM WORLD SCHOOL"; // Main Admin ka school
         }
+
 
         const uRef = doc(db, "users", user.uid);   
         const uSnap = await getDoc(uRef);  
@@ -1742,10 +1748,17 @@ window.printBulkClassResults = async () => {
 
   
 window.processExcelUpload = () => {  
+    // NAYA: Sub-Admin Security Pass
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
+
     const fileInput = document.getElementById("excel-file-input");  
     const selectedExamType = document.getElementById("admin-upload-exam-type").value;  
     const selectedAcademicYear = document.getElementById("admin-upload-academic-year").value; 
+    
+    const targetClass = document.getElementById("admin-upload-class").value.trim().toUpperCase();
+    const targetSection = document.getElementById("admin-upload-section").value.trim().toUpperCase() || "A";
 
+    if(!targetClass) { alert("Please enter the Target Class before uploading the sheet!"); return; }
     if(!fileInput.files || fileInput.files.length === 0) { alert("Please select a valid excel .xlsx structure report card master first!"); return; }  
       
     const targetFile = fileInput.files[0];  
@@ -1762,16 +1775,19 @@ window.processExcelUpload = () => {
               
             let loadCounter = 0;
             const totalRows = parsedJsonRows.length;
-            window.showProgress("Uploading Bulk Student Results...");
+            window.showProgress(`Uploading Results for ${currentSchoolName} (Class ${targetClass}-${targetSection})...`);
+            
             for(let row of parsedJsonRows) {
                 if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
                 
                 const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
                 window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);  
+                
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;  
                 if(!scholarIdRaw) continue;  
                   
-                let uniqueDocId = `${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
+                // NAYA: ID me School Name joda gaya hai taaki clash na ho
+                let uniqueDocId = `${currentSchoolName}_${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
                 let subjects = [];  
                 const allColumns = Object.keys(row);  
                 let detectedSubjects = {};  
@@ -1816,30 +1832,33 @@ window.processExcelUpload = () => {
                     mother: row.mother || "---",  
                     father: row.father || "---",  
                     dob: row.dob || "---",  
-                    class: row.class ? row.class.toString().trim().toUpperCase() : "N/A",  
-                    section: row.section ? row.section.toString().trim().toUpperCase() : "A",  
-                    school: row.school || "Aarav Public School",  
+                    class: targetClass,  
+                    section: targetSection, 
+                    school: currentSchoolName, // NAYA: School name isolate kiya gaya hai
+                    school_name: currentSchoolName, 
                     subjects_json: subjects,  
                     result_status: row.result_status || "PASS",  
                     fee_due: row.fee_due === true || row.fee_due === "TRUE",  
                     days_present: row.days_present !== undefined ? row.days_present : 0,
-                    updatedAt: Timestamp.now()  
+                    updatedAt: window.Timestamp ? window.Timestamp.now() : new Date()
                 };  
                   
                 await setDoc(doc(db, "school_results", uniqueDocId), processedPayload, { merge: true });  
                 loadCounter++;  
             }  
             window.hideProgress();
-            alert(`Success! Uploaded ${loadCounter} student records for ${selectedExamType} exam (${selectedAcademicYear}).`);  
+            alert(`Success! Uploaded ${loadCounter} result records safely for ${currentSchoolName} (Class ${targetClass}-${targetSection}).`);  
             fileInput.value = "";  
+            document.getElementById("admin-upload-class").value = "";
         } catch(err) {  
             console.error(err);
             window.hideProgress();
-            alert("Error encounter during structural runtime processing parsing index schemas.");  
+            alert("Error encountered during structural runtime processing.");  
         }  
     };  
     fileReader.readAsBinaryString(targetFile);  
 };
+
 
 
 window.toggleDatesheetType = () => {
@@ -1854,59 +1873,53 @@ window.toggleDatesheetType = () => {
     window.addDatesheetRow();
 };
 
-window.addDatesheetRow = (date = '', day = '', col1 = '', col2 = '', tStart = '', tEnd = '') => {
+window.addDatesheetRow = (dateStr = '', dayStr = '', sub1Str = '', sub2Str = '', tStart = '', tEnd = '') => {
     const type = document.getElementById("datesheet-type").value;
     const container = document.getElementById("datesheet-rows");
-    const div = document.createElement("div");
+    const row = document.createElement("div");
     
-    // Har nayi date ke liye ek alag gray box banaya hai taaki design saaf dikhe
-    div.className = "datesheet-row bg-slate-50 border border-slate-200 p-3 rounded-xl relative mb-3 mt-2";
+    // Naya row design
+    row.className = "datesheet-row flex flex-col md:flex-row gap-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm relative mt-2";
+    
+    // Delete Button
+    const removeBtn = `<button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow"><i class="fas fa-times"></i></button>`;
 
-    const dayOptions = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THRUSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-    const daySelectHtml = `
-        <select class="ds-day publisher-input !m-0 flex-1 bg-white font-bold text-[10px]">
-            <option value="">DAY</option>
-            ${dayOptions.map(d => `<option value="${d}" ${day === d ? 'selected' : ''}>${d}</option>`).join('')}
-        </select>
-    `;
-
-    if (type === 'single') {
-        div.innerHTML = `
-            <button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md"><i class="fas fa-times text-[10px]"></i></button>
-            <div class="flex gap-2 mb-2">
-                <input type="date" class="ds-date publisher-input !m-0 flex-1 font-bold text-[10px]" value="${date}">
-                ${daySelectHtml}
+    if(type === 'single') {
+        row.innerHTML = `
+            ${removeBtn}
+            <div class="flex gap-2 flex-1">
+                <input type="date" class="ds-date publisher-input !m-0 text-[10px] flex-1 ds-input-field" value="${dateStr}">
+                <input type="text" class="ds-day publisher-input !m-0 text-[10px] w-20 ds-input-field" placeholder="DAY" value="${dayStr}">
             </div>
-            <input type="text" class="ds-sub publisher-input !m-0 w-full text-[10px] mb-2" placeholder="Subject Name" value="${col1}">
-            <div class="flex items-center gap-2">
-                <input type="time" class="ds-time-start publisher-input !m-0 text-[10px] flex-1" value="${tStart}">
-                <span class="text-slate-400 font-bold text-[10px]">TO</span>
-                <input type="time" class="ds-time-end publisher-input !m-0 text-[10px] flex-1" value="${tEnd}">
+            <div class="flex gap-2 flex-1">
+                <input type="time" class="ds-time-start publisher-input !m-0 text-[10px] w-20 ds-input-field" value="${tStart}">
+                <input type="time" class="ds-time-end publisher-input !m-0 text-[10px] w-20 ds-input-field" value="${tEnd}">
             </div>
+            <input type="text" class="ds-sub ds-sub-last publisher-input !m-0 text-[10px] flex-1 ds-input-field uppercase" placeholder="SUBJECT NAME" value="${sub1Str}">
         `;
     } else {
-        div.innerHTML = `
-            <button onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md"><i class="fas fa-times text-[10px]"></i></button>
-            <div class="flex gap-2 mb-2">
-                <input type="date" class="ds-date publisher-input !m-0 flex-1 font-bold text-[10px]" value="${date}">
-                ${daySelectHtml}
+        row.innerHTML = `
+            ${removeBtn}
+            <div class="flex gap-2 flex-1">
+                <input type="date" class="ds-date publisher-input !m-0 text-[10px] flex-1 ds-input-field" value="${dateStr}">
+                <input type="text" class="ds-day publisher-input !m-0 text-[10px] w-20 ds-input-field" placeholder="DAY" value="${dayStr}">
             </div>
-            <div class="flex gap-2">
-                <input type="text" class="ds-sub1 publisher-input !m-0 flex-1 text-[10px]" placeholder="1st Sitting Subject" value="${col1}">
-                <input type="text" class="ds-sub2 publisher-input !m-0 flex-1 text-[10px]" placeholder="2nd Sitting Subject" value="${col2}">
+            <div class="flex gap-2 flex-1">
+                <input type="text" class="ds-sub1 publisher-input !m-0 text-[10px] flex-1 ds-input-field uppercase" placeholder="SUB 1 (SITTING 1)" value="${sub1Str}">
+                <input type="text" class="ds-sub2 ds-sub-last publisher-input !m-0 text-[10px] flex-1 ds-input-field uppercase" placeholder="SUB 2 (SITTING 2)" value="${sub2Str}">
             </div>
         `;
     }
-    container.appendChild(div);
+    container.appendChild(row);
 };
 
+
 window.saveDatesheet = async () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; }
     const targetClass = document.getElementById("datesheet-class").value.trim().toUpperCase();
     if(!targetClass) { alert("Please enter a class first!"); return; }
 
     const type = document.getElementById("datesheet-type").value;
-    
-    // Time picker ke 24hr format ko beautiful 12hr AM/PM me convert karne ka helper
     const convertTo12Hour = (timeStr) => {
         if (!timeStr) return '';
         let [hrs, mins] = timeStr.split(':');
@@ -1928,8 +1941,6 @@ window.saveDatesheet = async () => {
     let schedule = [];
     document.querySelectorAll('.datesheet-row').forEach(row => {
         const date = row.querySelector('.ds-date').value.trim();
-        
-        // yyyy-mm-dd input format ko badal kar dd/mm/yyyy format me convert karne ka logic
         let displayDate = date;
         if (date.includes('-')) {
             const parts = date.split('-');
@@ -1937,7 +1948,6 @@ window.saveDatesheet = async () => {
                 displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
         }
-
         const day = row.querySelector('.ds-day').value.trim();
         const formattedDate = displayDate ? (day ? `${displayDate} (${day})` : displayDate) : '';
 
@@ -1946,51 +1956,37 @@ window.saveDatesheet = async () => {
             const tStart = row.querySelector('.ds-time-start').value;
             const tEnd = row.querySelector('.ds-time-end').value;
             const time = (tStart && tEnd) ? `${convertTo12Hour(tStart)} - ${convertTo12Hour(tEnd)}` : '';
-            
-            if(formattedDate && sub) schedule.push({ 
-                date: formattedDate, rawDate: date, rawDay: day, subject: sub, time: time, rawTStart: tStart, rawTEnd: tEnd 
-            });
+            if(formattedDate && sub) schedule.push({ date: formattedDate, rawDate: date, rawDay: day, subject: sub, time: time, rawTStart: tStart, rawTEnd: tEnd });
         } else {
             const sub1 = row.querySelector('.ds-sub1').value.trim();
             const sub2 = row.querySelector('.ds-sub2').value.trim();
-            
-            if(formattedDate && (sub1 || sub2)) schedule.push({ 
-                date: formattedDate, rawDate: date, rawDay: day, subject1: sub1, subject2: sub2 
-            });
+            if(formattedDate && (sub1 || sub2)) schedule.push({ date: formattedDate, rawDate: date, rawDay: day, subject1: sub1, subject2: sub2 });
         }
     });
 
-    await setDoc(doc(db, "datesheets", targetClass), { 
-        class: targetClass, 
-        type: type,
-        time1: time1,
-        time2: time2,
-        rawT1Start: t1Start,
-        rawT1End: t1End,
-        rawT2Start: t2Start,
-        rawT2End: t2End,
-        schedule: schedule 
+    // ISOLATED DATESHEET
+    await setDoc(doc(db, "datesheets", `${currentSchoolName}_${targetClass}`), { 
+        class: targetClass, school_name: currentSchoolName, type: type, time1: time1, time2: time2, rawT1Start: t1Start, rawT1End: t1End, rawT2Start: t2Start, rawT2End: t2End, schedule: schedule 
     }, { merge: true });
     
-    alert("Datesheet Saved Successfully!");
+    alert(`Datesheet Saved Successfully for ${currentSchoolName}!`);
 };
 
 window.loadDatesheet = async () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) return;
     const targetClass = document.getElementById("datesheet-class").value.trim().toUpperCase();
     if(!targetClass) { alert("Enter class to load datesheet"); return; }
     
-    const snap = await getDoc(doc(db, "datesheets", targetClass));
+    const snap = await getDoc(doc(db, "datesheets", `${currentSchoolName}_${targetClass}`));
     const container = document.getElementById("datesheet-rows");
     container.innerHTML = "";
     
     if(snap.exists()) {
         const data = snap.data();
-        
         const type = data.type || 'single';
         document.getElementById("datesheet-type").value = type;
         window.toggleDatesheetType();
         
-        // Load Double Sitting Times
         if(document.getElementById("ds-time1-start")) {
             document.getElementById("ds-time1-start").value = data.rawT1Start || '';
             document.getElementById("ds-time1-end").value = data.rawT1End || '';
@@ -2003,7 +1999,6 @@ window.loadDatesheet = async () => {
             data.schedule.forEach(item => {
                 const date = item.rawDate || (item.date ? item.date.split(' ')[0] : '');
                 const day = item.rawDay || (item.date && item.date.includes('(') ? item.date.split('(')[1].replace(')','') : '');
-                
                 if(type === 'single') {
                     const tStart = item.rawTStart || (item.time ? item.time.split(' - ')[0] : '');
                     const tEnd = item.rawTEnd || (item.time ? item.time.split(' - ')[1] : '');
@@ -2012,18 +2007,16 @@ window.loadDatesheet = async () => {
                     window.addDatesheetRow(date, day, item.subject1, item.subject2);
                 }
             });
-        } else { 
-            if(container.children.length === 0) window.addDatesheetRow(); 
-        }
+        } else { if(container.children.length === 0) window.addDatesheetRow(); }
     } else {
         document.getElementById("datesheet-type").value = 'single';
         window.toggleDatesheetType();
-        alert("No previous datesheet found. Create a new one.");
+        alert("No datesheet found for this class in your school.");
     }
 };
 
-
 window.processAdmitCardExcel = () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; }
     const fileInput = document.getElementById("admit-excel-file");
     const session = document.getElementById("admit-session").value;
     if(!fileInput.files || fileInput.files.length === 0) { alert("Select Excel file first!"); return; }
@@ -2038,24 +2031,22 @@ window.processAdmitCardExcel = () => {
             
             let loadCounter = 0;
             const totalRows = parsedJsonRows.length;
-            window.showProgress("Uploading Admit Card Master Data...");
+            window.showProgress(`Uploading Master Data for ${currentSchoolName}...`);
             
             for(let row of parsedJsonRows) {
                 if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
-                
                 const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
                 window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);
                 
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;
                 if(!scholarIdRaw) continue;
 
-                // SMART PARTIAL UPDATE LOGIC
                 let payload = {
                     scholar_id: scholarIdRaw,
-                    session: session
+                    session: session,
+                    school_name: currentSchoolName // ISOLATION KEY
                 };
                 
-                // Sirf wo data update hoga jiska column aapne Excel me diya hai
                 if(row.roll_no !== undefined) payload.roll_no = row.roll_no.toString().trim();
                 if(row.name !== undefined) payload.name = row.name.toString().trim();
                 if(row.father !== undefined) payload.father = row.father.toString().trim();
@@ -2069,12 +2060,12 @@ window.processAdmitCardExcel = () => {
                 if(row.mother_aadhar !== undefined) payload.mother_aadhar = row.mother_aadhar.toString().trim();
                 if(row.father_aadhar !== undefined) payload.father_aadhar = row.father_aadhar.toString().trim();
                 
-                let docId = `${scholarIdRaw}_${session}`;
+                let docId = `${currentSchoolName}_${scholarIdRaw}_${session}`; // ISOLATED ID
                 await setDoc(doc(db, "students_master", docId), payload, { merge: true });
                 loadCounter++;
             }
             window.hideProgress();
-            alert(`Successfully processed and safely updated ${loadCounter} student records.`);
+            alert(`Successfully processed ${loadCounter} records for ${currentSchoolName}.`);
             fileInput.value = "";
         } catch(err) {
             console.error(err);
@@ -2085,20 +2076,19 @@ window.processAdmitCardExcel = () => {
     fileReader.readAsBinaryString(fileInput.files[0]);
 };
 
-
-// NEW FEATURE: Fetch Single Student Admit Card Data
 window.fetchSingleAdmitCard = async () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; }
     const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
     const session = document.getElementById("edit-admit-session").value;
     if(!scholarId) return alert("Please enter Scholar ID first!");
     
-    const docId = `${scholarId}_${session}`;
+    const docId = `${currentSchoolName}_${scholarId}_${session}`; // ISOLATED ID
     try {
         const snap = await getDoc(doc(db, "students_master", docId));
         let d = {};
         
         if(!snap.exists()) {
-            alert(`Record not found for Scholar ID: ${scholarId}!\n\nYou can now enter the details in the form to ADD this as a NEW student.`);
+            alert(`Record not found in ${currentSchoolName}!\nYou can now ADD this as a NEW student.`);
             document.getElementById("btn-update-admit").innerText = "ADD NEW STUDENT RECORD";
             document.getElementById("btn-update-admit").className = "md:col-span-3 bg-blue-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2 transition-all hover:bg-blue-700";
         } else {
@@ -2128,17 +2118,18 @@ window.fetchSingleAdmitCard = async () => {
 };
 
 window.updateSingleAdmitCard = async () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; }
     const scholarId = document.getElementById("edit-admit-scholar").value.trim().toUpperCase();
     const session = document.getElementById("edit-admit-session").value;
-    const docId = `${scholarId}_${session}`;
+    const docId = `${currentSchoolName}_${scholarId}_${session}`; // ISOLATED ID
     
-    if(!confirm("Save this student's master data to the database?")) return;
+    if(!confirm(`Save this student's data to ${currentSchoolName} database?`)) return;
     
     try {
-        // 'setDoc' with 'merge: true' ensures if student is new, it creates it. If it exists, it updates it!
         await setDoc(doc(db, "students_master", docId), {
             scholar_id: scholarId,
             session: session,
+            school_name: currentSchoolName, // ISOLATION KEY
             name: document.getElementById("ea-name").value.trim() || "---",
             roll_no: document.getElementById("ea-roll").value.trim() || "---",
             pen_no: document.getElementById("ea-pen").value.trim() || "---",
@@ -2153,7 +2144,7 @@ window.updateSingleAdmitCard = async () => {
             photo_url: document.getElementById("ea-photo").value.trim()
         }, { merge: true });
         
-        alert("Student Record Saved/Updated Successfully! Now you can fetch/print their Admit Card.");
+        alert("Student Record Saved Successfully!");
         document.getElementById("edit-admit-form").classList.add("hidden");
     } catch(e) {
         console.error(e);
@@ -2161,9 +2152,8 @@ window.updateSingleAdmitCard = async () => {
     }
 };
 
-
 window.printBulkAdmitCards = async () => {
-    if (!isCurrentUserAdmin) return;
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; } // SUB-ADMIN BYPASS FIX
     const targetClass = document.getElementById("print-admit-class").value.trim().toUpperCase();
     const session = document.getElementById("print-admit-session").value;
     const examName = document.getElementById("print-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
@@ -2180,33 +2170,27 @@ window.printBulkAdmitCards = async () => {
     }
     
     let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
-    
     const waitForImages = (container) => {
         const images = container.getElementsByTagName('img');
         const promises = Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve; 
-            });
+            return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
         });
         return Promise.all(promises);
     };
     
     try {
-        const dsSnap = await getDoc(doc(db, "datesheets", targetClass));
+        // ISOLATED DATESHEET FETCH
+        const dsSnap = await getDoc(doc(db, "datesheets", `${currentSchoolName}_${targetClass}`));
         let datesheetTableHtml = "";
         
         if (dsSnap.exists() && dsSnap.data().schedule) {
             const dsData = dsSnap.data();
             const dsType = dsData.type || 'single';
-            
             const formatToDDMMYYYY = (dStr) => {
                 if (!dStr) return "---";
                 let match = String(dStr).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
-                if (match) {
-                    return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
-                }
+                if (match) return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
                 return dStr;
             };
             
@@ -2216,66 +2200,35 @@ window.printBulkAdmitCards = async () => {
                     let finalDate = formatToDDMMYYYY(s.date);
                     let subj = s.subject ? String(s.subject).toUpperCase() : "---";
                     let time = s.time ? String(s.time) : "---";
-                    rowsHtml += `
-                    <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td>
-                    </tr>`;
+                    rowsHtml += `<tr style="text-align: center; font-size: 11px; color: #000;"><td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td></tr>`;
                 });
-                
-                datesheetTableHtml = `
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
-                    <thead>
-                        <tr style="background: #1e3a8a; color: white; font-size: 11px;">
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>`;
+                datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><thead><tr style="background: #1e3a8a; color: white; font-size: 11px;"><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
             } else {
                 let rowsHtml = "";
                 (dsData.schedule || []).forEach((s, i) => {
                     let finalDate = formatToDDMMYYYY(s.date);
                     let sub1 = s.subject1 ? String(s.subject1).toUpperCase() : "---";
                     let sub2 = s.subject2 ? String(s.subject2).toUpperCase() : "---";
-                    rowsHtml += `
-                    <tr style="text-align: center; font-size: 11px; color: #000;">
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td>
-                        <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td>
-                    </tr>`;
+                    rowsHtml += `<tr style="text-align: center; font-size: 11px; color: #000;"><td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td></tr>`;
                 });
-                
                 let t1 = dsData.time1 ? String(dsData.time1) : '---';
                 let t2 = dsData.time2 ? String(dsData.time2) : '---';
-                
-                datesheetTableHtml = `
-                <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
-                    <thead>
-                        <tr style="background: #1e3a8a; color: white; font-size: 11px;">
-                            <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
-                            <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
-                            <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>`;
+                datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><thead><tr style="background: #1e3a8a; color: white; font-size: 11px;"><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th><th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th><th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
             }
         } else {
             datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
         }
         
+        // ISOLATED QUERY: Sirf currentSchoolName ke bacche aayenge!
         const qStudents = query(
             collection(db, "students_master"),
             where("class", "==", targetClass),
-            where("session", "==", session)
+            where("session", "==", session),
+            where("school_name", "==", currentSchoolName)
         );
         const snap = await getDocs(qStudents);
         
-        if (snap.empty) { throw new Error("No Student Data Found! Make sure Master Data is uploaded for this Class & Session."); }
+        if (snap.empty) { throw new Error(`No Data Found for Class ${targetClass} in ${currentSchoolName}!`); }
         
         let students = [];
         snap.forEach(d => students.push(d.data()));
@@ -2284,10 +2237,7 @@ window.printBulkAdmitCards = async () => {
         if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("PDF Engine not loaded. Refresh the page.");
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF("p", "mm", "a4");
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const margin = 5;
-        const gap = 6; // Gap optimized
+        const pageWidth = 210; const pageHeight = 297; const margin = 5; const gap = 6;
         const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
         const cardWidth = pageWidth - (margin * 2);
         
@@ -2300,23 +2250,15 @@ window.printBulkAdmitCards = async () => {
             let s = students[idx];
             let safePhotoHtml = s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">` : `<div style="padding-top:50px;">STUDENT<br>PHOTOGRAPH</div>`;
             
-            // OPTIMIZED: Width set to 1020px for high horizontal stretch space
             sandbox.innerHTML = `
             <div id="admit-container-${idx}" style="width: 1020px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
                 <div style="border: 1px solid #1e3a8a; padding: 12px; box-sizing: border-box; background: white;">
-                    
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
-                        <div style="width: 90px; text-align: center;">
-                            <img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous">
-                        </div>
-                        
+                        <div style="width: 90px; text-align: center;"><img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous"></div>
                         <div style="flex: 1; text-align: center; padding: 0 10px;">
-                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
+                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">${currentSchoolName}</h1>
                             <h3 style="margin: 0 0 3px 0; font-size: 13px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
-                            <p style="margin: 0; font-size: 10px; color: #333; font-weight: bold;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
-                            <p style="margin: 2px 0 0 0; font-size: 10px; color: #333; font-weight: 500;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
                         </div>
-                        
                         <div style="width: 140px; text-align: center;">
                             <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 5px; border-radius: 4px; font-size: 13px; margin-bottom: 6px;">ADMIT CARD</div>
                             <div style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">CLASS ${s.class || '---'}</div>
@@ -2325,86 +2267,50 @@ window.printBulkAdmitCards = async () => {
                     </div>
 
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; font-weight: bold; align-items: stretch;">
-                        
                         <div style="flex: 2.2; margin-right: 15px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
                                 <tbody>
-                                    <tr>
-                                        <td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
-                                        <td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td>
-                                    </tr>
+                                    <tr><td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td><td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">
-                            ${safePhotoHtml}
-                        </div>
+                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">${safePhotoHtml}</div>
                     </div>
 
                     ${datesheetTableHtml}
 
                     <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 5px;">
-                        
                         <div style="flex: 1.5; padding-right: 20px;">
                             <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
                             <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.5; color: #0f172a; list-style-type: disc;">
                                 <li>Student must carry this Admit Card to the Examination Centre.</li>
                                 <li>Please keep this admit card safe for future reference. </li>
-                                <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
-                                <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
-                                <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
+                                <li>If there are any errors/mistakes on your admit card, please contact the school office.</li>             
+                                <li>Mobile phones, calculators, smart watches are strictly prohibited.</li>
                                 <li>Follow all the instructions given by the invigilators.</li>
                             </ul>
                         </div>
-                        
                         <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
                             <div style="width: 45px; height: 45px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
                             <div style="font-size: 9px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
                         </div>
-                        
                         <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: space-between; margin-left: 15px;">
-                            
-                            <div style="text-align: right; width: 100%; height: 35px;">
-                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div>
-                            </div>
-                            
+                            <div style="text-align: right; width: 100%; height: 35px;"><div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div></div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 15px;">
-                                <div style="text-align: center; position: relative;">
-                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT/GUARDIAN</div>
-                                </div>
+                                <div style="text-align: center; position: relative;"><div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div></div>
+                                <div style="text-align: center;"><div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT</div></div>
                             </div>
                         </div>
                     </div>
-                    
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 Tlsm world school, All rights reserved.</span>
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 ${currentSchoolName}, All rights reserved.</span>
                         <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Developed by AARAV TECH-HUB (AJ VNS)</span>
                     </div>
-
                 </div>
             </div>
             `;
@@ -2414,36 +2320,18 @@ window.printBulkAdmitCards = async () => {
             await new Promise(r => setTimeout(r, 100));
             
             let canvas;
-            try {
-                canvas = await html2canvas(elementToCapture, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    backgroundColor: "#ffffff"
-                });
-            } catch (canvasErr) {
-                window.hideProgress();
-                throw new Error(`Rendering Failed for Student: ${s.name || 'Unknown'} (Roll: ${s.roll_no}). Unki photo link me koi problem hai.`);
-            }
+            try { canvas = await html2canvas(elementToCapture, { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: "#ffffff" }); } catch (canvasErr) { window.hideProgress(); throw new Error(`Rendering Failed for Student: ${s.name}`); }
             
             let imgData = canvas.toDataURL("image/jpeg", 1.0); 
-            
-            let imgWidth = cardWidth; // Takes full width of 200mm
+            let imgWidth = cardWidth; 
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            // Agar optimized height hit karti hai, toh automatically standard handle karega
-            if (imgHeight > cardHeight) { 
-                imgHeight = cardHeight;
-                imgWidth = (canvas.width * imgHeight) / canvas.height; 
-            }
+            if (imgHeight > cardHeight) { imgHeight = cardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
             
             const isTop = (idx % 2 === 0);
             if (isTop && idx > 0) pdf.addPage();
             
             const x = margin + (cardWidth - imgWidth) / 2;
             const y = isTop ? margin : (margin + cardHeight + gap);
-            
             pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight); 
             sandbox.innerHTML = "";
         }
@@ -2452,90 +2340,55 @@ window.printBulkAdmitCards = async () => {
         window.hideProgress();
         alert("Success! Admit cards PDF generated perfectly.");
     } catch (e) {
-        console.error(e);
-        window.hideProgress();
-        alert("ERROR DETECTED:\n\n" + e.message);
-    } finally {
-        sandbox.innerHTML = "";
-        if (btn) {
-            btn.innerHTML = oldText;
-            btn.disabled = false;
-        }
-    }
+        console.error(e); window.hideProgress(); alert("ERROR DETECTED:\n\n" + e.message);
+    } finally { sandbox.innerHTML = ""; if (btn) { btn.innerHTML = oldText; btn.disabled = false; } }
 };
 
-
 window.printSpecificAdmitCards = async () => {
-    if (!isCurrentUserAdmin) return;
-    
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; } // SUB-ADMIN BYPASS FIX
     const inputIds = document.getElementById("print-specific-admit-ids").value.trim().toUpperCase();
     const session = document.getElementById("print-specific-admit-session").value;
     const examName = document.getElementById("print-specific-admit-exam-name").value.trim().toUpperCase() || "EXAMINATION";
     const sandbox = document.getElementById("admit-card-sandbox");
-    
     const btn = event.target;
     const oldText = btn ? btn.innerHTML : "GENERATE SELECTED ADMIT CARDS";
     
     if (!inputIds) { alert("Please Enter at least one Scholar ID"); return; }
-    
     const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
     if(scholarIds.length === 0) return;
 
-    if (btn) {
-        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING (DO NOT CLOSE)...`;
-        btn.disabled = true;
-    }
+    if (btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING (DO NOT CLOSE)...`; btn.disabled = true; }
     
     let logoUrl = "https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png";
-    
     const waitForImages = (container) => {
         const images = container.getElementsByTagName('img');
-        const promises = Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve; 
-            });
-        });
+        const promises = Array.from(images).map(img => { if (img.complete) return Promise.resolve(); return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; }); });
         return Promise.all(promises);
     };
 
     const formatToDDMMYYYY = (dStr) => {
         if (!dStr) return "---";
         let match = String(dStr).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
-        if (match) {
-            return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
-        }
+        if (match) return `${match[3]}/${match[2]}/${match[1]}${match[4]}`;
         return dStr;
     };
     
     try {
         window.showProgress("Fetching Student Data...");
-        
         let students = [];
-        // Har ek id ka data database se search karke laana
         for (let i = 0; i < scholarIds.length; i++) {
-            let docId = `${scholarIds[i]}_${session}`;
+            let docId = `${currentSchoolName}_${scholarIds[i]}_${session}`; // ISOLATED FETCH
             let snap = await getDoc(doc(db, "students_master", docId));
-            if (snap.exists()) {
-                students.push(snap.data());
-            }
+            if (snap.exists()) { students.push(snap.data()); }
         }
         
-        if (students.length === 0) { 
-            window.hideProgress();
-            throw new Error("No valid student data found for the given Scholar IDs and Session!"); 
-        }
+        if (students.length === 0) { window.hideProgress(); throw new Error(`No student data found in ${currentSchoolName} for the given IDs!`); }
 
         if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("PDF Engine not loaded. Refresh the page.");
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF("p", "mm", "a4");
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const margin = 5;
-        const gap = 6; 
-        const cardHeight = (pageHeight - (margin * 2) - gap) / 2;
-        const cardWidth = pageWidth - (margin * 2);
+        const pageWidth = 210; const pageHeight = 297; const margin = 5; const gap = 6; 
+        const cardHeight = (pageHeight - (margin * 2) - gap) / 2; const cardWidth = pageWidth - (margin * 2);
         
         let datesheetCache = {};
 
@@ -2545,16 +2398,12 @@ window.printSpecificAdmitCards = async () => {
 
             let s = students[idx];
             let studentClass = (s.class || "").toUpperCase();
-            
             let datesheetTableHtml = "";
             if (studentClass) {
                 if (!datesheetCache[studentClass]) {
-                    const dsSnap = await getDoc(doc(db, "datesheets", studentClass));
-                    if (dsSnap.exists() && dsSnap.data().schedule) {
-                        datesheetCache[studentClass] = dsSnap.data();
-                    } else {
-                        datesheetCache[studentClass] = null; 
-                    }
+                    const dsSnap = await getDoc(doc(db, "datesheets", `${currentSchoolName}_${studentClass}`));
+                    if (dsSnap.exists() && dsSnap.data().schedule) datesheetCache[studentClass] = dsSnap.data();
+                    else datesheetCache[studentClass] = null; 
                 }
                 
                 let dsData = datesheetCache[studentClass];
@@ -2566,75 +2415,36 @@ window.printSpecificAdmitCards = async () => {
                             let finalDate = formatToDDMMYYYY(sch.date);
                             let subj = sch.subject ? String(sch.subject).toUpperCase() : "---";
                             let time = sch.time ? String(sch.time) : "---";
-                            rowsHtml += `
-                            <tr style="text-align: center; font-size: 11px; color: #000;">
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td>
-                            </tr>`;
+                            rowsHtml += `<tr style="text-align: center; font-size: 11px; color: #000;"><td style="padding: 5px 8px; border: 1px solid #1e3a8a; text-align: left;">${i+1}. ${subj}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${finalDate}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-size: 12px; font-weight: bold;">${time}</td></tr>`;
                         });
-                        datesheetTableHtml = `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
-                            <thead>
-                                <tr style="background: #1e3a8a; color: white; font-size: 11px;">
-                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th>
-                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th>
-                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rowsHtml}</tbody>
-                        </table>`;
+                        datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><thead><tr style="background: #1e3a8a; color: white; font-size: 11px;"><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left; width: 40%; padding-left: 15px;">SUBJECT NAME</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM DATE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 30%;">EXAM TIMING</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
                     } else {
                         let rowsHtml = "";
                         (dsData.schedule || []).forEach((sch, i) => {
                             let finalDate = formatToDDMMYYYY(sch.date);
                             let sub1 = sch.subject1 ? String(sch.subject1).toUpperCase() : "---";
                             let sub2 = sch.subject2 ? String(sch.subject2).toUpperCase() : "---";
-                            rowsHtml += `
-                            <tr style="text-align: center; font-size: 11px; color: #000;">
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td>
-                                <td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td>
-                            </tr>`;
+                            rowsHtml += `<tr style="text-align: center; font-size: 11px; color: #000;"><td style="padding: 5px 8px; border: 1px solid #1e3a8a; font-weight: bold;">${finalDate}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub1}</td><td style="padding: 5px 8px; border: 1px solid #1e3a8a;">${sub2}</td></tr>`;
                         });
                         let t1 = dsData.time1 ? String(dsData.time1) : '---';
                         let t2 = dsData.time2 ? String(dsData.time2) : '---';
-                        datesheetTableHtml = `
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;">
-                            <thead>
-                                <tr style="background: #1e3a8a; color: white; font-size: 11px;">
-                                    <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th>
-                                    <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th>
-                                    <th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th>
-                                </tr>
-                            </thead>
-                            <tbody>${rowsHtml}</tbody>
-                        </table>`;
+                        datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><thead><tr style="background: #1e3a8a; color: white; font-size: 11px;"><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: center; width: 20%;">DATE</th><th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 11px;">1ST SITTING - <span style="font-size: 13px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t1}</span></th><th style="padding: 5px; border: 1px solid #1e3a8a; text-align: center; width: 40%; font-size: 12px;">2ND SITTING - <span style="font-size: 14px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 5px; border-radius: 4px;">${t2}</span></th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
                     }
                 }
             }
-            if(!datesheetTableHtml) {
-                datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
-            }
+            if(!datesheetTableHtml) datesheetTableHtml = `<table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px;"><tr><td style="text-align:center; padding:10px; font-weight:bold; color: #1e3a8a;">No Datesheet Found for this Class. Printing without schedule.</td></tr></table>`;
 
             let safePhotoHtml = s.photo_url ? `<img src="${s.photo_url}" style="width: 100%; height: 100%; object-fit: cover;" crossorigin="anonymous">` : `<div style="padding-top:50px;">STUDENT<br>PHOTOGRAPH</div>`;
             
             sandbox.innerHTML = `
             <div id="admit-container-${idx}" style="width: 1020px; background: white; border: 4px solid #1e3a8a; padding: 4px; font-family: 'Arial', sans-serif; color: #000; box-sizing: border-box; margin: 0 auto;">
                 <div style="border: 1px solid #1e3a8a; padding: 12px; box-sizing: border-box; background: white;">
-                    
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
-                        <div style="width: 90px; text-align: center;">
-                            <img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous">
-                        </div>
-                        
+                        <div style="width: 90px; text-align: center;"><img src="${logoUrl}" style="width: 75px; height: 74px; object-fit: contain;" crossorigin="anonymous"></div>
                         <div style="flex: 1; text-align: center; padding: 0 10px;">
-                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">TLSM WORLD SCHOOL</h1>
+                            <h1 style="margin: 0 0 3px 0; font-size: 34px; font-weight: 900; letter-spacing: 1px; color: #1e3a8a;">${currentSchoolName}</h1>
                             <h3 style="margin: 0 0 3px 0; font-size: 13px; color: #64748b; font-weight: bold; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</h3>
-                            <p style="margin: 0; font-size: 10px; color: #333; font-weight: bold;">(AFFILIATIOΝ ΝΟ.: 331251 SCHOOL CODE: 67074)</p>
-                            <p style="margin: 2px 0 0 0; font-size: 10px; color: #333; font-weight: 500;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | ΜΟΒ.ΝΟ.: 9661651050 | asktlsmschool@gmail</p>       
                         </div>
-                        
                         <div style="width: 140px; text-align: center;">
                             <div style="background: #1e3a8a; color: white; font-weight: bold; padding: 5px; border-radius: 4px; font-size: 13px; margin-bottom: 6px;">ADMIT CARD</div>
                             <div style="font-weight: bold; font-size: 13px; margin-bottom: 2px;">CLASS ${s.class || '---'}</div>
@@ -2643,86 +2453,50 @@ window.printSpecificAdmitCards = async () => {
                     </div>
 
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; font-weight: bold; align-items: stretch;">
-                        
                         <div style="flex: 2.2; margin-right: 15px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px; font-weight: bold;">
                                 <tbody>
-                                    <tr>
-                                        <td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td>
-                                        <td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td>
-                                        <td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td>
-                                    </tr>
+                                    <tr><td style="padding: 2px 0; width: 120px; color: #0f172a;">CANDIDATE NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.name || '---'}</span></td><td style="padding: 3px 0; width: 130px; color: #0f172a; padding-left: 10px;">EXAM NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal; text-transform: uppercase;">${examName}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">ROLL NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.roll_no || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">CANDIDATE AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.candidate_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">PEN NO.</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.pen_no || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">SCHOLAR ID</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.scholar_id || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">FATHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.father || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">FATHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.father_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">MOTHER'S NAME</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.mother || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">MOTHER'S AADHAAR</td><td style="padding: 3px 0; color: #0f172a;">: <span style="font-weight: normal;">${s.mother_aadhar || '---'}</span></td></tr>
+                                    <tr><td style="padding: 3px 0; color: #0f172a;">CLASS & SEC</td><td style="padding: 3px 0; color: #0f172a;">: <span style="text-transform: uppercase;">${s.class || '---'} ${s.section || '---'}</span></td><td style="padding: 3px 0; color: #0f172a; padding-left: 10px;">DATE OF BIRTH</td><td style="padding: 3px 0; color: #0f172a;">: <span>${s.dob || '---'}</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">
-                            ${safePhotoHtml}
-                        </div>
+                        <div style="width: 120px; height: 144px; border: 1px solid #1e3a8a; text-align: center; color: #64748b; font-size: 11px; overflow: hidden; background: #f8fafc;">${safePhotoHtml}</div>
                     </div>
 
                     ${datesheetTableHtml}
 
                     <div style="display: flex; justify-content: space-between; align-items: stretch; padding-top: 5px;">
-                        
                         <div style="flex: 1.5; padding-right: 20px;">
                             <p style="margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #1e3a8a;">IMPORTANT INSTRUCTIONS:</p>
                             <ul style="margin: 0; padding-left: 15px; font-size: 10px; line-height: 1.5; color: #0f172a; list-style-type: disc;">
                                 <li>Student must carry this Admit Card to the Examination Centre.</li>
                                 <li>Please keep this admit card safe for future reference. </li>
-                                <li>If there are any errors/mistakes on your admit card, please contact the school office to have them corrected.</li>             
-                                <li>Carry Blue/Black Ball Point Pen, Pencil, Eraser, Scale and necessary stationery.</li>
-                                <li>Mobile phones, calculators, smart watches and any electronic gadgets are strictly prohibited.</li>
+                                <li>If there are any errors/mistakes on your admit card, please contact the school office.</li>             
+                                <li>Mobile phones, calculators, smart watches are strictly prohibited.</li>
                                 <li>Follow all the instructions given by the invigilators.</li>
                             </ul>
                         </div>
-                        
                         <div style="width: 90px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
                             <div style="width: 45px; height: 45px; border: 2px solid #1e3a8a; margin-bottom: 5px; background-image: repeating-linear-gradient(45deg, #1e3a8a 0, #1e3a8a 2px, transparent 2px, transparent 4px);"></div>
                             <div style="font-size: 9px; font-weight: bold; color: #0f172a;">SCHOOL SEAL</div>
                         </div>
-                        
                         <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: space-between; margin-left: 15px;">
-                            
-                            <div style="text-align: right; width: 100%; height: 35px;">
-                                <div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div>
-                            </div>
-                            
+                            <div style="text-align: right; width: 100%; height: 35px;"><div style="border-top: 1px solid #0f172a; width: 160px; font-size: 9px; font-weight: bold; padding-top: 3px; float: right; text-align: center; margin-top: 20px;">SIGNATURE OF CANDIDATE</div></div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: 15px;">
-                                <div style="text-align: center; position: relative;">
-                                    <div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT/GUARDIAN</div>
-                                </div>
+                                <div style="text-align: center; position: relative;"><div style="border-top: 1px solid #0f172a; width: 145px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF CLASS TEACHER</div></div>
+                                <div style="text-align: center;"><div style="border-top: 1px solid #0f172a; width: 140px; font-size: 9px; font-weight: bold; padding-top: 3px; margin-top: 20px;">SIGNATURE OF PARENT</div></div>
                             </div>
                         </div>
                     </div>
-                    
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 Tlsm world school, All rights reserved.</span>
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Copyright &copy; 2026 ${currentSchoolName}, All rights reserved.</span>
                         <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">Developed by AARAV TECH-HUB (AJ VNS)</span>
                     </div>
-
                 </div>
             </div>
             `;
@@ -2732,35 +2506,18 @@ window.printSpecificAdmitCards = async () => {
             await new Promise(r => setTimeout(r, 100));
             
             let canvas;
-            try {
-                canvas = await html2canvas(elementToCapture, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    backgroundColor: "#ffffff"
-                });
-            } catch (canvasErr) {
-                window.hideProgress();
-                throw new Error(`Rendering Failed for Student: ${s.name || 'Unknown'}.`);
-            }
+            try { canvas = await html2canvas(elementToCapture, { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: "#ffffff" }); } catch (canvasErr) { window.hideProgress(); throw new Error(`Rendering Failed for Student: ${s.name}`); }
             
             let imgData = canvas.toDataURL("image/jpeg", 1.0); 
-            
             let imgWidth = cardWidth; 
             let imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            if (imgHeight > cardHeight) { 
-                imgHeight = cardHeight;
-                imgWidth = (canvas.width * imgHeight) / canvas.height; 
-            }
+            if (imgHeight > cardHeight) { imgHeight = cardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
             
             const isTop = (idx % 2 === 0);
             if (isTop && idx > 0) pdf.addPage();
             
             const x = margin + (cardWidth - imgWidth) / 2;
             const y = isTop ? margin : (margin + cardHeight + gap);
-            
             pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight); 
             sandbox.innerHTML = "";
         }
@@ -2769,109 +2526,56 @@ window.printSpecificAdmitCards = async () => {
         window.hideProgress();
         alert("Success! Selected Admit cards PDF generated perfectly.");
     } catch (e) {
-        console.error(e);
-        window.hideProgress();
-        alert("ERROR DETECTED:\n\n" + e.message);
-    } finally {
-        sandbox.innerHTML = "";
-        if (btn) {
-            btn.innerHTML = oldText;
-            btn.disabled = false;
-        }
-    }
+        console.error(e); window.hideProgress(); alert("ERROR DETECTED:\n\n" + e.message);
+    } finally { sandbox.innerHTML = ""; if (btn) { btn.innerHTML = oldText; btn.disabled = false; } }
 };
 
+window.deleteAdmitCardData = async () => {
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; } // SUB-ADMIN BYPASS
+    const session = document.getElementById("del-admit-session").value;
+    if(!session) { alert("Please select a Session first."); return; }
+    if (!confirm(`WARNING: Delete ALL admit card data for ${currentSchoolName} in Session: ${session}?`)) return;
 
+    try {
+        // ISOLATED DELETE: Sirf apne school ka data delete hoga
+        const q = query(collection(db, "students_master"), where("session", "==", session), where("school_name", "==", currentSchoolName));
+        const snap = await getDocs(q);
+        if (snap.empty) { alert(`No student records found for ${currentSchoolName}.`); return; }
+
+        let count = 0;
+        snap.forEach(async (d) => { await deleteDoc(doc(db, "students_master", d.id)); count++; });
+        alert(`Success! Deleted ${count} student records for ${currentSchoolName}.`);
+    } catch (err) { console.error(err); alert("Failed to delete master data."); }
+};
 
 window.deleteSpecificAdmitCards = async () => {
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Admin Access Only!"); return; }
-    
+    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized!"); return; } // SUB-ADMIN BYPASS
     const inputIds = document.getElementById("del-specific-scholars").value.trim().toUpperCase();
     const session = document.getElementById("del-specific-session").value;
-    
     if (!inputIds) { alert("Please enter at least one Scholar ID."); return; }
     if (!session) { alert("Please select a Session."); return; }
     
-    // Comma se alag karke ek list (array) bana lega
     const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
     if (scholarIds.length === 0) return;
 
-    const confirmMsg = `WARNING: Are you sure you want to permanently delete Admit Card data for ${scholarIds.length} student(s) in Session ${session}?`;
-    if (!confirm(confirmMsg)) return;
+    if (!confirm(`WARNING: Delete Admit Card data for ${scholarIds.length} student(s) in ${currentSchoolName}?`)) return;
 
     window.showProgress("Deleting Student Records...");
     let deletedCount = 0;
-    
     try {
         for (let i = 0; i < scholarIds.length; i++) {
-            const docId = `${scholarIds[i]}_${session}`;
+            const docId = `${currentSchoolName}_${scholarIds[i]}_${session}`; // ISOLATED DELETE
             await deleteDoc(doc(db, "students_master", docId));
             deletedCount++;
-            
-            // Progress update karega
             const percent = Math.round(((i + 1) / scholarIds.length) * 100);
             window.updateProgress(percent, `Deleted ${i + 1} of ${scholarIds.length} records`);
         }
-        
         window.hideProgress();
-        alert(`Success! Permanently deleted ${deletedCount} student record(s).`);
+        alert(`Success! Permanently deleted ${deletedCount} record(s).`);
         document.getElementById("del-specific-scholars").value = "";
-    } catch (err) {
-        console.error(err);
-        window.hideProgress();
-        alert("Failed to delete some records. Please check your connection.");
-    }
+    } catch (err) { console.error(err); window.hideProgress(); alert("Failed to delete records."); }
 };
 
-
-
-window.deleteAdmitCardData = async () => {
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) { alert("Unauthorized Admin Access Only!"); return; }
-    const session = document.getElementById("del-admit-session").value;
-    
-    if(!session) { alert("Please select a Session first."); return; }
-
-    const confirmMsg = `WARNING: Are you sure you want to delete ALL admit card master data for Session: ${session}?\n\nThis cannot be undone!`;
-    if (!confirm(confirmMsg)) return;
-
-    try {
-        const q = query(collection(db, "students_master"), where("session", "==", session));
-        const snap = await getDocs(q);
-        if (snap.empty) { alert("No student records found for this session."); return; }
-
-        let count = 0;
-        snap.forEach(async (d) => {
-            await deleteDoc(doc(db, "students_master", d.id));
-            count++;
-        });
-        alert(`Success! Deleted ${count} student admit card records for session ${session}.`);
-    } catch (err) {
-        console.error(err);
-        alert("Failed to delete master data.");
-    }
-};
-
-let quizData = []; let currentQ = 0; let userAnswers = []; let activeDPPId = null;  
-  
-window.startQuiz = (id) => {  
-    activeDPPId = id; const dpp = currentDPPs.find(x => x.id === id);   
-    try { quizData = JSON.parse(dpp.data); } catch(e) { alert("Invalid DPP Data Format"); return; }  
-    currentQ = 0; userAnswers = new Array(quizData.length).fill(null);  
-    quizStarted = true; quizSubmitted = false;  
-      
-    document.getElementById("quiz-title").innerText = dpp.title;   
-    document.getElementById("quiz-modal").style.display = "flex";  
-      
-    document.getElementById("quiz-footer").innerHTML = `  
-        <button id="prev-q" onclick="prevQuestion()" class="bg-white border border-slate-300 px-4 py-2 rounded-xl text-[10px] font-bold text-slate-900 hidden shadow-sm">PREV</button>  
-        <button id="next-q" onclick="nextQuestion()" class="bg-orange-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold ml-auto shadow-lg">NEXT</button>  
-        <button id="submit-q" onclick="submitQuiz()" class="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold hidden ml-auto shadow-lg">SUBMIT</button>`;  
-  
-    if(userCompletedDPPs[id] !== undefined) {  
-        document.getElementById("quiz-screen").innerHTML = `<div class="text-center p-10"><i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i><h2 class="font-bold uppercase text-slate-900">Already Submitted</h2><p class="text-xs text-slate-500">Your Score: ${userCompletedDPPs[id]}/${quizData.length}</p></div>`;  
-        document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold text-[10px]">BACK</button>`;  
-    } else { showQuestion(); }  
-};  
   
 function showQuestion() {  
     const q = quizData[currentQ];  
@@ -3632,6 +3336,150 @@ window.hideProgress = () => {
     const modal = document.getElementById('progress-modal');
     if(modal) modal.style.display = 'none';
 };
+
+// NAYA: Desktop Keyboard Shortcuts System
+window.addEventListener('keydown', (e) => {
+    // 1. ESC Key: Khule hue forms ya popups ko band karne ke liye
+    if (e.key === 'Escape') {
+        const admitForm = document.getElementById('edit-admit-form');
+        if (admitForm && !admitForm.classList.contains('hidden')) {
+            admitForm.classList.add('hidden');
+        }
+        // Agar koi aur popup/modal ho toh usko bhi yahan hide kar sakte hain
+    }
+
+    // 2. Ctrl + S (ya Cmd + S Mac ke liye): Data direct save karne ke liye
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); // Browser ka default 'Save As' menu rokne ke liye
+        
+        // Check karte hain ki kya Admit Card wala form open hai
+        const admitForm = document.getElementById('edit-admit-form');
+        if (admitForm && !admitForm.classList.contains('hidden')) {
+            window.updateSingleAdmitCard();
+        } 
+        else {
+            console.log("No active form to save.");
+        }
+    }
+
+    // 3. Enter Key: Type karke direct submit/fetch karne ke liye
+    if (e.key === 'Enter') {
+        const activeElementId = document.activeElement.id;
+        
+        // Agar Admit Card fetch wale input me Enter dabaya
+        if (activeElementId === 'edit-admit-scholar') {
+            window.fetchSingleAdmitCard();
+        }
+        
+        // Agar Print Admit card wale ids me Enter dabaya
+        if (activeElementId === 'print-specific-admit-ids' || activeElementId === 'print-specific-admit-exam-name') {
+            window.printSpecificAdmitCards();
+        }
+    }
+});
+
+// NAYA: Ultimate Full-App Desktop Keyboard Subsystem
+window.addEventListener('keydown', (e) => {
+    const activeEl = document.activeElement;
+    const activeId = activeEl ? activeEl.id : '';
+
+    // 1. ESC KEY: Saare active modals/forms ko instant hide karne ke liye
+    if (e.key === 'Escape') {
+        const admitForm = document.getElementById('edit-admit-form');
+        if (admitForm) admitForm.classList.add('hidden');
+        
+        // Agar dynamic edit mod khula ho toh cancel kardo
+        if (window.closeEditModal && typeof window.closeEditModal === 'function') {
+            window.closeEditModal();
+        }
+    }
+
+    // 2. CTRL + S / CMD + S: Smart Multi-Form Autofile Save Key
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault(); // Browser ka download save page dialog rokna
+
+        // Check 1: Admit card data updating form active hai?
+        const admitForm = document.getElementById('edit-admit-form');
+        if (admitForm && !admitForm.classList.contains('hidden')) {
+            window.updateSingleAdmitCard();
+            return;
+        }
+
+        // Check 2: Datesheet builder me kaam chal raha hai?
+        const datesheetRows = document.getElementById('datesheet-rows');
+        if (datesheetRows && datesheetRows.children.length > 0 && activeEl.classList.contains('ds-input-field')) {
+            window.saveDatesheet();
+            return;
+        }
+
+        // Check 3: Sub admin create karne wala screen active hai?
+        if (activeId === 'subadmin-email' || activeId === 'subadmin-school') {
+            window.saveSubAdmin();
+            return;
+        }
+    }
+
+    // 3. ENTER KEY SUBMITTERS: Input boxes par type karke direct enter dabana
+    if (e.key === 'Enter') {
+        // A. ADMIT CARD DESK
+        if (activeId === 'edit-admit-scholar') {
+            e.preventDefault();
+            window.fetchSingleAdmitCard();
+        }
+        else if (activeId === 'print-specific-admit-ids' || activeId === 'print-specific-admit-exam-name') {
+            e.preventDefault();
+            window.printSpecificAdmitCards();
+        }
+        else if (activeId === 'print-admit-class' || activeId === 'print-admit-exam-name') {
+            e.preventDefault();
+            window.printBulkAdmitCards();
+        }
+        else if (activeId === 'del-specific-scholars') {
+            e.preventDefault();
+            window.deleteSpecificAdmitCards();
+        }
+        
+        // B. EXCEL RESULTS / MARKSHEETS DESK
+        else if (activeId === 'admin-upload-class' || activeId === 'admin-upload-section') {
+            e.preventDefault();
+            // Input field se blur karke user Excel tab par target kar sake
+            document.getElementById('excel-file-input').focus();
+        }
+
+        // C. SUB-ADMIN DESK
+        else if (activeId === 'subadmin-email') {
+            e.preventDefault();
+            document.getElementById('subadmin-school').focus(); // Auto jump next input
+        }
+        else if (activeId === 'subadmin-school') {
+            e.preventDefault();
+            window.saveSubAdmin();
+        }
+        
+        // D. DATESHEET BUILDER CLASS
+        else if (activeId === 'datesheet-class') {
+            e.preventDefault();
+            window.loadDatesheet();
+        }
+    }
+
+    // 4. TAB NAVIGATION & SHIFT JUMPS FOR BATCH/DATESHEET ROWS (Optional UX Fix)
+    // Jab user Datesheet ke aakhiri Subject field par ho, toh Enter dabane par automatic naya row add ho jaye
+    if (e.key === 'Enter' && activeEl && activeEl.classList.contains('ds-sub-last')) {
+        e.preventDefault();
+        window.addDatesheetRow();
+        // Thodi der rukh kar naye bane row ke Date selector par auto focus bhejna
+        setTimeout(() => {
+            const allRows = document.querySelectorAll('.datesheet-row');
+            if (allRows.length > 0) {
+                const lastRowDate = allRows[allRows.length - 1].querySelector('.ds-date');
+                if (lastRowDate) lastRowDate.focus();
+            }
+        }, 50);
+    }
+});
+
+
 </script>
 
 
