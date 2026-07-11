@@ -293,6 +293,32 @@
             <div id="assign-sub-list" class="grid grid-cols-2 gap-2 mt-3">
                 </div>
         </div>
+        
+                <div class="glass !p-4 border border-blue-200 bg-blue-50/50 col-span-1 md:col-span-2 mt-4">  
+            <p class="text-[9px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-tie mr-1"></i> Manage Class Teachers</p>
+            <p class="text-[9px] text-slate-500 mb-3">Har class ke liye Class Teacher ka naam set karein (Manually ya Excel se Bulk Upload).</p>
+            
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <input id="ct-manual-class" class="publisher-input border-blue-300 !m-0 uppercase text-xs" placeholder="Class (e.g. 10TH-A)">
+                <input id="ct-manual-name" class="publisher-input border-blue-300 !m-0 uppercase text-xs" placeholder="Teacher's Name">
+            </div>
+            <button onclick="window.saveClassTeacherManual()" class="w-full bg-blue-600 text-white py-2 rounded-xl text-[10px] font-bold shadow-md uppercase mb-4">Save Single Teacher</button>
+            
+            <div class="border-t border-dashed border-blue-200 pt-3">
+                <p class="text-[9px] text-slate-600 mb-2 font-bold uppercase">Bulk Upload Teachers Excel (.xlsx):</p>
+                <p class="text-[8px] text-slate-400 mb-2">Headers strictly match: <code class="text-blue-600 font-bold">class, teacher_name</code></p>
+                <div class="flex flex-col sm:flex-row gap-2 items-center bg-white p-2 rounded-xl border border-blue-200">
+                    <input type="file" id="ct-excel-file" accept=".xlsx, .xls" class="text-[10px] text-slate-600 w-full file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[9px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                    <button onclick="window.uploadClassTeachersExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold shadow-md whitespace-nowrap w-full sm:w-auto">Upload Excel</button>
+                </div>
+            </div>
+
+            <p class="text-[9px] font-black text-slate-700 mt-4 mb-2 uppercase">Active Class Teachers List:</p>
+            <div id="class-teachers-list-preview" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                <p class="text-[9px] text-slate-400 font-bold">Loading teacher directory...</p>
+            </div>
+        </div>
+
 
         
         <div class="glass !p-4">  
@@ -3552,6 +3578,11 @@ window.printAssignmentCard = async () => {
     const d = new Date(date);
     const formattedDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
 
+    // 🔥 NAYA FEATURE: Class Teacher ka Naam dynamic fetch karna map se
+    const classKey = cls.toUpperCase().trim();
+const classTeacherName = window.appClassTeachersMap[classKey] || "NOT ASSIGNED";
+
+
     const sandbox = document.getElementById('assignment-print-sandbox');
     let contentRows = "";
 
@@ -3560,7 +3591,6 @@ window.printAssignmentCard = async () => {
         const taskVal = document.getElementById(`task-${sub.replace(/\s+/g, '')}`).value.trim();
         
         if(taskVal !== "") {
-            // Har line ko alag karke Checkbox (☐) lagana
             const taskLines = taskVal.split('\n').filter(line => line.trim() !== '');
             const tasksHtml = taskLines.map(line => `
                 <div style="display: flex; gap: 10px; margin-bottom: 6px; align-items: flex-start;">
@@ -3569,17 +3599,13 @@ window.printAssignmentCard = async () => {
                 </div>
             `).join('');
 
-            // Subject ka color chunna
             const themeColor = subjectThemeColors[sub] || subjectThemeColors["DEFAULT"];
 
-            // Card ka HTML Design
             contentRows += `
                 <div style="display: flex; align-items: stretch; background: #fffcf8; border: 3px solid ${themeColor}; border-radius: 14px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; z-index: 10;">
-                    
                     <div style="width: 110px; display: flex; align-items: center; justify-content: center; padding: 15px; border-right: 2px solid ${themeColor}; background: #ffffff; border-top-left-radius: 11px; border-bottom-left-radius: 11px;">
                         <i class="${appAssignmentSubjects[sub]}" style="font-size: 45px; color: ${themeColor}; filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));"></i>
                     </div>
-                    
                     <div style="flex: 1; padding: 15px 20px;">
                         <h3 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 900; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">${sub}</h3>
                         <div style="font-size: 16px; color: #0f172a; font-weight: 700; line-height: 1.4;">
@@ -3593,7 +3619,6 @@ window.printAssignmentCard = async () => {
 
     if(!contentRows) { alert("Homework text cannot be empty!"); return; }
 
-    // 🔥 EXACT MATCH DESIGN TEMPLATE WITH NEW HEADER & FOOTER
     sandbox.innerHTML = `
         <div id="print-as-capture" style="width: 800px; padding: 40px 50px; background-color: #f4f1ea; font-family: 'Nunito', 'Segoe UI', 'Arial Rounded MT Bold', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
             
@@ -3607,7 +3632,6 @@ window.printAssignmentCard = async () => {
                 
                 <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 25px; border-bottom: 2px solid #1e3a8a; padding-bottom: 20px;">
                     <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="height: 100px; width: 100px; object-fit: contain; margin-right: 25px;">
-                    
                     <div style="text-align: center;">
                         <h1 style="margin: 0; font-size: 42px; color: #1e3a8a; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;">TLSM WORLD SCHOOL</h1>
                         <p style="margin: 5px 0 2px 0; font-size: 16px; color: #475569; font-weight: 900; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</p>
@@ -3616,14 +3640,18 @@ window.printAssignmentCard = async () => {
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-bottom: 30px;">
+                <div style="text-align: center; margin-bottom: 20px;">
                     <span style="background: #1e3a8a; color: white; display: inline-block; padding: 6px 20px; border-radius: 6px; font-size: 15px; font-weight: 900; letter-spacing: 2px;">DAILY HOMEWORK ASSIGNMENT</span>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; background: #ffffff; padding: 12px 25px; border-radius: 50px; margin-bottom: 30px; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                    <div style="font-size: 15px; font-weight: 900; color: #64748b;">CLASS: <span style="color: #0f172a; margin-left: 5px;">${cls}</span></div>
-                    <div style="font-size: 15px; font-weight: 900; color: #64748b;">DATE: <span style="color: #0f172a; margin-left: 5px;">${formattedDate}</span></div>
-                    <div style="font-size: 15px; font-weight: 900; color: #64748b;">DAY: <span style="color: #0f172a; margin-left: 5px; text-transform: uppercase;">${day}</span></div>
+                <div style="display: flex; justify-content: space-between; background: #ffffff; padding: 12px 25px; border-radius: 50px; margin-bottom: 15px; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-size: 14px; font-weight: 900; color: #64748b;">CLASS: <span style="color: #0f172a; margin-left: 5px;">${cls}</span></div>
+                    <div style="font-size: 14px; font-weight: 900; color: #64748b;">DATE: <span style="color: #0f172a; margin-left: 5px;">${formattedDate}</span></div>
+                    <div style="font-size: 14px; font-weight: 900; color: #64748b;">DAY: <span style="color: #0f172a; margin-left: 5px; text-transform: uppercase;">${day}</span></div>
+                </div>
+
+                <div style="background: #ffffff; padding: 10px 25px; border-radius: 50px; margin-bottom: 25px; border: 2px dashed #1e3a8a; font-size: 14px; font-weight: 900; color: #1e3a8a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-tie"></i> CLASS TEACHER: <span style="color: #0f172a; text-transform: uppercase; font-weight: 900;">${classTeacherName}</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column; min-height: 350px;">
@@ -3859,16 +3887,197 @@ window.addEventListener('keydown', (e) => {
 });
 
 // 1. EXCEL SE DATESHEET UPLOAD KARNE KA LOGIC
+// 7. Upload Datesheet Excel (FIXED: Now saves to correct 'datesheets' folder)
 window.uploadDatesheetViaExcel = () => {
-    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
+    try {
+        if (!safeIsAdmin() && !safeIsSubAdmin()) { alert("Unauthorized Access!"); return; }
 
-    const fileInput = document.getElementById("ds-excel-file-input");
-    const session = document.getElementById("ds-bulk-session").value;
-    const exam = document.getElementById("ds-bulk-exam").value;
-    const sittingType = document.getElementById("ds-bulk-sitting").value;
+        const fileInput = document.getElementById("ds-excel-file-input");
+        const session = document.getElementById("ds-bulk-session").value;
+        const exam = document.getElementById("ds-bulk-exam").value;
+        const sittingType = document.getElementById("ds-bulk-sitting").value;
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-        alert("Please select a valid Datesheet Excel (.xlsx) file first!");
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) { alert("Please select a valid Excel file!"); return; }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const { db, doc, setDoc, Timestamp } = await getFb();
+                const rawBuffer = e.target.result;
+                const workbook = XLSX.read(rawBuffer, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+                if (rows.length === 0) { alert("Excel sheet is empty!"); return; }
+                if(window.showProgress) window.showProgress(`Processing Datesheets...`);
+                
+                let groupedData = {};
+
+                rows.forEach(row => {
+                    let cls = row.class ? row.class.toString().trim().toUpperCase() : null;
+                    if (!cls) return; 
+
+                    if (!groupedData[cls]) groupedData[cls] = [];
+
+                    if (sittingType === 'single') {
+                        groupedData[cls].push({
+                            date: row.date ? row.date.toString().trim() : '', day: row.day ? row.day.toString().trim().toUpperCase() : '',
+                            timeStart: row.time_start ? row.time_start.toString().trim() : '', timeEnd: row.time_end ? row.time_end.toString().trim() : '',
+                            subject: row.subject ? row.subject.toString().trim().toUpperCase() : ''
+                        });
+                    } else {
+                        groupedData[cls].push({
+                            date: row.date ? row.date.toString().trim() : '', day: row.day ? row.day.toString().trim().toUpperCase() : '',
+                            timeStart1: row.time_start1 ? row.time_start1.toString().trim() : '', timeEnd1: row.time_end1 ? row.time_end1.toString().trim() : '',
+                            subject1: row.subject1 ? row.subject1.toString().trim().toUpperCase() : '', timeStart2: row.time_start2 ? row.time_start2.toString().trim() : '',
+                            timeEnd2: row.time_end2 ? row.time_end2.toString().trim() : '', subject2: row.subject2 ? row.subject2.toString().trim().toUpperCase() : ''
+                        });
+                    }
+                });
+
+                let uploadedCount = 0;
+                const school = safeSchool();
+                for (let cls of Object.keys(groupedData)) {
+                    // 🔥 FIX: docId ab sirf School aur Class ka hoga, taaki LOAD button turant pakad le!
+                    let docId = `${school}_${cls}`; 
+                    await setDoc(doc(db, "datesheets", docId), {
+                        school_name: school, 
+                        class: cls, 
+                        exam_type: exam, 
+                        academic_year: session, 
+                        type: sittingType, 
+                        schedule: groupedData[cls], 
+                        updatedAt: Timestamp.now()
+                    }, { merge: true });
+                    uploadedCount++;
+                }
+
+                if(window.hideProgress) window.hideProgress();
+                alert(`Success! Uploaded datesheets for ${uploadedCount} classes.`);
+                fileInput.value = ""; 
+            } catch (err) {
+                if(window.hideProgress) window.hideProgress(); alert("Error parsing excel: " + err.message);
+            }
+        };
+        reader.readAsBinaryString(fileInput.files[0]);
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+// 8. Delete Datesheet (FIXED: Now deletes from 'datesheets' folder)
+window.deleteBulkDatesheet = async () => {
+    try {
+        if (!safeIsAdmin() && !safeIsSubAdmin()) { alert("Unauthorized!"); return; }
+
+        const session = document.getElementById("ds-bulk-session").value;
+        const exam = document.getElementById("ds-bulk-exam").value;
+        const school = safeSchool();
+
+        if (!confirm(`Delete ALL datesheets for Exam: ${exam} (${session}) in ${school}?`)) return;
+
+        if(window.showProgress) window.showProgress("Deleting datesheets...");
+        
+        const { db, collection, query, where, getDocs, doc, deleteDoc } = await getFb();
+        
+        // 🔥 FIX: Search in correct 'datesheets' collection
+        const q = query(
+            collection(db, "datesheets"),
+            where("school_name", "==", school),
+            where("exam_type", "==", exam),
+            where("academic_year", "==", session)
+        );
+
+        const querySnapshot = await getDocs(q);
+        let deleteCount = 0;
+        
+        const deletePromises = [];
+        querySnapshot.forEach((documentSnap) => {
+            deletePromises.push(deleteDoc(doc(db, "datesheets", documentSnap.id)));
+            deleteCount++;
+        });
+
+        await Promise.all(deletePromises);
+
+        if(window.hideProgress) window.hideProgress();
+        alert(`Successfully deleted ${deleteCount} datesheet records.`);
+    } catch (err) {
+        if(window.hideProgress) window.hideProgress(); alert("Error deleting datesheets: " + err.message);
+    }
+};
+
+
+// ==========================================
+// 🚀 CLASS TEACHER MANAGEMENT SYSTEM LOGIC
+// ==========================================
+let appClassTeachersMap = {};
+
+// Realtime Database Listener for Class Teachers (Isolated by School Name)
+setTimeout(() => {
+    if (typeof db !== 'undefined') {
+        // dynamic listener inside active pipeline
+        const { collection, query, where, onSnapshot } = window.firebaseFirestore || { collection, query, where, onSnapshot }; 
+        const q = query(collection(db, "class_teachers"), where("school_name", "==", currentSchoolName));
+        
+        onSnapshot(q, (snapshot) => {
+            appClassTeachersMap = {};
+            const previewContainer = document.getElementById('class-teachers-list-preview');
+            if(previewContainer) previewContainer.innerHTML = "";
+            
+            if(snapshot.empty && previewContainer) {
+                previewContainer.innerHTML = `<p class="text-[9px] text-slate-400 font-bold">No teachers mapped yet for ${currentSchoolName}.</p>`;
+                return;
+            }
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const clsKey = data.class.toUpperCase().trim();
+                appClassTeachersMap[clsKey] = data.teacher_name;
+
+                if(previewContainer) {
+                    previewContainer.innerHTML += `
+                        <div class="bg-white p-2 border border-blue-100 rounded-lg flex justify-between items-center text-[9px] font-bold shadow-sm uppercase">
+                            <span><i class="fas fa-user-tie text-blue-600 mr-1"></i> Class ${data.class}: <span class="text-slate-600">${data.teacher_name}</span></span>
+                            <button onclick="window.deleteClassTeacherRecord('${docSnap.id}')" class="text-red-500 hover:text-red-700 transition-all"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+            });
+        });
+    }
+}, 3000);
+
+// A. Manual Save Logic
+window.saveClassTeacherManual = async () => {
+    const classInput = document.getElementById('ct-manual-class');
+    const nameInput = document.getElementById('ct-manual-name');
+    if(!classInput || !nameInput) return;
+
+    const cls = classInput.value.trim().toUpperCase();
+    const name = nameInput.value.trim().toUpperCase();
+
+    if(!cls || !name) { alert("Please enter both Class and Teacher's Name!"); return; }
+
+    const docId = `${currentSchoolName}_${cls}`;
+    try {
+        await setDoc(doc(db, "class_teachers", docId), {
+            school_name: currentSchoolName,
+            class: cls,
+            teacher_name: name,
+            updatedAt: new Date()
+        }, { merge: true });
+        
+        alert(`Success! Mapped ${name} as Class Teacher for Class ${cls}.`);
+        classInput.value = "";
+        nameInput.value = "";
+    } catch(e) {
+        alert("Database Error: " + e.message);
+    }
+};
+
+// B. Bulk Excel Upload Logic
+window.uploadClassTeachersExcel = () => {
+    const fileInput = document.getElementById('ct-excel-file');
+    if(!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please select a valid excel file first!");
         return;
     }
 
@@ -3882,122 +4091,370 @@ window.uploadDatesheetViaExcel = () => {
             const sheetName = workbook.SheetNames[0];
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-            if (rows.length === 0) { alert("Excel sheet is empty!"); return; }
+            if(rows.length === 0) { alert("Excel sheet is completely empty!"); return; }
 
-            window.showProgress(`Processing Excel Datesheet for ${currentSchoolName}...`);
-            let groupedData = {};
+            window.showProgress("Uploading Teachers Directory...");
+            let uploadCount = 0;
 
-            // Har row ko padh kar uski class ke dibbe me daal rahe hain
-            rows.forEach(row => {
+            for(let row of rows) {
                 let cls = row.class ? row.class.toString().trim().toUpperCase() : null;
-                if (!cls) return; 
+                let tName = row.teacher_name ? row.teacher_name.toString().trim().toUpperCase() : null;
 
-                if (!groupedData[cls]) groupedData[cls] = [];
+                if(!cls || !tName) continue;
 
-                if (sittingType === 'single') {
-                    groupedData[cls].push({
-                        date: row.date ? row.date.toString().trim() : '',
-                        day: row.day ? row.day.toString().trim().toUpperCase() : '',
-                        timeStart: row.time_start ? row.time_start.toString().trim() : '',
-                        timeEnd: row.time_end ? row.time_end.toString().trim() : '',
-                        sub1: row.subject ? row.subject.toString().trim().toUpperCase() : ''
-                    });
-                } else {
-                    // NAYA: Double Sitting me dono ke time aur subjects add kiye
-                    groupedData[cls].push({
-                        date: row.date ? row.date.toString().trim() : '',
-                        day: row.day ? row.day.toString().trim().toUpperCase() : '',
-                        timeStart1: row.time_start1 ? row.time_start1.toString().trim() : '',
-                        timeEnd1: row.time_end1 ? row.time_end1.toString().trim() : '',
-                        sub1: row.subject1 ? row.subject1.toString().trim().toUpperCase() : '',
-                        timeStart2: row.time_start2 ? row.time_start2.toString().trim() : '',
-                        timeEnd2: row.time_end2 ? row.time_end2.toString().trim() : '',
-                        sub2: row.subject2 ? row.subject2.toString().trim().toUpperCase() : ''
-                    });
-                }
-            });
-
-            // Firebase me saari classes save kar rahe hain
-            const classesToUpload = Object.keys(groupedData);
-            let uploadedCount = 0;
-
-            for (let cls of classesToUpload) {
-                let docId = `${currentSchoolName}_${cls}_${exam}_${session}`;
-                let payload = {
+                let docId = `${currentSchoolName}_${cls}`;
+                await setDoc(doc(db, "class_teachers", docId), {
                     school_name: currentSchoolName,
                     class: cls,
-                    exam_type: exam,
-                    academic_year: session,
-                    type: sittingType,
-                    schedule: groupedData[cls], 
-                    updatedAt: window.Timestamp ? window.Timestamp.now() : new Date()
-                };
-
-                await setDoc(doc(db, "school_datesheets", docId), payload, { merge: true });
-                uploadedCount++;
+                    teacher_name: tName,
+                    updatedAt: new Date()
+                }, { merge: true });
+                uploadCount++;
             }
 
             window.hideProgress();
-            alert(`Success! Uploaded datesheets safely for ${uploadedCount} classes under ${currentSchoolName}.`);
-            fileInput.value = ""; 
-            
-        } catch (err) {
+            alert(`Success! Successfully uploaded ${uploadCount} class teachers data.`);
+            fileInput.value = "";
+        } catch(err) {
             console.error(err);
             window.hideProgress();
-            alert("Error parsing datesheet excel. Check columns matching framework rule.");
+            alert("Error parsing excel sheet framework rules.");
         }
     };
     reader.readAsBinaryString(file);
 };
 
-// 2. DATESHEET DELETE KARNE KA LOGIC
-window.deleteBulkDatesheet = async () => {
-    if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
-
-    const session = document.getElementById("ds-bulk-session").value;
-    const exam = document.getElementById("ds-bulk-exam").value;
-
-    const confirmDelete = confirm(`Are you sure you want to delete ALL class datesheets for Exam: ${exam} (${session}) in ${currentSchoolName}?`);
-    if (!confirmDelete) return;
-
+// C. Delete Single Teacher Record
+window.deleteClassTeacherRecord = async (docId) => {
+    if(!confirm("Are you sure you want to delete this class teacher mapping?")) return;
     try {
-        window.showProgress("Deleting targeted datesheets...");
-        
-        // Agar aapne upar Firestore se query import nahi ki hai toh wo line yahan zaroori hai
-        const { collection, query, where, getDocs, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        
-        const q = query(
-            collection(db, "school_datesheets"),
-            where("school_name", "==", currentSchoolName),
-            where("exam_type", "==", exam),
-            where("academic_year", "==", session)
-        );
-
-        const querySnapshot = await getDocs(q);
-        let deleteCount = 0;
-        const deletePromises = [];
-        
-        querySnapshot.forEach((document) => {
-            deletePromises.push(deleteDoc(document.ref));
-            deleteCount++;
-        });
-
-        await Promise.all(deletePromises);
-        window.hideProgress();
-        
-        if(deleteCount > 0) {
-            alert(`Successfully deleted ${deleteCount} class datesheets records for ${currentSchoolName}.`);
-        } else {
-            alert("No matching datesheet records found to delete.");
-        }
-    } catch (err) {
-        console.error(err);
-        window.hideProgress();
-        alert("Runtime error while deleting database logs.");
+        await deleteDoc(doc(db, "class_teachers", docId));
+        alert("Record deleted successfully.");
+    } catch(e) {
+        alert("Deletion failed.");
     }
 };
 
 
+// ==========================================
+// 🛠️ ULTIMATE FIX: SELF-HEALING FIREBASE BUTTONS
+// ==========================================
+
+// 1. Safe Getters (Bina error ke app variables nikalna)
+const safeSchool = () => (typeof currentSchoolName !== 'undefined') ? currentSchoolName : "TLSM WORLD SCHOOL";
+const safeIsAdmin = () => (typeof isCurrentUserAdmin !== 'undefined') ? isCurrentUserAdmin : true;
+const safeIsSubAdmin = () => (typeof isSubAdmin !== 'undefined') ? isSubAdmin : true;
+
+// 2. SELF-HEALING FIREBASE FETCHER (Yeh code apne aap Firebase dhoondh lega)
+const getFb = async () => {
+    const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    const app = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+    let activeDb = typeof db !== 'undefined' ? db : null;
+    if (!activeDb) {
+        // Agar DB nahi mila toh aapki purani config use karke naya bana lega
+        const fbCfg = { apiKey: "AIzaSyCrFbBhfWT6WlYAH_ZmopTfzrf47GEQe1k", authDomain: "book-swap-104b7.firebaseapp.com", projectId: "book-swap-104b7" };
+        const fbApp = app.getApps().length === 0 ? app.initializeApp(fbCfg) : app.getApp();
+        activeDb = fs.getFirestore(fbApp);
+    }
+    return { ...fs, db: activeDb };
+};
+
+window.appClassTeachersMap = {};
+
+// 3. Realtime Listener for Teachers
+setTimeout(async () => {
+    try {
+        const { db, collection, query, where, onSnapshot } = await getFb();
+        const q = query(collection(db, "class_teachers"), where("school_name", "==", safeSchool()));
+        onSnapshot(q, (snapshot) => {
+            window.appClassTeachersMap = {};
+            const previewContainer = document.getElementById('class-teachers-list-preview');
+            if(previewContainer) previewContainer.innerHTML = "";
+            
+            if(snapshot.empty && previewContainer) {
+                previewContainer.innerHTML = `<p class="text-[9px] text-slate-400 font-bold">No teachers mapped yet.</p>`;
+                return;
+            }
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const clsKey = data.class.toUpperCase().trim();
+                window.appClassTeachersMap[clsKey] = data.teacher_name;
+
+                if(previewContainer) {
+                    previewContainer.innerHTML += `
+                        <div class="bg-white p-2 border border-blue-100 rounded-lg flex justify-between items-center text-[9px] font-bold shadow-sm uppercase">
+                            <span><i class="fas fa-user-tie text-blue-600 mr-1"></i> Class ${data.class}: <span class="text-slate-600">${data.teacher_name}</span></span>
+                            <button onclick="window.deleteClassTeacherRecord('${docSnap.id}')" class="text-red-500 hover:text-red-700 transition-all"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+            });
+        });
+    } catch(e) { console.log("Listener error:", e); }
+}, 2000);
+
+// 4. Save Single Teacher (Manual)
+window.saveClassTeacherManual = async () => {
+    try {
+        const { db, doc, setDoc, Timestamp } = await getFb(); // Auto-Load Firebase
+        const classInput = document.getElementById('ct-manual-class');
+        const nameInput = document.getElementById('ct-manual-name');
+        if(!classInput || !nameInput) return;
+
+        const cls = classInput.value.trim().toUpperCase();
+        const name = nameInput.value.trim().toUpperCase();
+
+        if(!cls || !name) { alert("Please enter both Class and Teacher's Name!"); return; }
+
+        const school = safeSchool();
+        const docId = `${school}_${cls}`;
+        await setDoc(doc(db, "class_teachers", docId), {
+            school_name: school, class: cls, teacher_name: name, updatedAt: Timestamp.now()
+        }, { merge: true });
+        
+        alert(`Success! Mapped ${name} as Class Teacher for Class ${cls}.`);
+        classInput.value = ""; nameInput.value = "";
+    } catch(e) { alert("Save Error: " + e.message); }
+};
+
+// 5. Delete Class Teacher
+window.deleteClassTeacherRecord = async (docId) => {
+    if(!confirm("Are you sure you want to delete this class teacher mapping?")) return;
+    try {
+        const { db, doc, deleteDoc } = await getFb();
+        await deleteDoc(doc(db, "class_teachers", docId));
+        alert("Teacher record deleted!");
+    } catch(e) { alert("Delete Error: " + e.message); }
+};
+
+// 6. Upload Teachers via Excel
+window.uploadClassTeachersExcel = () => {
+    try {
+        const fileInput = document.getElementById('ct-excel-file');
+        if(!fileInput || !fileInput.files || fileInput.files.length === 0) { alert("Please select a valid excel file first!"); return; }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const { db, doc, setDoc, Timestamp } = await getFb();
+                const rawBuffer = e.target.result;
+                const workbook = XLSX.read(rawBuffer, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+                if(rows.length === 0) { alert("Excel sheet is empty!"); return; }
+                if(window.showProgress) window.showProgress("Uploading Teachers...");
+                
+                let uploadCount = 0;
+                const school = safeSchool();
+
+                for(let row of rows) {
+                    let cls = row.class ? row.class.toString().trim().toUpperCase() : null;
+                    let tName = row.teacher_name ? row.teacher_name.toString().trim().toUpperCase() : null;
+
+                    if(!cls || !tName) continue;
+
+                    let docId = `${school}_${cls}`;
+                    await setDoc(doc(db, "class_teachers", docId), {
+                        school_name: school, class: cls, teacher_name: tName, updatedAt: Timestamp.now()
+                    }, { merge: true });
+                    uploadCount++;
+                }
+
+                if(window.hideProgress) window.hideProgress();
+                alert(`Success! Uploaded ${uploadCount} class teachers data.`);
+                fileInput.value = "";
+            } catch(err) {
+                if(window.hideProgress) window.hideProgress(); alert("Error parsing excel: " + err.message);
+            }
+        };
+        reader.readAsBinaryString(fileInput.files[0]);
+    } catch(e) { alert("Upload Error: " + e.message); }
+};
+
+// 7. Upload Datesheet Excel (FINAL FIXED: Exact Key Mapping for Single/Double Sitting)
+window.uploadDatesheetViaExcel = () => {
+    try {
+        if (!safeIsAdmin() && !safeIsSubAdmin()) { alert("Unauthorized Access!"); return; }
+        
+        const fileInput = document.getElementById("ds-excel-file-input");
+        const session = document.getElementById("ds-bulk-session").value;
+        const exam = document.getElementById("ds-bulk-exam").value;
+        const sittingType = document.getElementById("ds-bulk-sitting").value;
+        
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert("Please select a valid Excel file!");
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const { db, doc, setDoc, Timestamp } = await getFb();
+                const rawBuffer = e.target.result;
+                const workbook = XLSX.read(rawBuffer, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                
+                if (rows.length === 0) { alert("Excel sheet is empty!"); return; }
+                if (window.showProgress) window.showProgress(`Processing Datesheets...`);
+                
+                let groupedData = {};
+                
+                rows.forEach(row => {
+                    // Excel ke column names ko handle karne ke liye keys nikalna
+                    let cls = null;
+                    if (row.class !== undefined) cls = row.class.toString().trim().toUpperCase();
+                    else if (row.Class !== undefined) cls = row.Class.toString().trim().toUpperCase();
+                    
+                    if (!cls) return; // Agar class nahi mili toh skip karo
+                    
+                    if (!groupedData[cls]) groupedData[cls] = [];
+                    
+                    // Excel rows me se values nikalna (dono formats ke liye - lowercase/uppercase/snake_case)
+                    let dateVal = row.date || row.Date || "";
+                    let dayVal = row.day || row.Day || "";
+                    
+                    // Single Sitting Mapping Variables
+                    let tStart = row.time_start || row.timeStart || "";
+                    let tEnd = row.time_end || row.timeEnd || "";
+                    let subj = row.subject || row.Subject || row.subject1 || row.Subject1 || "";
+                    
+                    // Double Sitting Mapping Variables
+                    let tStart1 = row.time_start1 || row.timeStart1 || tStart || "";
+                    let tEnd1 = row.time_end1 || row.timeEnd1 || tEnd || "";
+                    let sub1 = row.subject1 || row.Subject1 || subj || "";
+                    
+                    let tStart2 = row.time_start2 || row.timeStart2 || "";
+                    let tEnd2 = row.time_end2 || row.timeEnd2 || "";
+                    let sub2 = row.subject2 || row.Subject2 || "";
+                    
+                    // Time ko 12-Hour formatted (AM/PM) me convert karne ka safe format
+                    const formatTimeStr = (t) => {
+                        if (!t) return "";
+                        return t.toString().trim();
+                    };
+                    
+                    if (sittingType === 'single') {
+                        // Purane Manual Load system ke standard data variables ka exact structure mapping
+                        let finalTime = (tStart && tEnd) ? `${tStart} - ${tEnd}` : "";
+                        groupedData[cls].push({
+                            date: dateVal.toString().trim(),
+                            day: dayVal.toString().trim().toUpperCase(),
+                            subject: sub1.toString().trim().toUpperCase(),
+                            time: finalTime,
+                            rawDate: dateVal.toString().trim(),
+                            rawDay: dayVal.toString().trim(),
+                            rawTStart: formatTimeStr(tStart),
+                            rawTEnd: formatTimeStr(tEnd)
+                        });
+                    } else {
+                        // Double Sitting Exact Matching Layout
+                        let finalTime1 = (tStart1 && tEnd1) ? `${tStart1} - ${tEnd1}` : "";
+                        let finalTime2 = (tStart2 && tEnd2) ? `${tStart2} - ${tEnd2}` : "";
+                        
+                        groupedData[cls].push({
+                            date: dateVal.toString().trim(),
+                            day: dayVal.toString().trim().toUpperCase(),
+                            subject1: sub1.toString().trim().toUpperCase(),
+                            subject2: sub2.toString().trim().toUpperCase(),
+                            time1: finalTime1,
+                            time2: finalTime2,
+                            rawDate: dateVal.toString().trim(),
+                            rawDay: dayVal.toString().trim(),
+                            rawT1Start: formatTimeStr(tStart1),
+                            rawT1End: formatTimeStr(tEnd1),
+                            rawT2Start: formatTimeStr(tStart2),
+                            rawT2End: formatTimeStr(tEnd2)
+                        });
+                    }
+                });
+                
+                let uploadedCount = 0;
+                const school = safeSchool();
+                
+                for (let cls of Object.keys(groupedData)) {
+                    // 🔥 MAJOR CRITICAL FIX: docId ab exact wohi hai jo load/manual system dhoondh raha hai!
+                    let docId = `${school}_${cls}`;
+                    
+                    let payload = {
+                        school_name: school,
+                        class: cls,
+                        exam_type: exam,
+                        academic_year: session,
+                        type: sittingType,
+                        schedule: groupedData[cls],
+                        updatedAt: Timestamp.now()
+                    };
+                    
+                    // Double sitting ke main times ko load button ke read ke liye add karna
+                    if (sittingType === 'double' && groupedData[cls].length > 0) {
+                        let firstRow = groupedData[cls][0];
+                        payload.rawT1Start = firstRow.rawT1Start || "";
+                        payload.rawT1End = firstRow.rawT1End || "";
+                        payload.rawT2Start = firstRow.rawT2Start || "";
+                        payload.rawT2End = firstRow.rawT2End || "";
+                        payload.time1 = firstRow.time1 || "";
+                        payload.time2 = firstRow.time2 || "";
+                    }
+                    
+                    await setDoc(doc(db, "datesheets", docId), payload, { merge: true });
+                    uploadedCount++;
+                }
+                
+                if (window.hideProgress) window.hideProgress();
+                alert(`Success! Uploaded datesheets safely for ${uploadedCount} classes inside '${school}' registry.`);
+                fileInput.value = "";
+            } catch (err) {
+                if (window.hideProgress) window.hideProgress();
+                console.error(err);
+                alert("Excel Core Parsing Error: " + err.message);
+            }
+        };
+        reader.readAsBinaryString(fileInput.files[0]);
+    } catch (e) { alert("Execution Error: " + e.message); }
+};
+
+// 8. Delete Datesheet
+window.deleteBulkDatesheet = async () => {
+    try {
+        if (!safeIsAdmin() && !safeIsSubAdmin()) { alert("Unauthorized Access!"); return; }
+        
+        const session = document.getElementById("ds-bulk-session").value;
+        const exam = document.getElementById("ds-bulk-exam").value;
+        const school = safeSchool();
+        
+        if (!confirm(`Are you absolutely sure you want to delete datesheets for Exam: ${exam} (${session}) in ${school}?`)) return;
+        
+        if (window.showProgress) window.showProgress("Deleting datesheets...");
+        
+        const { db, collection, query, where, getDocs, doc, deleteDoc } = await getFb();
+        
+        // Exact active collection targeted query
+        const q = query(
+            collection(db, "datesheets"),
+            where("school_name", "==", school),
+            where("exam_type", "==", exam),
+            where("academic_year", "==", session)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        let deleteCount = 0;
+        
+        for (let documentSnap of querySnapshot.docs) {
+            await deleteDoc(doc(db, "datesheets", documentSnap.id));
+            deleteCount++;
+        }
+        
+        if (window.hideProgress) window.hideProgress();
+        alert(`Successfully wiped ${deleteCount} matching datesheet logs.`);
+    } catch (err) {
+        if (window.hideProgress) window.hideProgress();
+        console.error(err);
+        alert("Error deleting datesheets: " + err.message);
+    }
+};
 
 
 </script>
