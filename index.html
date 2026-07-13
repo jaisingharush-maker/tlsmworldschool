@@ -348,11 +348,10 @@
         <div id="adminUserList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"></div>  
     </div>  
 
-    <div id="sec-excel-results" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div id="sec-excel-results" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
         <div class="glass !p-4 border-2 border-orange-200">
             <p class="text-[10px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Class Results</p>
             <p class="text-[9px] text-slate-500 mb-3">Ek hi baar me kisi ek class ke sabhi bacho ka result card single PDF me print karein.</p>
-            
             <div class="space-y-2">
                 <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2" placeholder="ENTER CLASS (e.g. 10, 12, 9TH)">
                 <div class="grid grid-cols-2 gap-2">
@@ -373,8 +372,9 @@
             <select id="admin-upload-exam-type" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
 
             <p class="text-[9px] text-slate-600 mb-4 leading-relaxed">  
+                <strong>Universal Upload Mode:</strong> Aap poore school ka data ek sath mix sheet me upload kar sakte hain.<br>
                 Make sure your sheet headers strictly match:<br>  
-                <code class="text-orange-500">scholar_id, roll_no, name, mother, father, dob, class, school, subjects_json, result_status, days_present</code>
+                <code class="text-orange-500">scholar_id, roll_no, name, mother, father, dob, class, section, school, subjects_json, result_status, days_present</code>
             </p>  
             <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="publisher-input text-xs pt-2">  
             <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
@@ -388,6 +388,7 @@
             <button onclick="window.deleteSpecificResults()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">Delete Selected Results</button>
         </div>
     </div>
+
     
     <div id="sec-reeval" class="admin-section hidden pb-20">
         <div class="glass !p-4 border-2 border-blue-200 max-w-2xl mx-auto mb-6">
@@ -629,14 +630,33 @@
 
 
     <div id="sec-assignments" class="admin-section hidden pb-20 max-w-4xl mx-auto">
-        <div class="glass !p-6 border-2 border-emerald-200 mb-6">
-            <p class="text-[14px] font-black text-emerald-600 mb-2 uppercase tracking-widest"><i class="fas fa-file-signature mr-2"></i> Daily Assignment Builder</p>
-            <p class="text-[10px] text-slate-500 mb-6 font-bold">Generate premium printable homework assignments for your class students.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-                <div><label class="text-[10px] font-bold uppercase ml-1">Class</label><input type="text" id="as-class" class="publisher-input !m-0 uppercase font-bold" placeholder="e.g. 10TH-A"></div>
-                <div><label class="text-[10px] font-bold uppercase ml-1">Date</label><input type="date" id="as-date" class="publisher-input !m-0 font-bold"></div>
-                <div><label class="text-[10px] font-bold uppercase ml-1">Day</label><input type="text" id="as-day" class="publisher-input !m-0 uppercase font-bold" placeholder="e.g. MONDAY"></div>
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    <div>
+        <label class="text-[10px] font-bold uppercase ml-1">Class</label>
+        <select id="as-class" class="publisher-input !m-0 uppercase font-bold bg-white text-slate-700 cursor-pointer">
+            <option value="" disabled selected>SELECT CLASS...</option>
+            <option value="NURSERY-A">NURSERY-A</option>
+            <option value="LKG-A">LKG-A</option>
+            <option value="UKG-A">UKG-A</option>
+            <option value="I-A">I-A</option>
+            <option value="II-A">II-A</option>
+            <option value="III-A">III-A</option>
+            <option value="IV-A">IV-A</option>
+            <option value="IV-B">IV-B</option>
+            <option value="V-A">V-A</option>
+            <option value="VI-A">VI-A</option>
+            <option value="VII-A">VII-A</option>
+            <option value="VII-B">VII-B</option>
+            <option value="VIII-A">VIII-A</option>
+            <option value="IX-A">IX-A</option>
+            <option value="X-A">X-A</option>
+        </select>
+    </div>
+    <div><label class="text-[10px] font-bold uppercase ml-1">Date</label><input type="date" id="as-date" class="publisher-input !m-0 font-bold"></div>
+    <div><label class="text-[10px] font-bold uppercase ml-1">Day</label><input type="text" id="as-day" class="publisher-input !m-0 uppercase font-bold" placeholder="e.g. MONDAY"></div>
+</div>
+
+                
             </div>
 
             <label class="text-[11px] text-slate-700 font-black uppercase mb-3 block border-b-2 border-emerald-100 pb-1">Select Subjects to Add Homework:</label>
@@ -922,6 +942,8 @@ onAuthStateChanged(auth, async user => {
         
         checkAccess(user.uid); loadBooks(); loadSettings(); loadUserSubmissions(user.uid);  
         listenResultVisibility(); 
+        window.initAutoAssignmentDate();
+
     } else {  
         globalUID = null;
         isCurrentUserAdmin = false;
@@ -1869,17 +1891,12 @@ window.printBulkClassResults = async () => {
 
   
 window.processExcelUpload = () => {  
-    // NAYA: Sub-Admin Security Pass
     if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
 
     const fileInput = document.getElementById("excel-file-input");  
     const selectedExamType = document.getElementById("admin-upload-exam-type").value;  
     const selectedAcademicYear = document.getElementById("admin-upload-academic-year").value; 
-    
-    const targetClass = document.getElementById("admin-upload-class").value.trim().toUpperCase();
-    const targetSection = document.getElementById("admin-upload-section").value.trim().toUpperCase() || "A";
 
-    if(!targetClass) { alert("Please enter the Target Class before uploading the sheet!"); return; }
     if(!fileInput.files || fileInput.files.length === 0) { alert("Please select a valid excel .xlsx structure report card master first!"); return; }  
       
     const targetFile = fileInput.files[0];  
@@ -1896,25 +1913,36 @@ window.processExcelUpload = () => {
               
             let loadCounter = 0;
             const totalRows = parsedJsonRows.length;
-            window.showProgress(`Uploading Results for ${currentSchoolName} (Class ${targetClass}-${targetSection})...`);
+            
+            if(window.showProgress) {
+                window.showProgress(`Processing Poore School Ka Bulk Data (${totalRows} Records)...`);
+            }
             
             for(let row of parsedJsonRows) {
                 if(loadCounter % 5 === 0) await new Promise(r => requestAnimationFrame(r));
                 
-                const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
-                window.updateProgress(percent, `Uploaded ${loadCounter + 1} of ${totalRows} records`);  
+                if(window.updateProgress) {
+                    const percent = Math.round(((loadCounter + 1) / totalRows) * 100);
+                    window.updateProgress(percent, `Processing: ${loadCounter + 1} of ${totalRows}`);  
+                }
                 
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;  
                 if(!scholarIdRaw) continue;  
                   
-                // NAYA: ID me School Name joda gaya hai taaki clash na ho
-                let uniqueDocId = `${currentSchoolName}_${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
+                // 🚀 SMART AUTOMATIC IDENTIFIER FROM EXCEL ROWS
+                let excelClass = row.class ? row.class.toString().trim().toUpperCase() : "N/A";
+                let excelSection = row.section ? row.section.toString().trim().toUpperCase() : "A";
+                let excelSchool = row.school || row.school_name || currentSchoolName;
+
+                // 🚀 BUG FIXED HERE: Ab result exact purane format me save hoga, taaki app use asani se dhoondh sake
+                let uniqueDocId = `${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
+                
                 let subjects = [];  
                 const allColumns = Object.keys(row);  
                 let detectedSubjects = {};  
   
                 allColumns.forEach(col => {  
-                    const skipFields = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "school", "result_status", "fee_due", "section", "days_present"];  
+                    const skipFields = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "school", "result_status", "fee_due", "section", "days_present", "school_name"];  
                     if(skipFields.includes(col.toLowerCase())) return;  
   
                     const cleanCol = col.toUpperCase().trim();  
@@ -1953,33 +1981,31 @@ window.processExcelUpload = () => {
                     mother: row.mother || "---",  
                     father: row.father || "---",  
                     dob: row.dob || "---",  
-                    class: targetClass,  
-                    section: targetSection, 
-                    school: currentSchoolName, // NAYA: School name isolate kiya gaya hai
-                    school_name: currentSchoolName, 
+                    class: excelClass,      
+                    section: excelSection,  
+                    school: excelSchool, 
+                    school_name: excelSchool, 
                     subjects_json: subjects,  
                     result_status: row.result_status || "PASS",  
                     fee_due: row.fee_due === true || row.fee_due === "TRUE",  
                     days_present: row.days_present !== undefined ? row.days_present : 0,
-                    updatedAt: window.Timestamp ? window.Timestamp.now() : new Date()
+                    updatedAt: new Date()
                 };  
                   
                 await setDoc(doc(db, "school_results", uniqueDocId), processedPayload, { merge: true });  
                 loadCounter++;  
             }  
-            window.hideProgress();
-            alert(`Success! Uploaded ${loadCounter} result records safely for ${currentSchoolName} (Class ${targetClass}-${targetSection}).`);  
+            if(window.hideProgress) window.hideProgress();
+            alert(`Universal Upload Complete! ${loadCounter} records uploaded successfully for across all classes.`);  
             fileInput.value = "";  
-            document.getElementById("admin-upload-class").value = "";
         } catch(err) {  
             console.error(err);
-            window.hideProgress();
-            alert("Error encountered during structural runtime processing.");  
+            if(window.hideProgress) window.hideProgress();
+            alert("Excel Core Parsing Failure. Check file headers formatting.");  
         }  
     };  
     fileReader.readAsBinaryString(targetFile);  
 };
-
 
 
 window.toggleDatesheetType = () => {
@@ -3415,10 +3441,12 @@ window.filterSubAdmins = () => {
 // ==========================================
 
 let appAssignmentSubjects = {
-    "ENGLISH": "fas fa-book-open",
-    "HINDI": "fas fa-pen-nib",
+    "ENGLISH": "fas fa-book-open-reader",
+    "HINDI": "fas fa-pen-fancy",
     "MATHS": "fas fa-calculator",
-    "SCIENCE": "fas fa-flask"
+    "SCIENCE": "fas fa-flask",
+    "SOCIAL SCIENCE": "fas fa-globe-asia",
+    "COMPUTER": "fas fa-laptop-code"
 };
 
 // Database se real-time subjects load karna
@@ -3450,34 +3478,65 @@ window.renderAssignSubAdmin = () => {
 };
 
 // Naya Subject Database me Add karna (Fixed Scope Error)
+// Naya Subject Database me Add karna (PROFESSIONAL SMART ICON ENGINE)
+// 🚀 Naya Subject Database me Add karna (BUG FIXED)
 window.addAssignSubject = async () => {
     const inputEl = document.getElementById('new-assign-sub');
     if(!inputEl) return;
     const sub = inputEl.value.trim().toUpperCase();
     if(!sub) { alert("Please enter a Subject Name!"); return; }
     
-    // Auto random icon assigner
-    const icons = ["fas fa-book", "fas fa-star", "fas fa-graduation-cap", "fas fa-laptop-code", "fas fa-leaf", "fas fa-pen-fancy", "fas fa-globe", "fas fa-microscope"];
-    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+    // SMART PROFESSIONAL ICON ASSIGNER
+    const getSmartIcon = (name) => {
+        const n = name.toUpperCase();
+        if(n.includes("ENG") || n.includes("HIN") || n.includes("SAN") || n.includes("URDU") || n.includes("LANG")) return "fas fa-book-open-reader";
+        if(n.includes("MATH") || n.includes("CALC")) return "fas fa-calculator";
+        if(n.includes("SCI") || n.includes("PHY") || n.includes("CHEM") || n.includes("BIO") || n.includes("EVS")) return "fas fa-flask";
+        if(n.includes("SOC") || n.includes("HIS") || n.includes("GEO") || n.includes("CIV") || n.includes("POL") || n.includes("SST")) return "fas fa-globe-asia";
+        if(n.includes("COMP") || n.includes("IT") || n.includes("INFO") || n.includes("TECH")) return "fas fa-laptop-code";
+        if(n.includes("COMM") || n.includes("ACC") || n.includes("ECO") || n.includes("BUS")) return "fas fa-chart-line";
+        if(n.includes("ART") || n.includes("DRAW") || n.includes("CRAFT")) return "fas fa-palette";
+        if(n.includes("P.E") || n.includes("PHYSICAL") || n.includes("SPORT") || n.includes("GAME") || n.includes("YOGA")) return "fas fa-volleyball";
+        if(n.includes("MUSIC") || n.includes("DANCE") || n.includes("SING")) return "fas fa-music";
+        if(n.includes("GK") || n.includes("GENERAL") || n.includes("REASONING") || n.includes("APTITUDE")) return "fas fa-brain";
+        return "fas fa-book"; 
+    };
     
-    appAssignmentSubjects[sub] = randomIcon;
+    appAssignmentSubjects[sub] = getSmartIcon(sub);
     
     try {
+        // 🔥 FIX: 'window.setDoc' hata kar normal 'setDoc' kar diya
         await setDoc(doc(db, "settings", "app"), { assignmentSubjects: appAssignmentSubjects }, {merge:true});
-        alert(`Success! ${sub} added successfully.`);
+        alert(`Success! ${sub} added successfully with a Professional Icon.`);
         inputEl.value = "";
+        
+        // 🔥 FIX: UI ko turant refresh karna taaki naya subject turant dikhe
+        if(typeof window.renderSubjectChips === 'function') window.renderSubjectChips();
+        if(typeof window.renderAssignSubAdmin === 'function') window.renderAssignSubAdmin();
     } catch (e) {
         console.error("Subject Save Error:", e);
-        alert("Database Error! Make sure you pasted this code INSIDE the <script type='module'> block.");
+        alert("Database Error! Refresh the page and try again.");
     }
 };
 
-// Subject Delete karna
+// 🚀 Subject Delete karna (BUG FIXED)
 window.deleteAssignSubject = async (sub) => {
-    if(!confirm(`Delete ${sub} from active subjects?`)) return;
+    if(!confirm(`Are you sure you want to delete ${sub} from active subjects?`)) return;
+    
     delete appAssignmentSubjects[sub];
+    
     try {
         await setDoc(doc(db, "settings", "app"), { assignmentSubjects: appAssignmentSubjects }, {merge:true});
+        
+        // 🔥 FIX: UI ko turant refresh karna taaki delete hone ke baad subject screen se gayab ho jaye
+        if(typeof window.renderSubjectChips === 'function') window.renderSubjectChips();
+        if(typeof window.renderAssignSubAdmin === 'function') window.renderAssignSubAdmin();
+        
+        // Agar typing wala dabba khula tha, toh use bhi hata do
+        const safeSubId = sub.replace(/\s+/g, '');
+        const targetInputBox = document.getElementById(`input-wrap-${safeSubId}`);
+        if(targetInputBox) targetInputBox.remove();
+        
     } catch(e) {
         alert("Failed to delete subject.");
     }
@@ -4444,6 +4503,29 @@ window.deleteBulkDatesheet = async () => {
         alert("Error deleting datesheets: " + err.message);
     }
 };
+
+// 🚀 NAYA: AUTOMATIC LIVE DATE & DAY CALCULATOR ENGINE
+window.initAutoAssignmentDate = () => {
+    const dateInput = document.getElementById('as-date');
+    const dayInput = document.getElementById('as-day');
+    
+    if (dateInput && dayInput) {
+        const today = new Date();
+        
+        // Today's Date formatted for input type="date" (YYYY-MM-DD)
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+        
+        // Dynamic Day finder array
+        const daysArray = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+        dayInput.value = daysArray[today.getDay()];
+        
+        console.log("📅 Assignment auto-date engine synchronized!");
+    }
+};
+
 
 
 </script>
