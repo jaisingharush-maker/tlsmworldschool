@@ -510,7 +510,11 @@
             </p>
             <select id="admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
             <input type="file" id="admit-excel-file" accept=".xlsx, .xls" class="publisher-input text-xs pt-2 mb-3">
-            <button onclick="window.processAdmitCardExcel()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase">UPLOAD MASTER DATA</button>
+            <button onclick="window.processAdmitCardExcel()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase">UPLOAD MASTER DATA</button> 
+          <button onclick="window.downloadMasterDataCSV()" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[11px]">
+    <i class="fas fa-download mr-2"></i> Download Current Master Data (Excel/CSV)
+          </button>
+          
         </div>
         
         <div class="glass !p-4 border-2 border-orange-200">
@@ -2744,6 +2748,75 @@ window.deleteSpecificAdmitCards = async () => {
 };
 
   
+  // ==========================================
+// 📊 MASTER DATA DOWNLOAD SYSTEM (EXCEL/CSV)
+// ==========================================
+window.downloadMasterDataCSV = async () => {
+    try {
+        // 1. Dropdown se current selected session uthayein
+        const sessionEl = document.getElementById("admit-session");
+        const sessionSel = sessionEl ? sessionEl.value : "2026-27";
+        
+        if(window.showProgress) window.showProgress(`Fetching Session ${sessionSel} Backup...`);
+        
+        // 2. Direct 'students_master' collection ko target karein
+        const studentsRef = collection(db, "students_master");
+        
+        // Pure collection se selected session aur current school ka data nikalna
+        const q = query(studentsRef, where("session", "==", sessionSel), where("school_name", "==", currentSchoolName));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            if(window.hideProgress) window.hideProgress();
+            alert(`No Master Data found for ${currentSchoolName} in Session ${sessionSel}!`);
+            return;
+        }
+        
+        const studentsList = [];
+        snap.forEach(d => {
+            studentsList.push(d.data());
+        });
+
+        // 3. Excel sheet ke standard standard columns structure mapping
+        const headers = ["scholar_id", "roll_no", "name", "father", "mother", "dob", "class", "section", "pen_no", "candidate_aadhar", "mother_aadhar", "father_aadhar", "photo_url"];
+        
+        const csvRows = [];
+        csvRows.push(headers.join(',')); // Main Header Line
+        
+        // Sabhi students ka data rows me convert karna
+        for (const student of studentsList) {
+            const values = headers.map(header => {
+                const val = student[header] !== undefined && student[header] !== null ? student[header].toString() : '';
+                const escaped = ('' + val).replace(/"/g, '""');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+        
+        const csvString = csvRows.join('\n');
+        // UTF-8 BOM encoding taaki Hindi/Sanskrit font Excel me crash na ho
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvString], { type: 'text/csv;charset=utf-8;' });
+        
+        // 4. Browser dynamic auto-download link trigger
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Master_Data_${currentSchoolName.replace(/\s+/g, '_')}_${sessionSel}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        if(window.hideProgress) window.hideProgress();
+    } catch (error) {
+        console.error("Master Data Download Error:", error);
+        if(window.hideProgress) window.hideProgress();
+        alert("Firestore database connection error or dynamic extraction fault.");
+    }
+};
+
 function showQuestion() {  
     const q = quizData[currentQ];  
     let html = `<p class="text-slate-500 text-[10px] mb-2 font-bold">QUESTION ${currentQ + 1} OF ${quizData.length}</p>  
