@@ -362,23 +362,116 @@
             </div>
         </div>
 
-        <div class="glass !p-4">  
-            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase">Bulk Upload Student Results (.xlsx)</p>  
+               <div class="glass !p-4">  
+            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase">Bulk Upload & Download Results</p>  
             
-            <p class="text-[9px] text-orange-600 font-bold mb-2 uppercase">Select Academic Year Before Upload:</p>
+            <p class="text-[9px] text-orange-600 font-bold mb-2 uppercase">Select Academic Year:</p>
             <select id="admin-upload-academic-year" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
 
-            <p class="text-[9px] text-amber-600 font-bold mb-2 uppercase">Select Exam Type Before Upload:</p>
+            <p class="text-[9px] text-amber-600 font-bold mb-2 uppercase">Select Exam Type:</p>
             <select id="admin-upload-exam-type" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
 
             <p class="text-[9px] text-slate-600 mb-4 leading-relaxed">  
-                <strong>Universal Upload Mode:</strong> Aap poore school ka data ek sath mix sheet me upload kar sakte hain.<br>
-                Make sure your sheet headers strictly match:<br>  
-                <code class="text-orange-500">scholar_id, roll_no, name, mother, father, dob, class, section, school, subjects_json, result_status, days_present</code>
+                <strong>Universal Mode:</strong> Select session and exam type above to either upload a new sheet or download existing data as backup.<br>
+                Upload format: <code class="text-orange-500">scholar_id, roll_no, name... HINDI_TH, HINDI_PR</code>
             </p>  
             <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="publisher-input text-xs pt-2">  
-            <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
+                      <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all mb-2"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
+
+            <button onclick="window.downloadResultDataXLSX()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all mb-2">
+                <i class="fas fa-file-excel mr-2"></i>Download Master Sheet (Excel)
+            </button>
+
+            <button onclick="window.downloadResultDataPDF()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all">
+                <i class="fas fa-file-pdf mr-2"></i>Download Class Results Sheet (PDF)
+            </button>
+            
+            <button onclick="window.downloadTop10ListPDF()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg transition-all mt-2">
+    <i class="fas fa-trophy mr-2"></i>Download Top 10 List
+</button>
+
         </div>  
+
+        <div class="glass !p-4 border-2 border-orange-200 mt-2">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Print Specific Student(s) Results</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar unka report card PDF bundle generate karein. Multiple ke liye comma (,) lagayein (e.g. 2026101, 2026105).</p>
+            <input type="text" id="admin-print-specific-results-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S) (e.g. 2026101, 2026105)">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="admin-print-specific-results-session" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+                <select id="admin-print-specific-results-exam" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+            </div>
+            <button onclick="window.printSpecificStudentResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">
+                <i class="fas fa-file-pdf mr-2"></i>Generate Selected Results PDF
+            </button>
+        </div>
+
+
+        <div class="glass !p-4 border-2 border-blue-200 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-edit mr-1"></i> Add or Edit Student Result Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi bacche ka result edit karna ho ya naya record banana ho, Scholar ID daal kar fetch karein. Excel ki zaroorat nahi padegi.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                <input type="text" id="edit-result-scholar" class="publisher-input !mb-0 text-center uppercase font-bold flex-1" placeholder="SCHOLAR ID (e.g. 2026101)">
+                <select id="edit-result-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-full sm:w-1/3"></select>
+                <select id="edit-result-exam" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-full sm:w-1/3"></select>
+                <button onclick="window.fetchSingleResultData()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide transition-all">FETCH / ADD</button>
+            </div>
+            
+            <div id="edit-result-form" class="hidden border-t border-slate-200 pt-4 mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Name</label><input type="text" id="er-name" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Roll No</label><input type="text" id="er-roll" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Class</label><input type="text" id="er-class" class="publisher-input !mb-0 uppercase"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Section</label><input type="text" id="er-section" class="publisher-input !mb-0 uppercase"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Name</label><input type="text" id="er-father" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="er-mother" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="er-dob" class="publisher-input !mb-0" placeholder="DD/MM/YYYY"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Days Present</label><input type="text" id="er-days" class="publisher-input !mb-0" placeholder="e.g. 200/220"></div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 ml-1">Fee Due (Block Result?)</label>
+                        <select id="er-fee" class="publisher-input !mb-0 font-bold bg-white">
+                            <option value="false">NO (Result LIVE)</option>
+                            <option value="true">YES (Block Result)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl mb-3">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                        <p class="text-[10px] font-black text-slate-700 uppercase flex items-center">
+                            <i class="fas fa-list-ol mr-1 text-blue-600"></i> Subject Marks
+                        </p>
+                        <button onclick="window.addSubjectFieldUI()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-[9px] font-bold uppercase transition-all shadow-sm">
+                            + Add Subject
+                        </button>
+                    </div>
+                    <p class="text-[8px] text-slate-500 mb-2 leading-tight">Fill in the details below. Total and Grade will be calculated automatically on save.</p>
+                    
+                    <div id="dynamic-subjects-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                </div>
+
+                <button id="btn-update-result" onclick="window.updateSingleResultData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-1 transition-all">SAVE STUDENT RESULT</button>
+            </div>
+        </div>
+
+
+
+                  <div class="glass !p-4 border-2 border-red-200 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-user-minus mr-1"></i> Delete Specific Student Results</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar unka result permanently delete karein. Multiple ke liye comma (,) lagayein.</p>
+            <input type="text" id="admin-del-specific-results-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S) (e.g. 2026101, 2026105)">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="admin-del-specific-results-session" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+                <select id="admin-del-specific-results-exam" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+            </div>
+            <button id="btn-delete-specific-results" onclick="window.deleteSpecificStudentResults()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">
+                <i class="fas fa-trash-alt mr-2"></i>Delete Selected Results
+            </button>
+        </div>
+
+
+
+
         
         <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 max-w-md mx-auto">
             <p class="text-[10px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Specific Results</p>
@@ -770,65 +863,110 @@ let quizStarted = false; let quizSubmitted = false;
 let isResultsPortalVisible = false;
 let feedbackChartInstance = null;
 
-async function buildPerformanceChartData(scholarId, currentExam, academicYear, currentSubjects) {
-    let datasets = [];
-    let labels = currentSubjects.map(s => s.name.toUpperCase());
+// ==========================================
+// 📊 CHART DATA GENERATOR (SMART PERCENTAGE ENGINE)
+// ==========================================
+// ==========================================
+// 📊 CHART DATA GENERATOR (STRICT OVERRIDE ENGINE)
+// ==========================================
+window.buildPerformanceChartData = async (scholarId, examType, academicYear, subjectsList) => {
+    const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+    const app = appMod.getApp(); 
+    const db = fs.getFirestore(app);
+
+    let targetClass = "N/A";
+    try {
+        let snap = await fs.getDoc(fs.doc(db, "school_results", `${scholarId}_${examType}_${academicYear}`));
+        if(snap.exists()) targetClass = snap.data().class || "N/A";
+    } catch(e){}
+
+    targetClass = targetClass.toString().trim().toUpperCase();
     
-    let colors = {
-        "PMT": { bg: "rgba(239, 68, 68, 0.6)", border: "#ef4444" },
-        "PAT": { bg: "rgba(234, 88, 12, 0.6)", border: "#ea580c" }, 
-        "HALF_YEARLY": { bg: "rgba(245, 158, 11, 0.6)", border: "#f59e0b" },
-        "ANNUAL": { bg: "rgba(16, 185, 129, 0.6)", border: "#10b981" }
+    // Class 9 & 10 Detector
+    let is9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
+
+    const sanitizeSub = (name) => {
+        if(!name) return '---'; let n = name.toUpperCase().trim();
+        if(n === 'IT/COM') return 'IT/COMP'; return n;
     };
 
-    for (let ex of appExams) { 
-        let docId = `${scholarId}_${ex}_${academicYear}`;
-        let examData = [];
-        
-        if (ex === currentExam) {
-            currentSubjects.forEach(sub => {
-                let max = Number(sub.fullMarks || 100);
-                let val = Number(sub.total || 0);
-                let percent = max > 0 ? (val / max) * 100 : 0;
-                examData.push(Number(percent.toFixed(2))); 
-            });
-        } else {
-            try {
-                let snap = await getDoc(doc(db, "school_results", docId));
-                if (snap.exists()) {
-                    let d = snap.data();
-                    let subs = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json;
-                    currentSubjects.forEach(sub => {
-                        let targetSub = subs.find(s => s.name.toUpperCase() === sub.name.toUpperCase());
-                        if(targetSub) {
-                            let max = Number(targetSub.fullMarks || 100);
-                            let val = Number(targetSub.total || 0);
-                            let percent = max > 0 ? (val / max) * 100 : 0;
-                            examData.push(Number(percent.toFixed(2)));
-                        } else {
-                            examData.push(0);
-                        }
-                    });
-                } else {
-                    examData = new Array(labels.length).fill(0);
-                }
-            } catch (err) {
-                examData = new Array(labels.length).fill(0);
-            }
-        }
+    let labels = [];
+    subjectsList.forEach(s => {
+        let n = sanitizeSub(s.name);
+        if(!labels.includes(n)) labels.push(n);
+    });
 
-        if (examData.some(v => v > 0) || ex === currentExam) {
-            datasets.push({
-                label: ex.replace(/_/g, " "),
-                data: examData,
-                backgroundColor: colors[ex]?.bg || "rgba(234, 88, 12, 0.5)",
-                borderColor: colors[ex]?.border || "#ea580c",
-                borderWidth: 1
+    let datasets = [];
+
+    const getExamPercentageData = async (eType, labelStr, colorBg) => {
+        let dataArr = [];
+        try {
+            let docSnap = await fs.getDoc(fs.doc(db, "school_results", `${scholarId}_${eType}_${academicYear}`));
+            let eSubs = [];
+            if(docSnap.exists()) {
+                let d = docSnap.data().subjects_json;
+                eSubs = typeof d === "string" ? JSON.parse(d) : d;
+            }
+            if(!Array.isArray(eSubs)) eSubs = [];
+
+            let marksMap = {};
+            eSubs.forEach(s => {
+                let n = sanitizeSub(s.name);
+                let th = Number(s.theory !== undefined ? s.theory : (s.total || 0));
+                let pr = Number(s.practical !== undefined ? s.practical : 0);
+                let tot = Number(s.total || 0);
+                
+                // 🔥 STRICT MAX MARKS: Database ko ignore karke apni settings lagayega
+                let maxM = (eType === "PMT" || eType === "PAT") ? 20 : 100;
+                let scored = 0;
+                
+                // Scored marks calculation rule
+                if ((eType === "PMT" || eType === "PAT") && is9or10) {
+                    scored = th;
+                } else if (eType === "HALF_YEARLY" || eType === "ANNUAL") {
+                    scored = th; 
+                } else {
+                    scored = tot;
+                }
+                
+                // Percentage for accurate graph height
+                let pct = maxM > 0 ? (scored / maxM) * 100 : 0;
+                marksMap[n] = pct;
             });
+
+            labels.forEach(l => {
+                dataArr.push(marksMap[l] !== undefined ? marksMap[l].toFixed(2) : 0);
+            });
+        } catch(e) {
+            labels.forEach(() => dataArr.push(0));
         }
+        
+        datasets.push({
+            label: labelStr,
+            data: dataArr,
+            backgroundColor: colorBg,
+            borderWidth: 0
+        });
+    };
+
+    if (examType === "PMT") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)"); // Red
+    } else if (examType === "HALF_YEARLY") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)");
+        await getExamPercentageData("HALF_YEARLY", "HALF YEARLY", "rgba(52, 211, 153, 0.8)"); // Green
+    } else if (examType === "PAT") {
+        await getExamPercentageData("PAT", "PAT", "rgba(251, 146, 60, 0.8)"); // Orange
+    } else if (examType === "ANNUAL") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)");
+        await getExamPercentageData("HALF_YEARLY", "HALF YEARLY", "rgba(52, 211, 153, 0.8)");
+        await getExamPercentageData("PAT", "PAT", "rgba(251, 146, 60, 0.8)");
+        await getExamPercentageData("ANNUAL", "ANNUAL", "rgba(96, 165, 250, 0.8)"); // Blue
     }
+
     return { labels, datasets };
-}
+};
+
 
 let globalUID = null;
 let isCurrentUserAdmin = false;
@@ -1296,8 +1434,7 @@ window.adminDirectUpdateMarks = async () => {
 
 window.fetchStudentResult = async () => {  
     if (!isResultsPortalVisible && !isCurrentUserAdmin) {
-        alert("Action Forbidden. Results portal is offline right now.");
-        return;
+        alert("Action Forbidden. Results portal is offline right now."); return;
     }
 
     const sId = document.getElementById("student-scholar-id").value.trim().toUpperCase();  
@@ -1306,90 +1443,193 @@ window.fetchStudentResult = async () => {
     const targetPanel = document.getElementById("result-display-panel");  
       
     if(!sId) { alert("Please input a valid Scholar ID!"); return; }  
-      
     const targetDocId = `${sId}_${examType}_${academicYear}`;  
+
+    const sanitizeSub = (name) => {
+        if(!name) return '---'; let n = name.toUpperCase().trim();
+        if(n === 'IT/COM') return 'IT/COMP'; return n;
+    };
 
     try {  
         const rSnap = await getDoc(doc(db, "school_results", targetDocId));  
         if(!rSnap.exists()) {  
             alert("No result found for this Scholar ID, selected Exam Type and Academic Year.");  
-            targetPanel.classList.add("hidden");  
-            return;  
+            targetPanel.classList.add("hidden"); return;  
         }  
           
         const data = rSnap.data();  
-        let feeBlocked = data.fee_due === true;  
-  
-        let blockUI = `  
-            <div class="bg-red-50 border-4 border-red-600 rounded-3xl p-8 text-center">  
-                <i class="fas fa-lock text-5xl text-red-600 mb-4"></i>  
-                <h2 class="text-2xl font-black text-red-700 uppercase mb-3">RESULT BLOCKED</h2>  
-                <p class="text-sm text-slate-700 font-bold mb-4">Your school fee is pending Contact School Administration 8986900009.</p>  
-                ${auth.currentUser.email === adminEmail ? `  
-                    <button onclick="toggleFeeDue('${targetDocId}', true)" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold">UNBLOCK RESULT</button>  
-                ` : ``}  
-            </div>  
-        `;  
-  
-        if (feeBlocked) {  
-            targetPanel.innerHTML = blockUI;  
-            targetPanel.classList.remove("hidden");  
-            return;  
+        if (data.fee_due) {  
+            targetPanel.innerHTML = `  
+                <div class="bg-red-50 border-4 border-red-600 rounded-3xl p-8 text-center">  
+                    <i class="fas fa-lock text-5xl text-red-600 mb-4"></i>  
+                    <h2 class="text-2xl font-black text-red-700 uppercase mb-3">RESULT BLOCKED</h2>  
+                    <p class="text-sm text-slate-700 font-bold mb-4">Your school fee is pending Contact School Administration.</p>  
+                    ${auth.currentUser.email === adminEmail ? `<button onclick="toggleFeeDue('${targetDocId}', true)" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold">UNBLOCK RESULT</button>` : ``}  
+                </div>`;  
+            targetPanel.classList.remove("hidden"); return;  
         }  
 
         let subjects = [];  
-        try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e) { console.error(e); }  
+        try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e) {}  
+        if (!Array.isArray(subjects)) subjects = [];
           
-        let totalMarks = 0;  
-        let maxMarks = 0;  
+        let totalMarks = 0; let maxMarks = 0;  
+
+        const studentClass = data.class ? data.class.toString().trim().toUpperCase() : "N/A";
+        let isClass9or10 = studentClass === "9" || studentClass.startsWith("9TH") || studentClass.startsWith("9-") || studentClass.startsWith("9 ") || studentClass === "IX" || studentClass.startsWith("IX-") || studentClass.startsWith("IX ") || studentClass === "10" || studentClass.startsWith("10TH") || studentClass.startsWith("10-") || studentClass.startsWith("10 ") || studentClass === "X" || studentClass.startsWith("X-") || studentClass.startsWith("X ");
+        let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
   
+        let examTotals = { "PMT": {}, "MT": {}, "PAT": {} };
+        
+        if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
+            try {
+                const p1 = getDoc(doc(db, "school_results", `${sId}_PMT_${academicYear}`));
+                const p2 = getDoc(doc(db, "school_results", `${sId}_HALF_YEARLY_${academicYear}`));
+                const p3 = getDoc(doc(db, "school_results", `${sId}_PAT_${academicYear}`));
+                const [snap1, snap2, snap3] = await Promise.all([p1, p2, p3]);
+
+                if (snap1.exists()) {
+                    let s = typeof snap1.data().subjects_json === "string" ? JSON.parse(snap1.data().subjects_json) : snap1.data().subjects_json;
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["PMT"][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0));
+                }
+                if (snap2.exists() && examType === "ANNUAL") {
+                    let s = typeof snap2.data().subjects_json === "string" ? JSON.parse(snap2.data().subjects_json) : snap2.data().subjects_json;
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["MT"][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)));
+                }
+                if (snap3.exists() && examType === "ANNUAL") {
+                    let s = typeof snap3.data().subjects_json === "string" ? JSON.parse(snap3.data().subjects_json) : snap3.data().subjects_json;
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["PAT"][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0));
+                }
+            } catch(e) { console.error("Error fetching prev exams:", e); }
+        }
+
+        let subjectRows = "";  
         subjects.forEach(sub => {  
-            totalMarks += Number(sub.total || 0);  
-            maxMarks += Number(sub.fullMarks || 100);  
+            let subName = sanitizeSub(sub.name);
+            let displayCode = window.getSubjectCode(sub.name, sub.code); 
+            let calculatedMax = (examType === "PMT" || examType === "PAT") ? 20 : 100;
+  
+            if (examType === "ANNUAL") {
+                let pmt = examTotals["PMT"][subName] !== undefined ? examTotals["PMT"][subName] : '---';
+                let mt = examTotals["MT"][subName] !== undefined ? examTotals["MT"][subName] : '---';
+                let pat = examTotals["PAT"][subName] !== undefined ? examTotals["PAT"][subName] : '---';
+                let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0); 
+                
+                let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
+                let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
+                
+                totalMarks += avg; maxMarks += calculatedMax;
+                let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
+
+                subjectRows += `
+                <tr class="border-b border-slate-300 text-[10px] sm:text-[11px] text-center text-slate-800">
+                    <td class="p-1 px-1.5 font-mono">${displayCode}</td>
+                    <td class="p-1 px-1.5 text-left font-bold uppercase">${sub.name || '---'}</td>
+                    <td class="p-1 px-1.5">${pmt}</td>
+                    <td class="p-1 px-1.5">${mt}</td>
+                    <td class="p-1 px-1.5">${pat}</td>
+                    <td class="p-1 px-1.5 font-black text-blue-900">${annual}</td>
+                    <td class="p-1 px-1.5 font-black">${avg} / ${calculatedMax}</td>
+                    <td class="p-1 px-1.5 text-orange-600 font-bold">${dynamicGrade}</td>
+                </tr>`;
+            } else if (examType === "HALF_YEARLY") {
+                let pmt = examTotals["PMT"][subName] !== undefined ? examTotals["PMT"][subName] : '---';
+                let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                
+                let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
+                let calculatedTotal = mt + pmtVal;
+                
+                totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;
+                let dynamicGrade = window.getGrade(subPercent);
+
+                subjectRows += `
+                <tr class="border-b border-slate-300 text-[11px] text-center text-slate-800">
+                    <td class="p-2 font-mono">${displayCode}</td>
+                    <td class="p-2 text-left font-bold uppercase">${sub.name || '---'}</td>
+                    <td class="p-2">${mt}</td>
+                    <td class="p-2">${pmt}</td>
+                    <td class="p-2 font-black">${calculatedTotal} / ${calculatedMax}</td>
+                    <td class="p-2 text-orange-600 font-bold">${dynamicGrade}</td>
+                </tr>`;
+            } else {
+                let calculatedTotal = 0;
+                if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                else calculatedTotal = Number(sub.total || 0);
+                
+                totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;  
+                let dynamicGrade = window.getGrade(subPercent);  
+                let pracCell = hidePracColumn ? '' : `<td class="p-2">${sub.practical !== undefined ? sub.practical : '---'}</td>`;
+
+                subjectRows += `  
+                <tr class="border-b border-slate-300 text-[11px] text-center text-slate-800">  
+                    <td class="p-2 font-mono">${displayCode}</td>  
+                    <td class="p-2 text-left font-bold uppercase">${sub.name || '---'}</td>  
+                    <td class="p-2">${sub.theory !== undefined ? sub.theory : '---'}</td>  
+                    ${pracCell}
+                    <td class="p-2 font-black">${calculatedTotal} / ${calculatedMax}</td>  
+                    <td class="p-2 text-orange-600 font-bold">${dynamicGrade}</td>  
+                </tr>`;  
+            }
         });  
           
         let percentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : 0;  
         percentage = percentage.toFixed(2);  
-          
         let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";  
 
-        let classRank = "N/A";  
-        let totalInClass = 0;  
-
-        const studentClass = data.class || "N/A";  
+        let classRank = "N/A"; let totalInClass = 0;  
         const currentScholarId = data.scholar_id.toString().trim().toUpperCase();  
 
-        let teacherSignUrl = classTeacherSignatures[studentClass.toUpperCase().trim()] || classTeacherSignatures["DEFAULT"];
-
         if(studentClass !== "N/A") {  
-            const qClass = query(  
-                collection(db, "school_results"),   
-                where("class", "==", studentClass),  
-                where("exam_type", "==", examType),  
-                where("academic_year", "==", academicYear)  
-            );  
+            const qClass = query(collection(db, "school_results"), where("class", "==", studentClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear));  
             const classSnap = await getDocs(qClass);  
-              
             let classStudents = [];  
 
+            let allPmt = {}; let allMt = {}; let allPat = {};
+            if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
+                const qPmtClass = query(collection(db, "school_results"), where("class", "==", studentClass), where("exam_type", "==", "PMT"), where("academic_year", "==", academicYear));
+                const qMtClass = query(collection(db, "school_results"), where("class", "==", studentClass), where("exam_type", "==", "HALF_YEARLY"), where("academic_year", "==", academicYear));
+                const qPatClass = query(collection(db, "school_results"), where("class", "==", studentClass), where("exam_type", "==", "PAT"), where("academic_year", "==", academicYear));
+                
+                const [snapP, snapM, snapPa] = await Promise.all([getDocs(qPmtClass), getDocs(qMtClass), getDocs(qPatClass)]);
+
+                snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+            }
+
             classSnap.forEach(docSnap => {  
-                let sData = docSnap.data();  
-                if(!sData.scholar_id) return;  
+                let sData = docSnap.data(); if(!sData.scholar_id) return;  
+                let sid = sData.scholar_id.toString().trim().toUpperCase();
+                let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}  
+                if (!Array.isArray(sSubs)) sSubs = [];
 
-                let sSubs = [];  
-                try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}  
-                  
                 let sTotal = 0;  
-                if(sSubs && Array.isArray(sSubs)){  
-                    sSubs.forEach(sub => { sTotal += Number(sub.total || 0); });  
-                }  
-
-                let studentScoreObj = {   
-                    scholar_id: sData.scholar_id.toString().trim().toUpperCase(),   
-                    totalMarks: sTotal   
-                };  
-                  
-                classStudents.push(studentScoreObj);  
+                if (examType === "ANNUAL") {
+                    sSubs.forEach(sub => {
+                        let subName = sanitizeSub(sub.name);
+                        let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
+                        let mt = (allMt[sid] && allMt[sid][subName] !== undefined) ? allMt[sid][subName] : 0;
+                        let pat = (allPat[sid] && allPat[sid][subName] !== undefined) ? allPat[sid][subName] : 0;
+                        let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                        sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                    });
+                } else if (examType === "HALF_YEARLY") {
+                    sSubs.forEach(sub => {
+                        let subName = sanitizeSub(sub.name);
+                        let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
+                        let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                        sTotal += (pmt + mt);
+                    });
+                } else {
+                    sSubs.forEach(sub => {
+                        if (isClass9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                        else sTotal += Number(sub.total || 0);
+                    });  
+                }
+                classStudents.push({ scholar_id: sid, totalMarks: sTotal });  
             });  
 
             classStudents.sort((a, b) => b.totalMarks - a.totalMarks);  
@@ -1397,250 +1637,160 @@ window.fetchStudentResult = async () => {
 
             let currentRank = 1;
             for(let i = 0; i < classStudents.length; i++) {
-                if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) {
-                    currentRank++; 
-                }
-                if(classStudents[i].scholar_id === currentScholarId) {
-                    classRank = currentRank;
-                    break;
-                }
+                if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) { currentRank++; }
+                if(classStudents[i].scholar_id === currentScholarId) { classRank = currentRank; break; }
             }
         }  
 
         let medalIcon = "";
-        if (classRank === 1) medalIcon = "<span class='text-lg ml-1' title='Rank 1'>🥇</span>";
-        else if (classRank === 2) medalIcon = "<span class='text-lg ml-1' title='Rank 2'>🥈</span>";
-        else if (classRank === 3) medalIcon = "<span class='text-lg ml-1' title='Rank 3'>🥉</span>";
+        if (classRank === 1) medalIcon = "<span class='text-lg ml-1' title='Rank 1'>🥇</span>"; else if (classRank === 2) medalIcon = "<span class='text-lg ml-1' title='Rank 2'>🥈</span>"; else if (classRank === 3) medalIcon = "<span class='text-lg ml-1' title='Rank 3'>🥉</span>";
 
-        let subjectRows = "";  
-        subjects.forEach(sub => {  
-            let calculatedTotal = Number(sub.total || 0);  
-            let calculatedMax = Number(sub.fullMarks || 100);  
-            let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;  
-            let dynamicGrade = (sub.grade && sub.grade !== "E" && sub.grade.trim() !== "") ? sub.grade : window.getGrade(subPercent);  
-            let displayCode = window.getSubjectCode(sub.name, sub.code); 
-  
-            subjectRows += `  
-            <tr class="border-b border-slate-300 text-[11px] text-center text-slate-800">  
-                <td class="p-2 font-mono">${displayCode}</td>  
-                <td class="p-2 text-left font-bold uppercase">${sub.name || '---'}</td>  
-                <td class="p-2">${sub.theory !== undefined ? sub.theory : '---'}</td>  
-                <td class="p-2">${sub.practical !== undefined ? sub.practical : '---'}</td>  
-                <td class="p-2 font-black">${calculatedTotal} / ${calculatedMax}</td>  
-                <td class="p-2 text-orange-600 font-bold">${dynamicGrade}</td>  
-            </tr>`;  
-        });  
-  
         let examDisplayName = data.exam_type ? data.exam_type.replace(/_/g, " ") : "Examination";  
         let displayAcademicYear = data.academic_year || academicYear;   
         
-        let theoryHeader = "THEORY";
-        let pracHeader = "I.A / PRAC";
-        if (examType === "HALF_YEARLY") {
-            theoryHeader = "MT";
-            pracHeader = "PMT";
-        } else if (examType === "ANNUAL") {
-            theoryHeader = "ANNUAL";
-            pracHeader = "PAT";
-        }
+        let theoryHeader = "THEORY"; let pracHeader = "I.A / PRAC";
+        if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } 
+        else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
 
         let daysPresentStr = "N/A";
-        if (data.days_present !== undefined) {
-            let dp = data.days_present.toString();
-            if (dp.includes("/")) {
-                daysPresentStr = dp;
-            } else {
-                daysPresentStr = dp + " Days";
-            }
+        if (data.days_present !== undefined && data.days_present !== null) {
+            let dp = data.days_present.toString(); if (dp.includes("/")) daysPresentStr = dp; else daysPresentStr = dp + " Days";
         }
 
         let reevalUI = "";
-        if (data.reevaluation_status === "PENDING") {
-            reevalUI = `<div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
-                <p class="text-[10px] font-bold text-amber-700 uppercase"><i class="fas fa-clock mr-1"></i> Re-evaluation Request Pending...</p>
-                <p class="text-[9px] font-bold text-slate-700 mt-1">Subjects Chosen: <span class="text-orange-600">${data.reeval_selected_subject || 'N/A'}</span></p>
-                <p class="text-[8px] text-amber-600 mt-0.5">Admin will upload your digital copy shortly.</p>
-            </div>`;
-        } else if (data.reevaluation_status === "COMPLETED" && data.answer_sheet_url) {
-            let chatHtml = "";
-            if (data.dispute_messages && data.dispute_messages.length > 0) {
-                chatHtml = `<div class="mt-2 text-left bg-white p-2 rounded-xl border border-slate-200 h-28 overflow-y-auto mb-2 text-[9px]">`;
-                data.dispute_messages.forEach(msg => {
-                    let isAdmin = (msg.sender === 'admin');
-                    chatHtml += `<div class="mb-1.5 ${isAdmin ? 'text-blue-700 text-left' : 'text-slate-800 text-right'}">
-                        <span class="font-black">${isAdmin ? 'ADMIN' : 'YOU'}:</span> ${msg.text}
-                    </div>`;
-                });
-                chatHtml += `</div>`;
+        if (data.reevaluation_status === "PENDING") reevalUI = `<div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center"><p class="text-[10px] font-bold text-amber-700 uppercase"><i class="fas fa-clock mr-1"></i> Re-evaluation Request Pending...</p></div>`;
+        else if (data.reevaluation_status === "COMPLETED" && data.answer_sheet_url) reevalUI = `<div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center"><button onclick="window.open('${data.answer_sheet_url}', '_blank')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-md w-full uppercase mb-3 transition-all">View Answer Sheet</button></div>`;
+
+        let pracHeaderHtml = hidePracColumn ? '' : `<th class="p-2 border border-blue-900">${pracHeader}</th>`;
+
+        // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
+        let graphHtml = examType === "ANNUAL" ? `
+        <div class="border border-blue-900 bg-white rounded-2xl p-3 mb-4">
+            <p class="text-[9px] sm:text-[10px] font-black text-blue-900 uppercase mb-2 tracking-wide"><i class="fas fa-chart-bar mr-1"></i>Analysis</p>
+            <div class="w-full relative h-40 sm:h-48"><canvas id="student-analysis-chart"></canvas></div>
+        </div>
+        ` : '';
+
+        // 🔥 FETCH PHOTO FROM Master Data LOGIC FOR ONLINE VIEW 🔥
+        let photoHtml = `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
+        try {
+            const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
+            let pMasterSnap = await getDoc(doc(db, "students_master", `${schoolNameSafe}_${currentScholarId}_${displayAcademicYear}`));
+            if (pMasterSnap.exists() && pMasterSnap.data().photo_url) {
+                photoHtml = `<img src="${pMasterSnap.data().photo_url}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">`;
             }
-
-            let chatInputHtml = data.dispute_status !== "RESOLVED" ? `
-                <div class="flex gap-2 mt-2">
-                    <input type="text" id="dispute-msg-input" class="publisher-input !mb-0 flex-1 text-[10px]" placeholder="Type your dynamic doubt here...">
-                    <button onclick="window.sendDisputeMessage('${targetDocId}')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-bold shadow-md"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            ` : `<p class="text-[9px] text-green-600 font-bold mt-2 uppercase tracking-wider"><i class="fas fa-check-double mr-1"></i> This dispute has been marked as RESOLVED</p>`;
-
-            reevalUI = `<div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
-                <p class="text-[10px] font-black text-blue-800 uppercase mb-1"><i class="fas fa-check-circle mr-1"></i> RE-EVALUATION DESK LIVE</p>
-                <p class="text-[9px] font-bold text-slate-700 mb-2">Subjects: <span class="text-orange-600">${data.reeval_selected_subject || 'N/A'}</span></p>
-                <button onclick="window.open('${data.answer_sheet_url}', '_blank')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold shadow-md w-full uppercase mb-3 transition-all"><i class="fas fa-file-pdf mr-1"></i> View Digital Answer Sheet</button>
-                
-                <div class="border-t border-blue-200 pt-3">
-                    <p class="text-[9px] font-black text-slate-700 mb-1 uppercase text-left"><i class="fas fa-comments mr-1 text-blue-600"></i> Dispute Resolution Window</p>
-                    ${chatHtml}
-                    ${chatInputHtml}
-                </div>
-            </div>`;
-        } 
+        } catch(e) { console.warn("Online view photo load error:", e); }
 
         targetPanel.innerHTML = `  
-         <div class="border-4 border-blue-900 p-4 bg-slate-50 relative">  
-                <div class="flex items-center justify-between border-b-2 border-blue-900 pb-3 mb-4">  
-                    <div class="flex items-center gap-3">  
-                        <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" class="w-14 h-14 object-contain">  
+         <div class="border-4 border-blue-900 p-3 sm:p-4 bg-slate-50 relative">  
+                <div class="flex items-center justify-between border-b-2 border-blue-900 pb-3 mb-4 relative">  
+                    <div class="absolute top-0 left-0 text-[7px] sm:text-[8px] font-black text-blue-900">AFFILIATION NO.: 331251</div>
+                    <div class="absolute top-0 right-0 text-[7px] sm:text-[8px] font-black text-blue-900">SCHOOL CODE: 67074</div>
+
+                    <div class="flex items-center gap-2 sm:gap-3 mt-4">  
+                        <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" class="w-12 h-12 sm:w-16 sm:h-16 object-contain">  
                     </div>  
-                    <div class="text-center flex-1">  
-                        <h2 class="text-blue-900 font-black text-sm tracking-wide uppercase leading-tight">TLSM WORLD SCHOOL</h2>  
-                        <p class="text-[8px] font-bold text-slate-600 uppercase">Affiliated to CBSE Delhi Upto+2 Level</p>  
-                        <p class="text-slate-700 text-[10px] font-bold uppercase mt-1">${examDisplayName} Report Card (Class ${studentClass})</p>  
-                        <p class="text-orange-600 text-[10px] font-black uppercase">Session / Year: ${displayAcademicYear}</p>  
+                    <div class="text-center flex-1 mt-4 px-1 sm:px-2">  
+                        <h2 class="text-blue-900 font-black text-sm sm:text-xl tracking-wide uppercase leading-tight">TLSM WORLD SCHOOL</h2>  
+                        <p class="text-[7px] sm:text-[9px] font-bold text-slate-700 uppercase mt-1 md:mt-1.5 leading-tight">
+                            Ganga Tola, Bihiya Road, Piro Bhojpur-802207  <span class="hidden md:inline">|</span><br class="md:hidden"> Mob: 9661651050 | asktlsmschool@gmail.com
+                        </p>
+                        <p class="text-slate-700 text-[9px] sm:text-[11px] md:text-[12px] font-extrabold uppercase mt-2 tracking-tight whitespace-nowrap">${examDisplayName} Report Card (Class ${studentClass})</p>  
+                        <p class="text-orange-600 text-[9px] sm:text-[10px] font-black uppercase">Session: ${displayAcademicYear}</p>  
                     </div>  
-                    <div class="w-14"></div>  
+                    <div class="w-12 sm:w-16 mt-4 flex items-center justify-end">
+                        <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" class="w-12 h-12 sm:w-16 sm:h-16 object-contain">
+                    </div>  
                 </div>  
                   
-                <div class="grid grid-cols-3 gap-y-1 gap-x-2 text-[10px] text-slate-800 border-b border-dashed border-slate-400 pb-3 mb-3">  
-                    <div><span class="text-slate-500 font-bold">Roll No:</span></div>  
-                    <div class="col-span-2 font-mono font-bold text-black">${data.roll_no || 'N/A'}</div>  
-                    <div><span class="text-slate-500 font-bold">Candidate Name:</span></div>  
-                    <div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div>  
-                    <div><span class="text-slate-500 font-bold">Mother's Name:</span></div>  
-                    <div class="col-span-2 font-bold uppercase">${data.mother || ''}</div>  
-                    <div><span class="text-slate-500 font-bold">Father's Name:</span></div>  
-                    <div class="col-span-2 font-bold uppercase">${data.father || ''}</div>  
-                    <div><span class="text-slate-500 font-bold">Class:</span></div>  
-                    <div class="col-span-2 font-bold uppercase">${studentClass}</div>  
-                    <div><span class="text-slate-500 font-bold">Section:</span></div>  
-                    <div class="col-span-2 font-bold uppercase">${(data.section || "A").toUpperCase().trim()}</div>  
-                    <div><span class="text-slate-500 font-bold">Date of Birth:</span></div>  
-                    <div class="col-span-2 font-mono font-bold">${data.dob || ''}</div>  
-                    <div><span class="text-slate-500 font-bold">School's Name:</span></div>  
-                    <div class="col-span-2 font-bold uppercase text-blue-950">${data.school || ''}</div>  
-                </div>  
-                  
-                <table class="w-full text-left border-collapse border border-blue-900 mb-4 bg-white shadow-sm">  
-                    <thead>  
-                        <tr class="bg-blue-900 text-white text-[9px] font-black uppercase text-center">  
-                            <th class="p-2 border border-blue-900">SUB CODE</th>  
-                            <th class="p-2 border border-blue-900 text-left">SUB NAME</th>  
-                            <th class="p-2 border border-blue-900">${theoryHeader}</th>  
-                            <th class="p-2 border border-blue-900">${pracHeader}</th>  
-                            <th class="p-2 border border-blue-900">TOTAL</th>  
-                            <th class="p-2 border border-blue-900">POS. GRADE</th>  
-                        </tr>  
-                    </thead>  
-                    <tbody>  
-                        ${subjectRows}  
-                    </tbody>  
-                </table>  
+                <div class="flex justify-between items-center border-b border-dashed border-slate-400 pb-3 mb-3 gap-4">
+                    <div class="grid grid-cols-3 gap-y-1 gap-x-2 text-[9px] sm:text-[10px] text-slate-800 flex-1">  
+                        <div><span class="text-blue-900 font-black uppercase">Roll No:</span></div><div class="col-span-2 font-mono font-bold text-black">${data.roll_no || 'N/A'}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Name:</span></div><div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Mother's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.mother || ''}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Father's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.father || ''}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Class:</span></div><div class="col-span-2 font-bold uppercase text-black">${studentClass} - ${(data.section || "A").toUpperCase().trim()}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Pen No :</span></div><div class="col-span-2 font-mono font-bold text-black">${data.dob || ''}</div>  
+                    </div>  
+                    <div class="w-[65px] h-[80px] flex-shrink-0 mr-[25px]">
+                        ${photoHtml}
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto w-full mb-4 rounded-lg">
+                    <table class="w-full text-left border-collapse border border-blue-900 bg-white shadow-sm min-w-max">  
+                        <thead>  
+                            ${examType === 'ANNUAL' ? `
+                            <tr class="bg-blue-900 text-white text-[8px] sm:text-[9px] font-black uppercase text-center">
+                                <th class="p-1.5 border border-blue-900">SUB CODE</th><th class="p-1.5 border border-blue-900 text-left">SUB NAME</th>
+                                <th class="p-1.5 border border-blue-900">PMT</th><th class="p-1.5 border border-blue-900">MT</th>
+                                <th class="p-1.5 border border-blue-900">PAT</th><th class="p-1.5 border border-blue-900">ANNUAL</th>
+                                <th class="p-1.5 border border-blue-900">AVG TOTAL</th><th class="p-1.5 border border-blue-900">GRADE</th>
+                            </tr>
+                            ` : `
+                            <tr class="bg-blue-900 text-white text-[9px] font-black uppercase text-center">
+                                <th class="p-2 border border-blue-900">SUB CODE</th><th class="p-2 border border-blue-900 text-left">SUB NAME</th>
+                                <th class="p-2 border border-blue-900">${theoryHeader}</th>${pracHeaderHtml}
+                                <th class="p-2 border border-blue-900">TOTAL</th><th class="p-2 border border-blue-900">GRADE</th>
+                            </tr>
+                            `}
+                        </thead>  
+                        <tbody>${subjectRows}</tbody>  
+                    </table>  
+                </div>
                   
                 <div class="grid grid-cols-2 gap-2 mb-3">
                     <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
-                        <span class="text-[10px] font-black uppercase">Total Marks</span>  
-                        <span class="text-xs font-black">${totalMarks} / ${maxMarks}</span>  
+                        <span class="text-[9px] sm:text-[10px] font-black uppercase">Total Marks</span><span class="text-[10px] sm:text-xs font-black">${totalMarks} / ${maxMarks}</span>  
                     </div>  
                     <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
-                        <span class="text-[10px] font-black uppercase">Percentage</span>  
-                        <span class="text-xs font-black">${percentage}%</span>  
+                        <span class="text-[9px] sm:text-[10px] font-black uppercase">Percentage</span><span class="text-[10px] sm:text-xs font-black">${percentage}%</span>  
                     </div> 
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mb-3">  
                     <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
-                        <span class="text-[9px] font-black uppercase">Class Rank</span>  
-                        <span class="text-xs font-black text-orange-700 flex items-center justify-end">${classRank} ${medalIcon} <span class="text-[9px] text-slate-500 font-normal ml-1">of ${totalInClass}</span></span>  
+                        <span class="text-[8px] sm:text-[9px] font-black uppercase">Class Rank</span><span class="text-[10px] sm:text-xs font-black text-orange-700 flex items-center justify-end">${classRank} ${medalIcon}</span>  
                     </div>   
                     <div class="flex justify-between items-center p-2 bg-white border border-blue-900 rounded-xl">  
-                        <span class="text-[9px] font-black uppercase text-emerald-800"><i class="fas fa-calendar-check mr-1"></i>Attendance</span>  
-                        <span class="text-xs font-black text-emerald-700">${daysPresentStr}</span>  
+                        <span class="text-[8px] sm:text-[9px] font-black uppercase text-emerald-800"><i class="fas fa-calendar-check mr-1"></i>Attendance</span><span class="text-[10px] sm:text-xs font-black text-emerald-700">${daysPresentStr}</span>  
                     </div>   
                 </div>  
   
                 <div class="flex items-center justify-between p-2 bg-blue-900 text-white rounded-xl px-4 shadow-md mb-4">  
-                    <span class="text-[10px] font-black uppercase tracking-wider">Final Result Outcome:</span>  
-                    <span class="text-xs font-black uppercase bg-white ${autoResultStatus === 'PASS' ? 'text-emerald-700' : 'text-red-700'} px-4 py-0.5 rounded-full shadow-inner">${autoResultStatus}</span>  
+                    <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-wider">Final Result Outcome:</span>  
+                    <span class="text-[10px] sm:text-xs font-black uppercase bg-white ${autoResultStatus === 'PASS' ? 'text-emerald-700' : 'text-red-700'} px-4 py-0.5 rounded-full shadow-inner">${autoResultStatus}</span>  
                 </div>  
 
-                <div class="border border-blue-900 bg-white rounded-2xl p-3 mb-4">
-                    <p class="text-[10px] font-black text-blue-900 uppercase mb-2 tracking-wide"><i class="fas fa-chart-bar mr-1"></i>Subject-wise Cross Exam Analysis</p>
-                    <div class="w-full relative h-48">
-                        <canvas id="student-analysis-chart"></canvas>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-4 mb-2">
-                    <div class="text-center" style="width: 110px;">
-                        <img src="${teacherSignUrl}" alt="Signature" class="mx-auto object-contain" style="width: 100px; height: 40px; max-height: 40px;">
-                        <p class="text-[9px] font-black text-blue-900 uppercase border-t border-blue-900/30 mt-1 pt-0.5">Class Teacher</p>
-                    </div>
-                </div>  
+                ${graphHtml}
                   
-                ${auth.currentUser.email === adminEmail ? `  
-                <div class="mt-4 text-center">  
-                    <button onclick="toggleFeeDue('${targetDocId}', ${data.fee_due || false})" class="px-5 py-2 rounded-xl text-white font-bold text-xs ${data.fee_due ? 'bg-green-600' : 'bg-red-600'}">  
-                        ${data.fee_due ? 'UNLOCK RESULT' : 'BLOCK RESULT'}  
-                    </button>  
-                </div>  
-                ` : ''}  
-                  
+                ${auth.currentUser.email === adminEmail ? `<div class="mt-4 text-center"><button onclick="toggleFeeDue('${targetDocId}', ${data.fee_due || false})" class="px-5 py-2 rounded-xl text-white font-bold text-xs ${data.fee_due ? 'bg-green-600' : 'bg-red-600'}">${data.fee_due ? 'UNLOCK RESULT' : 'BLOCK RESULT'}</button></div>` : ''}  
                 ${reevalUI}
 
-                <p class="text-[7px] text-slate-500 text-center uppercase tracking-tighter mt-4 leading-tight font-bold text-black">  
-                Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB [MIHIR JAI VISHWANATH SINGH & AARAV JAI VISHWANATH SINGH]. Any unauthorized use, reproduction, modification, or distribution is prohibited and may result in legal action. © 2026 All Rights Reserved | Unauthorized duplication or misuse is prohibited. DEVELOPER CONTACT NUM: 9430444443 / 8986900009
-                </p>  
+                <div class="flex justify-between items-center mt-4 pt-2 border-t border-dashed border-slate-300">
+                    <span class="text-[6px] sm:text-[7px] text-slate-600 font-black uppercase tracking-tighter">COPYRIGHT&copy; 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.</span>
+                    <span class="text-[6px] sm:text-[7px] text-slate-600 font-black uppercase tracking-tighter">DEVELOPED BY AARAV TECH-HUB (AJ VNS)</span>
+                </div>
             </div>  
         `;  
         
         targetPanel.classList.remove("hidden");  
+        if (classRank === 1) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#fbbf24', '#f59e0b', '#d97706'] }); }
 
-        if (classRank === 1) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#fbbf24', '#f59e0b', '#d97706'] 
-            });
+        if (examType === 'ANNUAL') {
+            let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
+            let ctx = document.getElementById('student-analysis-chart').getContext('2d');
+            new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 9, weight: 'bold' } } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 }, callback: function(value) { return value + "%"; } } }, x: { ticks: { font: { size: 8, weight: 'bold' } } } } } });
         }
+    } catch(err) { console.error(err); alert("Firestore access query failure."); }  
+};
 
-        let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
-        let ctx = document.getElementById('student-analysis-chart').getContext('2d');
-        
-        new Chart(ctx, {
-            type: 'bar', 
-            data: chartData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { labels: { font: { size: 9, weight: 'bold' } } },
-                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, max: 100, ticks: { font: { size: 8 }, callback: function(value) { return value + "%"; } } },
-                    x: { ticks: { font: { size: 8, weight: 'bold' } } }
-                }
-            }
-        });
 
-    } catch(err) {  
-        console.error(err);  
-        alert("Firestore access query failure.");  
-    }  
-};  
 
 window.printBulkClassResults = async () => {
-    if (!auth.currentUser || auth.currentUser.email !== adminEmail) {
-        alert("Unauthorized Admin Access Only!");
+    
+    if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
+        alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
         return;
     }
 
@@ -1650,30 +1800,78 @@ window.printBulkClassResults = async () => {
     const sandbox = document.getElementById("bulk-print-sandbox");
 
     if (!targetClass) { alert("Please specify a valid Class to print!"); return; }
-
     alert("Fetching class details from firestore database, please hold on...");
 
-    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+    const sanitizeSub = (name) => {
+        if(!name) return '---'; let n = name.toUpperCase().trim();
+        if(n === 'IT/COM') return 'IT/COMP'; return n;
+    };
+
+    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"] || "https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png";
+    let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
+    let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
 
     try {
-        const qClass = query(
-            collection(db, "school_results"), 
-            where("class", "==", targetClass),
-            where("exam_type", "==", examType),
-            where("academic_year", "==", academicYear)
-        );
+        const qClass = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear));
         const snapshot = await getDocs(qClass);
         if (snapshot.empty) { alert("No report records found for this precise configuration."); return; }
 
+        let allPmtData = {}; let allMtData = {}; let allPatData = {};
+        if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
+            try {
+                const qPmt = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", "PMT"), where("academic_year", "==", academicYear));
+                const qMt = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", "HALF_YEARLY"), where("academic_year", "==", academicYear));
+                const qPat = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", "PAT"), where("academic_year", "==", academicYear));
+                const [snapPmt, snapMt, snapPat] = await Promise.all([getDocs(qPmt), getDocs(qMt), getDocs(qPat)]);
+
+                snapPmt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmtData[sid]) allPmtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                snapMt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMtData[sid]) allMtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                snapPat.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPatData[sid]) allPatData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+            } catch(e) { console.error(e); }
+        }
+
+        window.showProgress("Syncing Student Photos...");
+        let photoMap = {};
+        try {
+            const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
+            const qPhotos = query(collection(db, "students_master"), where("class", "==", targetClass), where("session", "==", academicYear), where("school_name", "==", schoolNameSafe));
+            const photoSnap = await getDocs(qPhotos);
+            photoSnap.forEach(doc => {
+                let d = doc.data();
+                if(d.scholar_id && d.photo_url) {
+                    photoMap[d.scholar_id.toString().trim().toUpperCase()] = d.photo_url;
+                }
+            });
+        } catch(e) { console.warn("Photo sync error: ", e); }
+
         let classStudents = [];
         snapshot.forEach(docSnap => {
-            let sData = docSnap.data();
-            let sSubs = [];
-            try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
+            let sData = docSnap.data(); let sid = (sData.scholar_id || '').toString().trim().toUpperCase();
+            let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
+            if (!Array.isArray(sSubs)) sSubs = []; 
             
             let sTotal = 0;
-            if (sSubs && Array.isArray(sSubs)){
-                sSubs.forEach(sub => { sTotal += Number(sub.total || 0); });
+            if (examType === "ANNUAL") {
+                sSubs.forEach(sub => {
+                    let subName = sanitizeSub(sub.name);
+                    let pmt = (allPmtData[sid] && allPmtData[sid][subName] !== undefined) ? allPmtData[sid][subName] : 0;
+                    let mt = (allMtData[sid] && allMtData[sid][subName] !== undefined) ? allMtData[sid][subName] : 0;
+                    let pat = (allPatData[sid] && allPatData[sid][subName] !== undefined) ? allPatData[sid][subName] : 0;
+                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                });
+            } else if (examType === "HALF_YEARLY") {
+                sSubs.forEach(sub => {
+                    let subName = sanitizeSub(sub.name);
+                    let pmt = (allPmtData[sid] && allPmtData[sid][subName] !== undefined) ? allPmtData[sid][subName] : 0;
+                    let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    sTotal += (pmt + mt);
+                });
+            } else {
+                sSubs.forEach(sub => {
+                    if (isClass9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else sTotal += Number(sub.total || 0);
+                });
             }
             classStudents.push({ ...sData, totalMarks: sTotal });
         });
@@ -1681,196 +1879,638 @@ window.printBulkClassResults = async () => {
         classStudents.sort((a, b) => b.totalMarks - a.totalMarks);
         let totalInClass = classStudents.length;
 
-        let rankedStudentsMap = {};
-        let currentRank = 1;
+        let rankedStudentsMap = {}; let currentRank = 1;
         for (let i = 0; i < classStudents.length; i++) {
-            if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) {
-                currentRank++;
-            }
-            rankedStudentsMap[classStudents[i].scholar_id] = currentRank;
+            if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) { currentRank++; }
+            let sid = classStudents[i].scholar_id ? classStudents[i].scholar_id.toString().trim().toUpperCase() : 'UNKNOWN';
+            rankedStudentsMap[sid] = currentRank;
         }
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF("l", "mm", "a4");
-        
-        const pageWidth = 297; 
-        const pageHeight = 210; 
-        const margin = 5; 
-        const gap = 5;    
-        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
-        const maxCardHeight = pageHeight - margin * 2;
+        const { jsPDF } = window.jspdf; const pdf = new jsPDF("l", "mm", "a4");
+        const pageWidth = 297; const pageHeight = 210; const margin = 5; const gap = 5;    
+        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; const maxCardHeight = pageHeight - margin * 2;
 
-        window.showProgress("Generating Bulk Class Results PDF...");
-        const totalStudents = classStudents.length;
+        const waitForImages = (container) => {
+            const images = container.getElementsByTagName('img');
+            const promises = Array.from(images).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+            });
+            return Promise.all(promises);
+        };
 
         for (let idx = 0; idx < classStudents.length; idx++) {
             await new Promise(r => setTimeout(r, 10));
-            const percent = Math.round(((idx + 1) / totalStudents) * 100);
-            window.updateProgress(percent, `Compiled ${idx + 1} of ${totalStudents} report cards`);
+            window.updateProgress(Math.round(((idx + 1) / classStudents.length) * 100), `Compiled ${idx + 1} of ${classStudents.length} report cards`);
 
-            let data = classStudents[idx];
-            let classRank = rankedStudentsMap[data.scholar_id];
-            let subjects = data.subjects_json || [];
-            let totalMarks = data.totalMarks;
-            let maxMarks = 0;
-            subjects.forEach(s => maxMarks += Number(s.fullMarks || 100));
-
-            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
-            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
-            let examDisplayName = examType.replace(/_/g, " ");
+            let data = classStudents[idx]; let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
+            let classRank = rankedStudentsMap[scholarStr] || 'N/A';
+            let subjects = []; try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e){}
+            if (!Array.isArray(subjects)) subjects = []; 
             
-            let theoryHeader = "THEORY";
-            let pracHeader = "PRAC";
-            if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } 
-            else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
-
-            let daysPresentStr = "N/A";
-            if (data.days_present !== undefined) {
-                let dp = data.days_present.toString();
-                if (dp.includes("/")) daysPresentStr = dp;
-                else daysPresentStr = dp + " Days";
-            }
-
-            let bulkMedalIcon = "";
-            if (classRank === 1) bulkMedalIcon = "🥇";
-            else if (classRank === 2) bulkMedalIcon = "🥈";
-            else if (classRank === 3) bulkMedalIcon = "🥉";
+            let totalMarks = 0; let maxMarks = 0; let examDisplayName = examType.replace(/_/g, " ");
+            let theoryHeader = "THEORY"; let pracHeader = "PRAC";
+            if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
+            let daysPresentStr = "N/A"; if (data.days_present !== undefined && data.days_present !== null) { let dp = data.days_present.toString(); if (dp.includes("/")) daysPresentStr = dp; else daysPresentStr = dp + " Days"; }
+            let bulkMedalIcon = ""; if (classRank === 1) bulkMedalIcon = "🥇"; else if (classRank === 2) bulkMedalIcon = "🥈"; else if (classRank === 3) bulkMedalIcon = "🥉";
 
             let subjectRows = "";
             subjects.forEach(sub => {
-                let calculatedTotal = Number(sub.total || 0);
-                let calculatedMax = Number(sub.fullMarks || 100);
-                let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;
-                let dynamicGrade = sub.grade || window.getGrade(subPercent);
+                let subName = sanitizeSub(sub.name);
                 let displayCode = window.getSubjectCode(sub.name, sub.code); 
+                let calculatedMax = (examType === "PMT" || examType === "PAT") ? 20 : 100;
+                
+                if (examType === "ANNUAL") {
+                    let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
+                    let mt = (allMtData[scholarStr] && allMtData[scholarStr][subName] !== undefined) ? allMtData[scholarStr][subName] : '---';
+                    let pat = (allPatData[scholarStr] && allPatData[scholarStr][subName] !== undefined) ? allPatData[scholarStr][subName] : '---';
+                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    
+                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
+                    let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                    let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
+                    
+                    totalMarks += avg; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
 
-                subjectRows += `
-                <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
-                    <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                    <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                    <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
-                    <td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>
-                    <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
-                    <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                </tr>`;
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
+                        <td style="padding: 4px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 4px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 4px;">${pmt}</td><td style="padding: 4px;">${mt}</td><td style="padding: 4px;">${pat}</td><td style="padding: 4px; font-weight: 900; color: #1e3a8a;">${annual}</td>
+                        <td style="padding: 4px; font-weight: 900;">${avg} / ${calculatedMax}</td><td style="padding: 4px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                } else if (examType === "HALF_YEARLY") {
+                    let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
+                    let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    
+                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
+                    let calculatedTotal = mt + pmtVal;
+                    
+                    totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
+
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
+                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pmt}</td>
+                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
+                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                } else {
+                    let calculatedTotal = 0;
+                    if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else calculatedTotal = Number(sub.total || 0);
+                    
+                    totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
+                    let pracCell = hidePracColumn ? '' : `<td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>`;
+
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
+                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
+                        ${pracCell}
+                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
+                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                }
             });
 
+            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
+            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
+            let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
+            let uniqueChartId = `bulk-chart-${Date.now()}-${idx}`;
+
+            let photoUrl = photoMap[scholarStr];
+            let photoHtml = photoUrl 
+                ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
+                : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
+
+            // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
+            let graphHtml = examType === "ANNUAL" ? `
+            <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
+                <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
+            </div>
+            ` : '';
+
             sandbox.innerHTML = `
-                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 20px; background: #f8fafc; font-family: sans-serif; color: black;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
-                        <div style="margin-right: 10px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 60px; height: 60px; object-fit: contain;"></div>
-                        <div style="text-align: center; flex: 1;">
+                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black; box-sizing: border-box; position: relative;">
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 10px; position: relative;">
+                        <div style="position: absolute; top: -5px; left: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">AFFILIATION NO.: 331251</div>
+                        <div style="position: absolute; top: -5px; right: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">SCHOOL CODE: 67074</div>
+
+                        <div style="width: 75px; text-align: left; margin-top: 15px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous"></div>
+                        <div style="text-align: center; flex: 1; margin-top: 15px;">
                             <h2 style="color: #1e3a8a; font-weight: 900; font-size: 18px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
-                            <p style="font-size: 10px; font-weight: bold; color: #475569; margin: 2px 0 0 0; text-transform: uppercase;">Affiliated to CBSE Delhi Upto+2 Level</p>
-                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
+                            <p style="font-size: 8px; font-weight: bold; color: #334155; margin: 4px 0 0 0; text-transform: uppercase;">Ganga Tola, Bihiya Road, Piro Bhojpur-802207  | Mob: 9661651050 | asktlsmschool@gmail.com</p>
+                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 6px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
                             <p style="color: #ea580c; font-size: 11px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
                         </div>
-                        <div style="width: 60px;"></div>
+                        <div style="width: 75px; text-align: right; margin-top: 15px;">
+                            <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous">
+                        </div>
                     </div>
                       
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; border-bottom: 1px dashed #94a3b8; padding-bottom: 10px; margin-bottom: 12px;">
-                        <div><span style="color: #64748b; font-weight: bold;">Roll No:</span></div><div style="font-weight: bold;">${data.roll_no || 'N/A'}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase;">${data.name || ''}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase;">${data.mother || ''}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase;">${data.father || ''}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase;">${targetClass} - ${(data.section || "A")}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">Date of Birth:</span></div><div style="font-weight: bold;">${data.dob || ''}</div>
-                        <div><span style="color: #64748b; font-weight: bold;">School's Name:</span></div><div style="font-weight: bold; color: #1e3a8a; text-transform: uppercase;">${data.school || ''}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #94a3b8; padding-bottom: 8px; margin-bottom: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; flex: 1;">
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Roll No:</span></div><div style="font-weight: bold; color: #000;">${data.roll_no || 'N/A'}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${(data.section || "A")}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
+                        </div>
+                        <div style="width: 65px; height: 80px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
+                            ${photoHtml}
+                        </div>
                     </div>  
                       
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 12px; background: white;">  
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
                         <thead>  
-                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th>  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th>  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
+                            ${examType === 'ANNUAL' ? `
+                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PMT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">MT</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PAT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">ANNUAL</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">AVG TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>
+                            </tr>
+                            ` : `
+                            <tr style="background: #1e3a8a; color: white; font-size: 11px; font-weight: 900; text-transform: uppercase;">  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>${pracHeaderHtml}
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
                             </tr>  
+                            `}
                         </thead>  
                         <tbody>${subjectRows}</tbody>  
                     </table>  
                       
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
                     </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
                     </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 8px; margin-bottom: 6px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
                         <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} ${bulkMedalIcon} of ${totalInClass} | Attd: ${daysPresentStr}</span>
                     </div>  
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: #1e3a8a; color: white; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 10px;">  
-                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 10px; border-radius: 20px;">${autoResultStatus}</span>  
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px; background: #1e3a8a; color: white; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px;">  
+                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 8px; border-radius: 20px;">${autoResultStatus}</span>  
                     </div>  
 
-                    <div style="border: 1px solid #1e3a8a; background: white; border-radius: 8px; padding: 5px; margin-top: 10px;">
-                        <div style="width: 100%; height: 140px; relative">
-                            <canvas id="bulk-chart-${idx}"></canvas>
+                    ${graphHtml}
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
+                        <div style="text-align: center; width: 140px;">
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
+                                ${teacherSignUrl !== classTeacherSignatures["DEFAULT"] ? `<img src="${teacherSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
+                            </div>
+                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
+                        </div>
+                        <div style="text-align: center; width: 140px;">
+                            <div style="height: 35px;"></div>
+                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; margin-top: 15px; margin-bottom: 5px;">
-                        <div style="text-align: center; width: 100px;">
-                            <img src="${teacherSignUrl}" style="width: 100px; height: 40px; max-height: 40px; object-fit: contain; margin: 0 auto;">
-                            <p style="font-size: 10px; font-weight: 900; color: #1e3a8a; border-top: 1px solid rgba(30,58,138,0.3); margin: 4px 0 0 0; padding-top: 2px; text-transform: uppercase;">Class Teacher</p>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">COPYRIGHT&copy; 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.</span>
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">DEVELOPED BY AARAV TECH-HUB (AJ VNS)</span>
                     </div>
-
-                    <p style="font-size: 8px; color: #64748b; text-align: center; text-transform: uppercase; margin-top: 12px; line-height: 1.2; font-weight: bold;">
-                    Disclaimer: This software and its contents are the intellectual property of AARAV TECH HUB.
-                    </p>
                 </div>
             `;
 
-            let chartData = await buildPerformanceChartData(data.scholar_id.toString().trim().toUpperCase(), examType, academicYear, subjects);
-            let ctx = document.getElementById(`bulk-chart-${idx}`).getContext('2d');
-            
-            await new Promise((resolve) => {
-                new Chart(ctx, {
-                    type: 'bar', 
-                    data: chartData,
-                    options: {
-                        responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() },
-                        plugins: { 
-                            legend: { labels: { font: { size: 8 } } },
-                            tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y + '%'; } } }
-                        },
-                        scales: { 
-                            y: { beginAtZero: true, max:100, ticks: { font: { size: 7 }, callback: function(value) { return value + "%"; } } }, 
-                            x: { ticks: { font: { size: 7 } } } 
-                        }
-                    }
-                });
-            });
+            // 🔥 FIX APPLIED HERE: Only initialize chart if ANNUAL exam 🔥
+            if (examType === 'ANNUAL') {
+                let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
+                let canvasEl = document.getElementById(uniqueChartId);
+                if (canvasEl) {
+                    let ctx = canvasEl.getContext('2d');
+                    await new Promise((resolve) => {
+                        new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() }, plugins: { legend: { labels: { font: { size: 7 } } } }, scales: { y: { beginAtZero: true, max:100, ticks: { font: { size: 6 } } }, x: { ticks: { font: { size: 6 } } } } } });
+                        setTimeout(resolve, 1500);
+                    });
+                }
+            }
 
-            let canvas = await html2canvas(document.getElementById(`bulk-container-${idx}`), { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+            let containerEl = document.getElementById(`bulk-container-${idx}`);
+            await waitForImages(containerEl); 
+            
+            let canvas = await html2canvas(containerEl, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
             let imgData = canvas.toDataURL("image/png");
 
-            let imgWidth = cardWidth;
-            let imgHeight = (canvas.height * imgWidth) / canvas.width;
-
+            let imgWidth = cardWidth; let imgHeight = (canvas.height * imgWidth) / canvas.width;
             if (imgHeight > maxCardHeight) { imgHeight = maxCardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
-            const isLeft = (idx % 2 === 0);
-            if (isLeft && idx > 0) pdf.addPage();
+            const isLeft = (idx % 2 === 0); if (isLeft && idx > 0) pdf.addPage();
             const xOffset = isLeft ? margin : (margin + cardWidth + gap);
-            const x = xOffset + (cardWidth - imgWidth) / 2;
-            const y = margin + (maxCardHeight - imgHeight) / 2;
+            const x = xOffset + (cardWidth - imgWidth) / 2; const y = margin + (maxCardHeight - imgHeight) / 2;
 
             pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+            sandbox.innerHTML = ""; 
         }
 
         pdf.save(`Bulk_Class_${targetClass}_Results.pdf`);
-        sandbox.innerHTML = ""; 
-        window.hideProgress();
-        alert("Success! All student data compiled safely inside your local storage bundle.");
-    } catch(err) {
-        console.error(err);
-        window.hideProgress();
-        alert("An extraction processing fault occurred within dynamic renderer engines.");
+        window.hideProgress(); alert("Success! All student data compiled safely inside your local storage bundle.");
+    } catch(err) { console.error(err); window.hideProgress(); alert("An extraction processing fault occurred: " + err.message); }
+};
+
+window.printSpecificStudentResults = async () => {
+    
+    if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
+        alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
+        return;
+    }
+
+    
+    
+
+    const inputIds = document.getElementById("admin-print-specific-results-ids").value.trim().toUpperCase();
+    const examType = document.getElementById("admin-print-specific-results-exam").value;
+    const academicYear = document.getElementById("admin-print-specific-results-session").value;
+    const sandbox = document.getElementById("bulk-print-sandbox");
+    const btn = event.target; const oldText = btn ? btn.innerHTML : "Generate Selected Results PDF";
+
+    if (!inputIds) { alert("Please enter at least one Scholar ID!"); return; }
+    const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
+    if (scholarIds.length === 0) return;
+
+    if (btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> CALCULATING RANKS...`; btn.disabled = true; }
+
+    const sanitizeSub = (name) => {
+        if(!name) return '---'; let n = name.toUpperCase().trim();
+        if(n === 'IT/COM') return 'IT/COMP'; return n;
+    };
+
+    const waitForImages = (container) => {
+        const images = container.getElementsByTagName('img');
+        const promises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+        });
+        return Promise.all(promises);
+    };
+
+    try {
+        window.showProgress("Fetching Selected Students...");
+        let selectedStudents = [];
+
+        for (let i = 0; i < scholarIds.length; i++) {
+            let docId = `${scholarIds[i]}_${examType}_${academicYear}`;
+            let snap = await getDoc(doc(db, "school_results", docId));
+            if (snap.exists()) selectedStudents.push(snap.data());
+        }
+
+        if (selectedStudents.length === 0) { window.hideProgress(); throw new Error("No report records found for the given Scholar ID(s)."); }
+        selectedStudents.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
+
+        let classRanksMaps = {}; let classTotalsMaps = {}; 
+        window.updateProgress(15, "Fetching Class Directory For Rank Matrix...");
+
+        for (let st of selectedStudents) {
+            let sClass = st.class ? st.class.toString().trim().toUpperCase() : "N/A";
+            let is9or10 = sClass === "9" || sClass.startsWith("9TH") || sClass.startsWith("9-") || sClass.startsWith("9 ") || sClass === "IX" || sClass.startsWith("IX-") || sClass.startsWith("IX ") || sClass === "10" || sClass.startsWith("10TH") || sClass.startsWith("10-") || sClass.startsWith("10 ") || sClass === "X" || sClass.startsWith("X-") || sClass.startsWith("X ");
+            
+            if (!classRanksMaps[sClass]) {
+                classRanksMaps[sClass] = {}; classTotalsMaps[sClass] = 0;
+
+                const qClass = query(collection(db, "school_results"), where("class", "==", sClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear));
+                const classSnap = await getDocs(qClass);
+                
+                let allPmt = {}; let allMt = {}; let allPat = {};
+                
+                if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
+                    const qP = query(collection(db, "school_results"), where("class", "==", sClass), where("exam_type", "==", "PMT"), where("academic_year", "==", academicYear));
+                    const qM = query(collection(db, "school_results"), where("class", "==", sClass), where("exam_type", "==", "HALF_YEARLY"), where("academic_year", "==", academicYear));
+                    const qPa = query(collection(db, "school_results"), where("class", "==", sClass), where("exam_type", "==", "PAT"), where("academic_year", "==", academicYear));
+                    
+                    const [snapP, snapM, snapPa] = await Promise.all([getDocs(qP), getDocs(qM), getDocs(qPa)]);
+
+                    snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                    snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                    snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                }
+
+                let classStudentsTemp = [];
+                classSnap.forEach(docSnap => {
+                    let sData = docSnap.data(); if(!sData.scholar_id) return;
+                    let sid = sData.scholar_id.toString().trim().toUpperCase();
+                    let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
+                    if (!Array.isArray(sSubs)) sSubs = [];
+
+                    let sTotal = 0;
+                    if (examType === "ANNUAL") {
+                        sSubs.forEach(sub => {
+                            let subName = sanitizeSub(sub.name);
+                            let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
+                            let mt = (allMt[sid] && allMt[sid][subName] !== undefined) ? allMt[sid][subName] : 0;
+                            let pat = (allPat[sid] && allPat[sid][subName] !== undefined) ? allPat[sid][subName] : 0;
+                            let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                            sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                        });
+                    } else if (examType === "HALF_YEARLY") {
+                        sSubs.forEach(sub => {
+                            let subName = sanitizeSub(sub.name);
+                            let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
+                            let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                            sTotal += (pmt + mt);
+                        });
+                    } else {
+                        sSubs.forEach(sub => { 
+                            if (is9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                            else sTotal += Number(sub.total || 0);
+                        });
+                    }
+                    classStudentsTemp.push({ scholar_id: sid, totalMarks: sTotal });
+                });
+
+                classStudentsTemp.sort((a, b) => b.totalMarks - a.totalMarks);
+                classTotalsMaps[sClass] = classStudentsTemp.length;
+                let currentRank = 1;
+                for(let i = 0; i < classStudentsTemp.length; i++) {
+                    if (i > 0 && classStudentsTemp[i].totalMarks < classStudentsTemp[i-1].totalMarks) currentRank++;
+                    classRanksMaps[sClass][classStudentsTemp[i].scholar_id] = currentRank;
+                }
+            }
+        }
+
+        let allPmtData = {}; let allMtData = {}; let allPatData = {};
+        if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
+            window.updateProgress(35, "Syncing Cross-Exam Ledger Marks...");
+            for(let st of selectedStudents) {
+                let sid = st.scholar_id.toString().trim().toUpperCase();
+                let c = st.class ? st.class.toString().trim().toUpperCase() : "N/A";
+                let is9or10 = c === "9" || c.startsWith("9TH") || c.startsWith("9-") || c.startsWith("9 ") || c === "IX" || c.startsWith("IX-") || c.startsWith("IX ") || c === "10" || c.startsWith("10TH") || c.startsWith("10-") || c.startsWith("10 ") || c === "X" || c.startsWith("X-") || c.startsWith("X ");
+                
+                try {
+                    const p1 = getDoc(doc(db, "school_results", `${sid}_PMT_${academicYear}`));
+                    const p2 = getDoc(doc(db, "school_results", `${sid}_HALF_YEARLY_${academicYear}`));
+                    const p3 = getDoc(doc(db, "school_results", `${sid}_PAT_${academicYear}`));
+                    const [snapPmt, snapMt, snapPat] = await Promise.all([p1, p2, p3]);
+
+                    allPmtData[sid] = {}; allMtData[sid] = {}; allPatData[sid] = {};
+
+                    if(snapPmt.exists()) { let s = typeof snapPmt.data().subjects_json === "string" ? JSON.parse(snapPmt.data().subjects_json) : snapPmt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); }
+                    if(snapMt.exists()) { let s = typeof snapMt.data().subjects_json === "string" ? JSON.parse(snapMt.data().subjects_json) : snapMt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); }
+                    if(snapPat.exists()) { let s = typeof snapPat.data().subjects_json === "string" ? JSON.parse(snapPat.data().subjects_json) : snapPat.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); }
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        window.updateProgress(45, "Syncing Student Photos...");
+        let photoMap = {};
+        const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
+        for(let st of selectedStudents) {
+            let sid = st.scholar_id.toString().trim().toUpperCase();
+            try {
+                let pSnap = await getDoc(doc(db, "students_master", `${schoolNameSafe}_${sid}_${academicYear}`));
+                if(pSnap.exists() && pSnap.data().photo_url) {
+                    photoMap[sid] = pSnap.data().photo_url;
+                }
+            } catch(e) {}
+        }
+
+        const { jsPDF } = window.jspdf; const pdf = new jsPDF("l", "mm", "a4");
+        const pageWidth = 297; const pageHeight = 210; const margin = 5; const gap = 5;    
+        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; const maxCardHeight = pageHeight - margin * 2;
+
+        for (let idx = 0; selectedStudents.length > idx; idx++) {
+            let data = selectedStudents[idx];
+            let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
+            let targetClass = data.class ? data.class.toString().trim().toUpperCase() : "N/A";
+            let classRank = classRanksMaps[targetClass] ? (classRanksMaps[targetClass][scholarStr] || 'N/A') : 'N/A';
+            let totalInClass = classTotalsMaps[targetClass] || 0;
+
+            const percent = Math.round((((idx + 1) / selectedStudents.length) * 50) + 50);
+            window.updateProgress(percent, `Rendering Card Layer ${idx + 1} of ${selectedStudents.length}`);
+
+            let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+            let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
+            let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
+
+            let subjects = []; try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e){}
+            if (!Array.isArray(subjects)) subjects = [];
+
+            let totalMarks = 0; let maxMarks = 0; let examDisplayName = examType.replace(/_/g, " ");
+            let theoryHeader = "THEORY"; let pracHeader = "PRAC";
+            if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
+            let daysPresentStr = "N/A"; if (data.days_present !== undefined && data.days_present !== null) { let dp = data.days_present.toString(); if (dp.includes("/")) daysPresentStr = dp; else daysPresentStr = dp + " Days"; }
+            let bulkMedalIcon = ""; if (classRank === 1) bulkMedalIcon = "🥇"; else if (classRank === 2) bulkMedalIcon = "🥈"; else if (classRank === 3) bulkMedalIcon = "🥉";
+
+            let subjectRows = "";
+            subjects.forEach(sub => {
+                let subName = sanitizeSub(sub.name);
+                let displayCode = window.getSubjectCode(sub.name, sub.code); 
+                let calculatedMax = (examType === "PMT" || examType === "PAT") ? 20 : 100;
+                
+                if (examType === "ANNUAL") {
+                    let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
+                    let mt = (allMtData[scholarStr] && allMtData[scholarStr][subName] !== undefined) ? allMtData[scholarStr][subName] : '---';
+                    let pat = (allPatData[scholarStr] && allPatData[scholarStr][subName] !== undefined) ? allPatData[scholarStr][subName] : '---';
+                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    
+                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
+                    let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                    let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
+                    
+                    totalMarks += avg; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
+                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 6px;">${pmt}</td><td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pat}</td><td style="padding: 6px; font-weight: 900; color: #1e3a8a;">${annual}</td>
+                        <td style="padding: 6px; font-weight: 900;">${avg} / ${calculatedMax}</td><td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                } else if (examType === "HALF_YEARLY") {
+                    let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
+                    let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    
+                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
+                    let calculatedTotal = mt + pmtVal;
+                    
+                    totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
+                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pmt}</td>
+                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
+                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                } else {
+                    let calculatedTotal = 0;
+                    if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else calculatedTotal = Number(sub.total || 0);
+                    
+                    totalMarks += calculatedTotal; maxMarks += calculatedMax;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+                    let pracCell = hidePracColumn ? '' : `<td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>`;
+
+                    subjectRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
+                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
+                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
+                        <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
+                        ${pracCell}
+                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
+                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
+                    </tr>`;
+                }
+            });
+
+            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
+            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
+            let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
+            let uniqueChartId = `bulk-specific-chart-${Date.now()}-${idx}`;
+
+            let photoUrl = photoMap[scholarStr];
+            let photoHtml = photoUrl 
+                ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
+                : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
+
+            // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
+            let graphHtml = examType === "ANNUAL" ? `
+            <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
+                <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
+            </div>
+            ` : '';
+
+            sandbox.innerHTML = `
+                <div id="bulk-specific-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black; box-sizing: border-box; position: relative;">
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 10px; position: relative;">
+                        <div style="position: absolute; top: -5px; left: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">AFFILIATION NO.: 331251</div>
+                        <div style="position: absolute; top: -5px; right: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">SCHOOL CODE: 67074</div>
+
+                        <div style="width: 75px; text-align: left; margin-top: 15px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous"></div>
+                        <div style="text-align: center; flex: 1; margin-top: 15px;">
+                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 18px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
+                            <p style="font-size: 8px; font-weight: bold; color: #334155; margin: 4px 0 0 0; text-transform: uppercase;">Ganga Tola, Bihiya Road, Piro Bhojpur-802207  | Mob: 9661651050 | asktlsmschool@gmail.com</p>
+                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 6px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
+                            <p style="color: #ea580c; font-size: 11px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
+                        </div>
+                        <div style="width: 75px; text-align: right; margin-top: 15px;">
+                            <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous">
+                        </div>
+                    </div>
+                      
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #94a3b8; padding-bottom: 8px; margin-bottom: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; flex: 1;">
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Roll No:</span></div><div style="font-weight: bold; color: #000;">${data.roll_no || 'N/A'}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${(data.section || "A")}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
+                        </div>
+                        <div style="width: 65px; height: 80px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
+                            ${photoHtml}
+                        </div>
+                    </div>  
+                      
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
+                        <thead>  
+                            ${examType === 'ANNUAL' ? `
+                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PMT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">MT</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PAT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">ANNUAL</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">AVG TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>
+                            </tr>
+                            ` : `
+                            <tr style="background: #1e3a8a; color: white; font-size: 11px; font-weight: 900; text-transform: uppercase;">  
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>${pracHeaderHtml}
+                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
+                            </tr>  
+                            `}
+                        </thead>  
+                        <tbody>${subjectRows}</tbody>  
+                    </table>  
+                      
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
+                    </div>  
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
+                    </div>  
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
+                        <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} ${bulkMedalIcon} of ${totalInClass} | Attd: ${daysPresentStr}</span>
+                    </div>  
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px; background: #1e3a8a; color: white; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px;">  
+                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 8px; border-radius: 20px;">${autoResultStatus}</span>  
+                    </div>  
+
+                    ${graphHtml}
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
+                        <div style="text-align: center; width: 140px;">
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
+                                ${teacherSignUrl !== classTeacherSignatures["DEFAULT"] ? `<img src="${teacherSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
+                            </div>
+                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
+                        </div>
+                        <div style="text-align: center; width: 140px;">
+                            <div style="height: 35px;"></div>
+                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">COPYRIGHT&copy; 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.</span>
+                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">DEVELOPED BY AARAV TECH-HUB (AJ VNS)</span>
+                    </div>
+                </div>
+            `;
+
+            // 🔥 FIX APPLIED HERE: Only initialize chart if ANNUAL exam 🔥
+            if (examType === 'ANNUAL') {
+                let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
+                let canvasEl = document.getElementById(uniqueChartId);
+                if (canvasEl) {
+                    let ctx = canvasEl.getContext('2d');
+                    await new Promise((resolve) => {
+                        new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() }, plugins: { legend: { labels: { font: { size: 7 } } } }, scales: { y: { beginAtZero: true, max:100, ticks: { font: { size: 6 } } }, x: { ticks: { font: { size: 6 } } } } } });
+                        setTimeout(resolve, 1500);
+                    });
+                }
+            }
+
+            let containerEl = document.getElementById(`bulk-specific-container-${idx}`);
+            await waitForImages(containerEl); 
+            
+            let canvas = await html2canvas(containerEl, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
+            let imgData = canvas.toDataURL("image/png");
+
+            let imgWidth = cardWidth; let imgHeight = (canvas.height * imgWidth) / canvas.width;
+            if (imgHeight > maxCardHeight) { imgHeight = maxCardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
+            const isLeft = (idx % 2 === 0); if (isLeft && idx > 0) pdf.addPage();
+            const xOffset = isLeft ? margin : (margin + cardWidth + gap);
+            const x = xOffset + (cardWidth - imgWidth) / 2; const y = margin + (maxCardHeight - imgHeight) / 2;
+
+            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+            sandbox.innerHTML = ""; 
+        }
+
+        pdf.save(`Selected_Students_Results_Bundle.pdf`);
+        window.hideProgress(); alert(`Success! Generated PDF Bundle for ${selectedStudents.length} selected students with exact ranks.`);
+    } catch(err) { console.error(err); window.hideProgress(); alert("Extraction Fault: " + err.message); } finally {
+        sandbox.innerHTML = ""; if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
     }
 };
+
+
+
 
   
 window.processExcelUpload = () => {  
@@ -2393,7 +3033,7 @@ window.printBulkAdmitCards = async () => {
     </p>
     
     <p class="text-[9px] font-bold text-slate-700 m-0 mt-1 uppercase tracking-tight">
-        GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) &nbsp;|&nbsp; 
+        GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207  &nbsp;|&nbsp; 
         MOB. NO.: 9661651050 &nbsp;|&nbsp; 
         EMAIL: asktlsmschool@gmail.com
     </p>
@@ -2589,7 +3229,7 @@ window.printSpecificAdmitCards = async () => {
     </p>
     
     <p class="text-[9px] font-bold text-slate-700 m-0 mt-1 uppercase tracking-tight">
-        GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) &nbsp;|&nbsp; 
+        GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207  &nbsp;|&nbsp; 
         MOB. NO.: 9661651050 &nbsp;|&nbsp; 
         EMAIL: asktlsmschool@gmail.com
     </p>
@@ -3147,23 +3787,221 @@ function renderExamSessionUI() {
     appExams.forEach(e => window.addNewExamInput(e));
 }
 
+// ==========================================
+// ⚙️ AUTO-POPULATE DROPDOWNS ENGINE
+// ==========================================
 function populateDropdowns() {
-    const sessionSelects = ['student-academic-year', 'admin-print-academic-year', 'admin-upload-academic-year', 'del-session', 'admin-update-session', 'admit-session', 'print-admit-session', 'edit-admit-session', 'del-admit-session', 'del-specific-session', 'print-specific-admit-session'];
+    // Session wale saare dropdowns ki list
+    const sessionSelects = [
+        'student-academic-year', 
+        'admin-print-academic-year', 
+        'admin-upload-academic-year', 
+        'del-session', 
+        'admin-update-session', 
+        'admit-session', 
+        'print-admit-session', 
+        'edit-admit-session', 
+        'del-admit-session', 
+        'del-specific-session', 
+        'print-specific-admit-session',
+        'admin-print-specific-results-session', 
+        'edit-result-session',
+        'admin-del-specific-results-session' // NEW ID FOR DELETE SPECIFIC RESULT
+    ];
 
+    // Exam wale saare dropdowns ki list
+    const examSelects = [
+        'student-exam-type', 
+        'admin-print-exam-type', 
+        'admin-upload-exam-type', 
+        'del-exam', 
+        'admin-update-exam',
+        'admin-print-specific-results-exam',
+        'edit-result-exam',
+        'admin-del-specific-results-exam' // NEW ID FOR DELETE SPECIFIC RESULT
+    ];
 
-    const examSelects = ['student-exam-type', 'admin-print-exam-type', 'admin-upload-exam-type', 'del-exam', 'admin-update-exam'];
-
+    // Sessions bharna
     sessionSelects.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.innerHTML = appSessions.map(s => `<option value="${s}">${s}</option>`).join('');
     });
 
+    // Exams bharna (Underscore hata kar space lagana taaki UI pe sundar dikhe)
     examSelects.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.innerHTML = appExams.map(e => `<option value="${e}">${e.replace(/_/g, ' ')}</option>`).join('');
     });
 }
-  
+
+// ==========================================
+// 🖊️ FETCH SINGLE STUDENT RESULT DATA (UI VER)
+// ==========================================
+window.fetchSingleResultData = async () => {
+    const scholarId = document.getElementById("edit-result-scholar").value.trim().toUpperCase();
+    const session = document.getElementById("edit-result-session").value;
+    const exam = document.getElementById("edit-result-exam").value;
+    
+    if(!scholarId) return alert("Please enter Scholar ID first!");
+    
+    const docId = `${scholarId}_${exam}_${session}`; 
+    try {
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); const db = fs.getFirestore(app);
+
+        const snap = await fs.getDoc(fs.doc(db, "school_results", docId));
+        let d = {};
+        
+        let defaultSubjects = [
+            { "name": "HINDI", "theory": 0, "practical": 0, "fullMarks": 100 },
+            { "name": "ENGLISH", "theory": 0, "practical": 0, "fullMarks": 100 },
+            { "name": "MATHS", "theory": 0, "practical": 0, "fullMarks": 100 },
+            { "name": "SCIENCE", "theory": 0, "practical": 0, "fullMarks": 100 },
+            { "name": "SOCIAL", "theory": 0, "practical": 0, "fullMarks": 100 },
+            { "name": "IT/COMP", "theory": 0, "practical": 0, "fullMarks": 100 }
+        ];
+
+        let subjectsData = defaultSubjects;
+
+        if(!snap.exists()) {
+            alert(`Record not found!\nYou can now ADD this as a NEW student result.`);
+            document.getElementById("btn-update-result").innerText = "ADD NEW RESULT RECORD";
+            document.getElementById("btn-update-result").className = "w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-3 transition-all hover:bg-blue-700";
+        } else {
+            d = snap.data();
+            document.getElementById("btn-update-result").innerText = "UPDATE EXISTING RECORD";
+            document.getElementById("btn-update-result").className = "w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-3 transition-all hover:bg-emerald-700";
+            
+            if(d.subjects_json) {
+                if(typeof d.subjects_json === "string") {
+                    try { subjectsData = JSON.parse(d.subjects_json); } catch(e) { subjectsData = defaultSubjects; }
+                } else {
+                    subjectsData = d.subjects_json;
+                }
+            }
+        }
+        
+        document.getElementById("er-name").value = d.name || "";
+        document.getElementById("er-roll").value = d.roll_no || "";
+        document.getElementById("er-class").value = d.class || "";
+        document.getElementById("er-section").value = d.section || "A";
+        document.getElementById("er-father").value = d.father || "";
+        document.getElementById("er-mother").value = d.mother || "";
+        document.getElementById("er-dob").value = d.dob || "";
+        document.getElementById("er-days").value = d.days_present !== undefined ? d.days_present : "";
+        document.getElementById("er-fee").value = d.fee_due === true ? "true" : "false";
+        
+        // 🔄 UI Fields Generate Karna
+        const container = document.getElementById("dynamic-subjects-container");
+        container.innerHTML = ""; // Clear purana data
+        
+        subjectsData.forEach(sub => {
+            window.addSubjectFieldUI(sub.name, sub.theory, sub.practical, sub.fullMarks);
+        });
+        
+        document.getElementById("edit-result-form").classList.remove("hidden");
+    } catch(e) {
+        console.error(e);
+        alert("Error fetching result data.");
+    }
+};
+
+// ➕ NAYA: Box add karne wala function
+window.addSubjectFieldUI = (name = "", th = 0, pr = 0, full = 100) => {
+    const container = document.getElementById("dynamic-subjects-container");
+    const div = document.createElement("div");
+    div.className = "flex items-center gap-1 sm:gap-2 bg-white p-2 rounded border border-slate-200 subject-row-ui";
+    div.innerHTML = `
+        <input type="text" placeholder="Subject Name" value="${name}" class="sub-name publisher-input !mb-0 text-[10px] w-24 sm:w-1/3 uppercase font-bold" />
+        <input type="number" placeholder="TH" value="${th !== undefined ? th : 0}" class="sub-th publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center" />
+        <input type="number" placeholder="PR" value="${pr !== undefined ? pr : 0}" class="sub-pr publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center" />
+        <input type="number" placeholder="MAX" value="${full !== undefined ? full : 100}" class="sub-full publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center text-blue-700 font-bold" />
+        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash-alt text-[10px]"></i></button>
+    `;
+    container.appendChild(div);
+};
+
+// ==========================================
+// 🚀 ADD/EDIT SAVE SINGLE RESULT DATA (UI VER)
+// ==========================================
+window.updateSingleResultData = async () => {
+    const scholarId = document.getElementById("edit-result-scholar").value.trim().toUpperCase();
+    const session = document.getElementById("edit-result-session").value;
+    const exam = document.getElementById("edit-result-exam").value;
+    const docId = `${scholarId}_${exam}_${session}`; 
+    
+    let parsedSubjects = [];
+    const rows = document.querySelectorAll("#dynamic-subjects-container .subject-row-ui");
+    rows.forEach(row => {
+        let name = row.querySelector(".sub-name").value.trim().toUpperCase();
+        let th = Number(row.querySelector(".sub-th").value || 0);
+        let pr = Number(row.querySelector(".sub-pr").value || 0);
+        let full = Number(row.querySelector(".sub-full").value || 100);
+        if(name) {
+            parsedSubjects.push({ name, theory: th, practical: pr, fullMarks: full });
+        }
+    });
+
+    if(parsedSubjects.length === 0) { alert("Please add at least one subject with a valid name!"); return; }
+    if(!confirm(`Save this student's result data for ${exam} (${session})?`)) return;
+    
+    try {
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); const db = fs.getFirestore(app);
+
+        const getGrade = (percent) => {  
+            if (percent >= 91) return "A1";  if (percent >= 81) return "A2";  
+            if (percent >= 71) return "B1";  if (percent >= 61) return "B2";  
+            if (percent >= 51) return "C1";  if (percent >= 41) return "C2";  
+            if (percent >= 33) return "D";   return "E";  
+        };
+
+        let sClass = document.getElementById("er-class").value.trim().toUpperCase();
+        let isClass9or10 = sClass === "9" || sClass.startsWith("9TH") || sClass.startsWith("9-") || sClass.startsWith("9 ") || sClass === "IX" || sClass.startsWith("IX-") || sClass.startsWith("IX ") || sClass === "10" || sClass.startsWith("10TH") || sClass.startsWith("10-") || sClass.startsWith("10 ") || sClass === "X" || sClass.startsWith("X-") || sClass.startsWith("X ");
+
+        // 🔥 Save karte waqt class aur exam type ke basis par TOTAL calculate karega
+        parsedSubjects = parsedSubjects.map(sub => {
+            let th = Number(sub.theory || 0);
+            let pr = Number(sub.practical || 0);
+            let tot = 0;
+            
+            if ((exam === "PMT" || exam === "PAT") && isClass9or10) tot = th;
+            else if (exam === "HALF_YEARLY" || exam === "ANNUAL") tot = th;
+            else tot = th + pr;
+            
+            let full = Number(sub.fullMarks || 100);
+            let pct = full > 0 ? (tot / full) * 100 : 0;
+            return { ...sub, total: tot, grade: getGrade(pct) }
+        });
+
+        let totalMarksAll = 0; let maxMarksAll = 0;
+        parsedSubjects.forEach(s => { totalMarksAll += s.total; maxMarksAll += Number(s.fullMarks || 100); });
+        let finalPct = maxMarksAll > 0 ? (totalMarksAll / maxMarksAll) * 100 : 0;
+        let status = finalPct >= 33 ? "PASS" : "FAIL";
+
+        let feeDue = document.getElementById("er-fee").value === "true";
+        const schoolName = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
+
+        await fs.setDoc(fs.doc(db, "school_results", docId), {
+            scholar_id: scholarId, exam_type: exam, academic_year: session, school: schoolName,
+            name: document.getElementById("er-name").value.trim() || "---",
+            roll_no: document.getElementById("er-roll").value.trim() || "---",
+            class: sClass, section: document.getElementById("er-section").value.trim().toUpperCase() || "A",
+            father: document.getElementById("er-father").value.trim() || "---",
+            mother: document.getElementById("er-mother").value.trim() || "---",
+            dob: document.getElementById("er-dob").value.trim() || "---",
+            days_present: document.getElementById("er-days").value.trim() || "---",
+            fee_due: feeDue, result_status: status, subjects_json: parsedSubjects, updatedAt: fs.Timestamp.now()
+        }, { merge: true });
+        
+        alert("Success! Student Result Record Applied Safely to the Cloud Database.");
+        document.getElementById("edit-result-form").classList.add("hidden"); document.getElementById("edit-result-scholar").value = "";
+    } catch(e) { console.error(e); alert("Upload Failed. Connection Error: " + e.message); }
+};
+
+
 async function loadSettings() {   
     const s = await getDoc(doc(db,"settings","app"));   
     if(s.exists()) {  
@@ -3756,7 +4594,7 @@ const classTeacherName = window.appClassTeachersMap[classKey] || "NOT ASSIGNED";
                         <h1 style="margin: 0; font-size: 42px; color: #1e3a8a; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;">TLSM WORLD SCHOOL</h1>
                         <p style="margin: 5px 0 2px 0; font-size: 16px; color: #475569; font-weight: 900; letter-spacing: 0.5px;">AFFILIATED TO CBSE DELHI UPTO+2 LEVEL</p>
                         <p style="margin: 0 0 5px 0; font-size: 12px; color: #334155; font-weight: 900;">(AFFILIATION NO.: 331251 SCHOOL CODE: 67074)</p>
-                        <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: bold;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 (BR) | MOB.NO.: 9661651050 | asktlsmschool@gmail.com</p>
+                        <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: bold;">GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207 | MOB.NO.: 9661651050 | asktlsmschool@gmail.com</p>
                     </div>
                 </div>
 
@@ -4598,7 +5436,782 @@ window.initAutoAssignmentDate = () => {
     }
 };
 
+// ==========================================
+// 📄 TABULAR PDF MASTER LEDGER (FIXED DATA CUTOFF BUG)
+// ==========================================
+window.downloadResultDataPDF = async () => {
+    let pdfSandbox = null; 
+    try {
+        const sessionSel = document.getElementById("admin-upload-academic-year").value;
+        const examSel = document.getElementById("admin-upload-exam-type").value;
+        
+        if(!sessionSel || !examSel) { alert("Please select Academic Year and Exam Type from the dropdowns first."); return; }
+        if(window.showProgress) window.showProgress(`Fetching Master Database for ${examSel.replace(/_/g, ' ')}...`);
 
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); const db = fs.getFirestore(app);
+
+        // 1. Main Exam Data Fetch
+        const snap = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", examSel)));
+        if (snap.empty) { if(window.hideProgress) window.hideProgress(); alert(`No records found to generate PDF!`); return; }
+
+        let allMainData = [];
+        snap.forEach(d => allMainData.push(d.data()));
+
+        // 2. Previous Exams Sync
+        let allPmt = {}; let allMt = {}; let allPat = {};
+        if (examSel === "HALF_YEARLY" || examSel === "ANNUAL") {
+            window.updateProgress(20, "Syncing PMT Matrix...");
+            const snapPmt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PMT")));
+            snapPmt.forEach(d => allPmt[d.data().scholar_id.toString().toUpperCase()] = d.data());
+        }
+        if (examSel === "ANNUAL") {
+            window.updateProgress(40, "Syncing Half-Yearly & PAT Matrix...");
+            const snapMt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "HALF_YEARLY")));
+            snapMt.forEach(d => allMt[d.data().scholar_id.toString().toUpperCase()] = d.data());
+            
+            const snapPat = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PAT")));
+            snapPat.forEach(d => allPat[d.data().scholar_id.toString().toUpperCase()] = d.data());
+        }
+
+        const sanitizeSub = (n) => n ? (n.toUpperCase().trim() === 'IT/COM' ? 'IT/COMP' : n.toUpperCase().trim()) : '---';
+
+        // 3. Group by Class
+        let classGroups = {};
+        allMainData.forEach(data => {
+            let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
+            if(!classGroups[cName]) classGroups[cName] = [];
+            classGroups[cName].push(data);
+        });
+
+        // Logical Class Sorter
+        const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
+        const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
+        let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("l", "mm", "a4"); 
+        let isFirstPage = true;
+
+        window.updateProgress(60, "Chunking Pages for Full Utilization...");
+
+        // 🔥 Cutoff fix karne ke liye rows ko 15 kar diya, taki safe margin mile
+        const ROWS_PER_PAGE = 15; 
+
+        pdfSandbox = document.createElement('div');
+        pdfSandbox.style.position = 'absolute'; pdfSandbox.style.top = '-9999px'; pdfSandbox.style.left = '-9999px';
+        pdfSandbox.style.width = '1600px'; 
+        pdfSandbox.style.background = '#ffffff'; 
+        pdfSandbox.style.padding = '30px';
+        document.body.appendChild(pdfSandbox);
+
+        for (let cName of sortedClasses) {
+            let group = classGroups[cName];
+            let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
+            let allSubjectsForClass = new Set();
+
+            // Computations
+            group.forEach(st => {
+                let sid = st.scholar_id.toString().toUpperCase();
+                let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
+                st.computedMarks = {}; st.sTotal = 0; st.sMax = 0;
+
+                subs.forEach(sub => {
+                    let subName = sanitizeSub(sub.name);
+                    allSubjectsForClass.add(subName);
+                    
+                    let th = Number(sub.theory || 0); let pr = Number(sub.practical || 0); let tot = Number(sub.total || 0);
+                    let maxM = (examSel === "PMT" || examSel === "PAT") ? 20 : 100;
+
+                    if (examSel === "PMT" || examSel === "PAT") {
+                        let finalScore = is9or10 ? th : tot;
+                        st.computedMarks[subName] = { th: th, pr: pr, final: finalScore };
+                        st.sTotal += finalScore; st.sMax += maxM;
+                    } 
+                    else if (examSel === "HALF_YEARLY") {
+                        let pmtData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        let pmtMark = pmtData ? (is9or10 ? Number(pmtData.theory||0) : Number(pmtData.total||0)) : 0;
+                        let final = pmtMark + th;
+                        st.computedMarks[subName] = { pmt: pmtMark, mt: th, final: final };
+                        st.sTotal += final; st.sMax += maxM;
+                    } 
+                    else if (examSel === "ANNUAL") {
+                        let pData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        let mData = allMt[sid] ? (typeof allMt[sid].subjects_json === "string" ? JSON.parse(allMt[sid].subjects_json) : allMt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        let paData = allPat[sid] ? (typeof allPat[sid].subjects_json === "string" ? JSON.parse(allPat[sid].subjects_json) : allPat[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        
+                        let pmtMark = pData ? (is9or10 ? Number(pData.theory||0) : Number(pData.total||0)) : 0;
+                        let mtMark = mData ? Number(mData.theory||0) : 0;
+                        let patMark = paData ? (is9or10 ? Number(paData.theory||0) : Number(paData.total||0)) : 0;
+                        let term1 = pmtMark + mtMark; let term2 = patMark + th;
+                        let final = Math.round((term1 + term2) / 2);
+                        
+                        st.computedMarks[subName] = { pmt: pmtMark, mt: mtMark, pat: patMark, ann: th, final: final };
+                        st.sTotal += final; st.sMax += maxM;
+                    }
+                });
+            });
+
+            group.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
+            let sortedSubs = Array.from(allSubjectsForClass).sort();
+
+            // Font Sizes (Clear & Professional)
+            let headerFontSize = "15px";
+            let subHeaderFontSize = "12px";
+            let dataFontSize = "13px";
+            let nameFontSize = "15px"; 
+
+            // Headers Construction
+            let thRow1 = `
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 90px;">ID</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 70px;">ROLL</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 250px;">CANDIDATE NAME</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 190px;">FATHER'S NAME</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 190px;">MOTHER'S NAME</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 110px;">DOB</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 70px;">ATTD</th>
+            `;
+            let thRow2 = ``;
+
+            sortedSubs.forEach(sName => {
+                if (examSel === "PMT" || examSel === "PAT") {
+                    if (is9or10) {
+                        thRow1 += `<th rowspan="2" style="border:2px solid #000; padding:10px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}<br><span style="font-size:10px;font-weight:bold;">(TH)</span></th>`;
+                    } else {
+                        thRow1 += `<th colspan="2" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
+                        thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">TH</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PR</th>`;
+                    }
+                } else if (examSel === "HALF_YEARLY") {
+                    thRow1 += `<th colspan="3" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
+                    thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PMT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">MT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize}; font-weight:900;">TOT</th>`;
+                } else if (examSel === "ANNUAL") {
+                    thRow1 += `<th colspan="5" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
+                    thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PMT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">MT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PAT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">ANN</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize}; font-weight:900;">AVG</th>`;
+                }
+            });
+
+            thRow1 += `
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">TOTAL</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">%</th>
+                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">STATUS</th>
+            `;
+
+            // Group into chunks
+            let chunks = [];
+            for (let i = 0; i < group.length; i += ROWS_PER_PAGE) {
+                chunks.push(group.slice(i, i + ROWS_PER_PAGE));
+            }
+
+            for (let pageIndex = 0; pageIndex < chunks.length; pageIndex++) {
+                let chunk = chunks[pageIndex];
+                let tBody = ``;
+
+                chunk.forEach(st => {
+                    let dp = st.days_present !== undefined ? st.days_present : "---";
+                    let pct = st.sMax > 0 ? ((st.sTotal / st.sMax) * 100).toFixed(1) : "0.0";
+                    let status = Number(pct) >= 33 ? "PASS" : "FAIL";
+
+                    let tr = `
+                        <tr style="text-align:center; color:#000; border-bottom:2px solid #000; height: 48px;">
+                            <td style="border:2px solid #000; padding:9px 5px; font-family:monospace; font-weight:bold; font-size:${dataFontSize};">${st.scholar_id}</td>
+                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize};">${st.roll_no || '-'}</td>
+                            <td style="border:2px solid #000; padding:9px 8px; text-align:left; font-weight:900; font-size:${nameFontSize}; text-transform:uppercase;">${st.name || '-'}</td>
+                            <td style="border:2px solid #000; padding:9px 6px; text-align:left; font-size:${dataFontSize}; font-weight:bold; text-transform:uppercase;">${st.father || '-'}</td>
+                            <td style="border:2px solid #000; padding:9px 6px; text-align:left; font-size:${dataFontSize}; font-weight:bold; text-transform:uppercase;">${st.mother || '-'}</td>
+                            <td style="border:2px solid #000; padding:9px 5px; font-size:${dataFontSize}; font-weight:bold;">${st.dob || '-'}</td>
+                            <td style="border:2px solid #000; padding:9px 5px; font-weight:bold; font-size:${dataFontSize};">${dp}</td>
+                    `;
+
+                    sortedSubs.forEach(sName => {
+                        let marks = st.computedMarks[sName];
+                        if(!marks) {
+                            if (examSel === "PMT" || examSel === "PAT") {
+                                if (is9or10) tr += `<td style="border:2px solid #000;">-</td>`;
+                                else tr += `<td colspan="2" style="border:2px solid #000;">-</td>`;
+                            }
+                            else if (examSel === "HALF_YEARLY") tr += `<td colspan="3" style="border:2px solid #000;">-</td>`;
+                            else if (examSel === "ANNUAL") tr += `<td colspan="5" style="border:2px solid #000;">-</td>`;
+                        } else {
+                            if (examSel === "PMT" || examSel === "PAT") {
+                                if (is9or10) {
+                                    tr += `<td style="border:2px solid #000; padding:8px 4px; font-weight:900; font-size:${dataFontSize};">${marks.th}</td>`;
+                                } else {
+                                    tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize}; font-weight:bold;">${marks.th}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize}; font-weight:bold;">${marks.pr}</td>`;
+                                }
+                            } else if (examSel === "HALF_YEARLY") {
+                                tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pmt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.mt}</td><td style="border:2px solid #000; padding:8px 4px; font-weight:900; font-size:${dataFontSize}; background:#f8fafc;">${marks.final}</td>`;
+                            } else if (examSel === "ANNUAL") {
+                                tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pmt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.mt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pat}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.ann}</td><td style="border:2px solid #000; padding:8px 4px; font-weight:900; color:#1e3a8a; font-size:${dataFontSize}; background:#f0fdf4;">${marks.final}</td>`;
+                            }
+                        }
+                    });
+
+                    tr += `
+                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize}; background:#f1f5f9;">${st.sTotal}/${st.sMax}</td>
+                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize};">${pct}%</td>
+                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize}; color:${status==='PASS'?'#047857':'#b91c1c'};">${status}</td>
+                        </tr>
+                    `;
+                    tBody += tr;
+                });
+
+                // Set HTML for this specific chunk
+                pdfSandbox.innerHTML = `
+                    <div style="border: 5px solid #1e3a8a; padding: 25px; background: #fff; box-sizing: border-box;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:5px double #1e3a8a; padding-bottom:12px; margin-bottom:20px;">
+                            <div>
+                                <h1 style="margin:0; font-size:32px; color:#1e3a8a; font-weight:900; letter-spacing: 1px;">MASTER EXAMINATION LEDGER</h1>
+                                <p style="margin:5px 0; font-size:15px; font-weight:900;">ACADEMIC SESSION: <span style="color:#ea580c;">${sessionSel}</span> | EXAM MATRIX: <span style="color:#1e3a8a;">${examSel.replace(/_/g, ' ')}</span></p>
+                            </div>
+                            <div style="text-align:right;">
+                                <h2 style="margin:0; font-size:34px; color:#0f172a; font-weight:900; background:#f1f5f9; padding:8px 25px; border:3px solid #cbd5e1; border-radius:12px;">CLASS: ${cName} <span style="font-size: 14px; font-weight: bold; color: #64748b; margin-left: 10px;">(Pg ${pageIndex+1}/${chunks.length})</span></h2>
+                            </div>
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; border:3px solid #000; font-family:sans-serif;">
+                            <thead style="background:#1e3a8a; color:#fff; text-transform:uppercase; border: 3px solid #000;">
+                                <tr>${thRow1}</tr>
+                                ${thRow2 ? `<tr>${thRow2}</tr>` : ``}
+                            </thead>
+                            <tbody>${tBody}</tbody>
+                        </table>
+                    </div>
+                `;
+
+                window.updateProgress(Math.round((sortedClasses.indexOf(cName) / sortedClasses.length) * 30 + 60), `Rendering Class ${cName} (Page ${pageIndex+1})...`);
+                await new Promise(r => setTimeout(r, 100));
+
+                const canvas = await html2canvas(pdfSandbox, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
+                const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+                // 🔥 Fix applied here for auto-scaling and proper fit!
+                const pageWidth = 297; 
+                const pageHeight = 210; 
+                const margin = 5;
+
+                const usableWidth = pageWidth - (margin * 2);
+                const usableHeight = pageHeight - (margin * 2);
+
+                let imgWidth = usableWidth;
+                let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                // Scale down if image height exceeds available A4 height
+                if (imgHeight > usableHeight) {
+                    imgHeight = usableHeight;
+                    imgWidth = (canvas.width * imgHeight) / canvas.height;
+                }
+
+                // Center horizontally if scaled down
+                let xOffset = margin + (usableWidth - imgWidth) / 2;
+
+                if (!isFirstPage) {
+                    pdf.addPage();
+                } else {
+                    isFirstPage = false;
+                }
+
+                pdf.addImage(imgData, "JPEG", xOffset, margin, imgWidth, imgHeight);
+            }
+        }
+
+        if (pdfSandbox) pdfSandbox.remove();
+        window.updateProgress(95, "Saving Document Bundle...");
+        pdf.save(`Master_Ledger_${examSel}_${sessionSel}.pdf`);
+        
+        if(window.hideProgress) window.hideProgress();
+        alert("Success! High-readability Master Ledger generated safely.");
+
+    } catch (error) {
+        console.error("PDF Ledger Generation Error:", error);
+        if (pdfSandbox) pdfSandbox.remove();
+        if(window.hideProgress) window.hideProgress();
+        alert("Error while rendering Ledger Layout: " + error.message);
+    }
+};
+
+
+// ==========================================
+// 📊 RESULT DATA DOWNLOAD SYSTEM (EXCEL BACKUP)
+// ==========================================
+window.downloadResultDataXLSX = async () => {
+    try {
+        const sessionSel = document.getElementById("admin-upload-academic-year").value;
+        const examSel = document.getElementById("admin-upload-exam-type").value;
+        
+        if(!sessionSel || !examSel) {
+            alert("Please select Academic Year and Exam Type from the dropdowns first.");
+            return;
+        }
+
+        if(window.showProgress) window.showProgress(`Generating Excel Sheet for ${examSel.replace(/_/g, ' ')}...`);
+
+        // 🔥 Dynamic Firebase Connection
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); 
+        const db = fs.getFirestore(app);
+
+        // Database Query
+        const q = fs.query(
+            fs.collection(db, "school_results"), 
+            fs.where("academic_year", "==", sessionSel),
+            fs.where("exam_type", "==", examSel)
+        );
+        const snap = await fs.getDocs(q);
+
+        if (snap.empty) {
+            if(window.hideProgress) window.hideProgress();
+            alert(`No result data found for ${examSel.replace(/_/g, ' ')} in Session ${sessionSel}!`);
+            return;
+        }
+
+        const resultsList = [];
+        let allSubjectKeys = new Set(); 
+        let baseSubjects = new Set(); // 🔥 NAYA: Sirf Subjects ke naam nikalne ke liye
+
+        snap.forEach(d => {
+            let data = d.data();
+            let subjects = [];
+            try { 
+                subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; 
+            } catch(e){}
+            if (!Array.isArray(subjects)) subjects = [];
+
+            let flattenedSubjects = {};
+            subjects.forEach(sub => {
+                let subName = sub.name ? sub.name.toUpperCase().trim() : 'UNKNOWN';
+                if(subName === 'IT/COM') subName = 'IT/COMP'; // Spelling Matcher
+                
+                baseSubjects.add(subName); // Yahan main subject ka naam save hoga
+
+                if (sub.theory !== undefined) {
+                    flattenedSubjects[`${subName}_TH`] = sub.theory;
+                    allSubjectKeys.add(`${subName}_TH`);
+                }
+                if (sub.practical !== undefined) {
+                    flattenedSubjects[`${subName}_PR`] = sub.practical;
+                    allSubjectKeys.add(`${subName}_PR`);
+                }
+                if (sub.theory === undefined && sub.practical === undefined && sub.total !== undefined) {
+                    flattenedSubjects[`${subName}_TH`] = sub.total;
+                    allSubjectKeys.add(`${subName}_TH`);
+                }
+                if (sub.fullMarks !== undefined) {
+                    flattenedSubjects[`FULL_${subName}`] = sub.fullMarks;
+                    allSubjectKeys.add(`FULL_${subName}`);
+                }
+            });
+
+            resultsList.push({
+                ...data,
+                flattenedSubjects
+            });
+        });
+
+        const baseHeaders = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "section", "school", "result_status", "days_present", "fee_due"];
+        
+        // 🔥 NAYA GROUPING LOGIC 🔥
+        // Ye logic har subject ko ek group me rakhega (TH -> PR -> FULL)
+        const subjectHeaders = [];
+        const sortedBaseSubjects = Array.from(baseSubjects).sort();
+        
+        sortedBaseSubjects.forEach(sub => {
+            if(allSubjectKeys.has(`${sub}_TH`)) subjectHeaders.push(`${sub}_TH`);
+            if(allSubjectKeys.has(`${sub}_PR`)) subjectHeaders.push(`${sub}_PR`);
+            if(allSubjectKeys.has(`FULL_${sub}`)) subjectHeaders.push(`FULL_${sub}`);
+        });
+
+        const headers = [...baseHeaders, ...subjectHeaders];
+
+        // Excel ke liye JSON Data tayar karna
+        const excelData = [];
+        for (const row of resultsList) {
+            let rowData = {};
+            headers.forEach(header => {
+                if (baseHeaders.includes(header)) {
+                    rowData[header] = row[header] !== undefined && row[header] !== null ? row[header] : '';
+                } else {
+                    rowData[header] = row.flattenedSubjects[header] !== undefined ? row.flattenedSubjects[header] : '';
+                }
+            });
+            excelData.push(rowData);
+        }
+
+        // SheetJS ke zariye Worksheet banana
+        const worksheet = XLSX.utils.json_to_sheet(excelData, { header: headers });
+
+        // 🔥 SMART AUTO-WIDTH ADJUSTER 🔥
+        const colWidths = headers.map(header => {
+            let maxLen = header.length; // Header ka size
+            excelData.forEach(row => {
+                const cellVal = row[header] ? row[header].toString() : "";
+                if (cellVal.length > maxLen) {
+                    maxLen = cellVal.length;
+                }
+            });
+            return { wch: maxLen + 2 }; // Thodi padding add ki gayi hai (+2)
+        });
+        worksheet["!cols"] = colWidths; 
+
+        // Workbook banakar Download trigger karna
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Master_Results");
+        
+        XLSX.writeFile(workbook, `Master_Data_${examSel}_${sessionSel}.xlsx`);
+        
+        if(window.hideProgress) window.hideProgress();
+        alert(`Success! Downloaded ${resultsList.length} records in Perfectly Grouped Excel Format.`);
+    } catch (error) {
+        console.error("Result Data Download Error:", error);
+        if(window.hideProgress) window.hideProgress();
+        alert("Error while compiling Excel Sheet: " + error.message);
+    }
+};
+
+
+// ==========================================
+// 🗑️ DELETE SPECIFIC STUDENT(S) RESULT (ULTRA-SAFE VERSION)
+// ==========================================
+window.deleteSpecificStudentResults = async () => {
+    try {
+        // 1. Admin Check (Safe Mode)
+        if (typeof auth !== 'undefined' && auth.currentUser && typeof adminEmail !== 'undefined') {
+            if (auth.currentUser.email !== adminEmail) {
+                alert("Unauthorized Admin Access Only!"); return;
+            }
+        }
+
+        // 2. Safely get HTML Elements
+        const idInput = document.getElementById("admin-del-specific-results-ids");
+        const examInput = document.getElementById("admin-del-specific-results-exam");
+        const sessionInput = document.getElementById("admin-del-specific-results-session");
+
+        if (!idInput || !examInput || !sessionInput) {
+            alert("System Error: Input boxes not found in HTML. Please check IDs."); return;
+        }
+
+        const inputIds = idInput.value.trim().toUpperCase();
+        const examType = examInput.value;
+        const academicYear = sessionInput.value;
+
+        if (!inputIds) { alert("Please enter at least one Scholar ID!"); return; }
+        
+        const scholarIds = inputIds.split(',').map(id => id.trim()).filter(id => id !== '');
+        if (scholarIds.length === 0) return;
+
+        // 3. Confirmation
+        if(!confirm(`WARNING: Are you sure you want to PERMANENTLY DELETE the result of ${scholarIds.length} student(s) for ${examType.replace(/_/g, " ")} (${academicYear})?`)) {
+            return;
+        }
+
+        // 4. Button State Handle
+        const btn = document.getElementById("btn-delete-specific-results");
+        let oldText = "Delete Selected Results";
+        if (btn) {
+            oldText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> DELETING...`;
+            btn.disabled = true;
+        }
+
+        // 5. Firebase Execution
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); 
+        const db = fs.getFirestore(app);
+
+        let deletedCount = 0;
+        for (let i = 0; i < scholarIds.length; i++) {
+            let docId = `${scholarIds[i]}_${examType}_${academicYear}`;
+            await fs.deleteDoc(fs.doc(db, "school_results", docId));
+            deletedCount++;
+        }
+
+        // 6. Success Reset
+        alert(`Success! Permanently deleted ${deletedCount} student record(s) from the database.`);
+        idInput.value = "";
+        
+        if (btn) {
+            btn.innerHTML = oldText;
+            btn.disabled = false;
+        }
+
+    } catch (error) {
+        // Agar koi bhi error aayega toh ab chup nahi baithega, screen par batayega!
+        alert("Action Failed: " + error.message);
+        console.error("Delete Error:", error);
+        
+        const btn = document.getElementById("btn-delete-specific-results");
+        if(btn) { 
+            btn.innerHTML = `<i class="fas fa-trash-alt mr-2"></i>Delete Selected Results`; 
+            btn.disabled = false; 
+        }
+    }
+};
+
+// ==========================================
+// 🏆 TOP 10 RANK HOLDERS PDF ENGINE (HIGHLIGHTED BORDERS & NO-WRAP)
+// ==========================================
+window.downloadTop10ListPDF = async () => {
+    let pdfSandbox = null;
+    try {
+        const sessionSel = document.getElementById("admin-upload-academic-year") ? document.getElementById("admin-upload-academic-year").value : document.getElementById("admin-print-academic-year").value;
+        const examSel = document.getElementById("admin-upload-exam-type") ? document.getElementById("admin-upload-exam-type").value : document.getElementById("admin-print-exam-type").value;
+        
+        if(!sessionSel || !examSel) { alert("Please select Academic Year and Exam Type from the dropdowns first."); return; }
+        if(window.showProgress) window.showProgress(`Calculating Ranks for ${examSel.replace(/_/g, ' ')}...`);
+
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); const db = fs.getFirestore(app);
+
+        const snap = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", examSel)));
+        if (snap.empty) { if(window.hideProgress) window.hideProgress(); alert(`No records found!`); return; }
+
+        let allMainData = [];
+        snap.forEach(d => allMainData.push(d.data()));
+
+        let allPmt = {}; let allMt = {}; let allPat = {};
+        if (examSel === "HALF_YEARLY" || examSel === "ANNUAL") {
+            window.updateProgress(20, "Syncing PMT Matrix for Top 10...");
+            const snapPmt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PMT")));
+            snapPmt.forEach(d => allPmt[d.data().scholar_id.toString().toUpperCase()] = d.data());
+        }
+        if (examSel === "ANNUAL") {
+            window.updateProgress(40, "Syncing Annual Matrix for Top 10...");
+            const snapMt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "HALF_YEARLY")));
+            snapMt.forEach(d => allMt[d.data().scholar_id.toString().toUpperCase()] = d.data());
+            
+            const snapPat = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PAT")));
+            snapPat.forEach(d => allPat[d.data().scholar_id.toString().toUpperCase()] = d.data());
+        }
+
+        const sanitizeSub = (n) => n ? (n.toUpperCase().trim() === 'IT/COM' ? 'IT/COMP' : n.toUpperCase().trim()) : '---';
+
+        let classGroups = {};
+        allMainData.forEach(data => {
+            let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
+            if(!classGroups[cName]) classGroups[cName] = [];
+            classGroups[cName].push(data);
+        });
+
+        const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
+        const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
+        let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4"); 
+        let isFirstPage = true;
+
+        window.updateProgress(60, "Applying Clean Certificate Engine...");
+
+        pdfSandbox = document.createElement('div');
+        pdfSandbox.style.position = 'absolute'; 
+        pdfSandbox.style.top = '-9999px'; 
+        pdfSandbox.style.left = '-9999px';
+        document.body.appendChild(pdfSandbox);
+
+        for (let cName of sortedClasses) {
+            let group = classGroups[cName];
+            let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
+
+            // Calculate Totals
+            group.forEach(st => {
+                let sid = st.scholar_id.toString().toUpperCase();
+                let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
+                st.sTotal = 0; st.sMax = 0;
+
+                subs.forEach(sub => {
+                    let th = Number(sub.theory || 0); let tot = Number(sub.total || 0);
+                    let maxM = (examSel === "PMT" || examSel === "PAT") ? 20 : 100;
+                    let subName = sanitizeSub(sub.name);
+
+                    if (examSel === "PMT" || examSel === "PAT") {
+                        st.sTotal += (is9or10 ? th : tot); st.sMax += maxM;
+                    } 
+                    else if (examSel === "HALF_YEARLY") {
+                        let pmtData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        st.sTotal += ((pmtData ? (is9or10 ? Number(pmtData.theory||0) : Number(pmtData.total||0)) : 0) + th); 
+                        st.sMax += maxM;
+                    } 
+                    else if (examSel === "ANNUAL") {
+                        let pData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        let mData = allMt[sid] ? (typeof allMt[sid].subjects_json === "string" ? JSON.parse(allMt[sid].subjects_json) : allMt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        let paData = allPat[sid] ? (typeof allPat[sid].subjects_json === "string" ? JSON.parse(allPat[sid].subjects_json) : allPat[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
+                        
+                        let term1 = (pData ? (is9or10 ? Number(pData.theory||0) : Number(pData.total||0)) : 0) + (mData ? Number(mData.theory||0) : 0);
+                        let term2 = (paData ? (is9or10 ? Number(paData.theory||0) : Number(paData.total||0)) : 0) + th;
+                        st.sTotal += Math.round((term1 + term2) / 2); st.sMax += maxM;
+                    }
+                });
+            });
+
+            // Dense Ranking (1, 1, 2, 3...)
+            group.sort((a, b) => b.sTotal - a.sTotal);
+            let cRank = 1;
+            group.forEach((st, i) => {
+                if (i > 0 && st.sTotal < group[i-1].sTotal) { cRank++; }
+                st.finalRank = cRank;
+            });
+
+            let top10 = group.filter(st => st.finalRank <= 10);
+            if (top10.length === 0) continue; 
+
+            // Pagination Chunking
+            const ROWS_PER_PAGE = 11; 
+            let chunks = [];
+            for (let i = 0; i < top10.length; i += ROWS_PER_PAGE) {
+                chunks.push(top10.slice(i, i + ROWS_PER_PAGE));
+            }
+
+            for (let pageIndex = 0; pageIndex < chunks.length; pageIndex++) {
+                let chunk = chunks[pageIndex];
+                let tBody = ``;
+                
+                chunk.forEach((st, idx) => {
+                    let pct = st.sMax > 0 ? ((st.sTotal / st.sMax) * 100).toFixed(2) : "0.00";
+                    
+                    let rankStyle = "font-size: 24px; font-weight: 900; white-space: nowrap;";
+                    let medalHtml = "";
+                    let rowBg = idx % 2 === 0 ? "#ffffff" : "#f8fafc";
+                    
+                    let nameStyle = "font-size: 20px; font-weight: 900; text-transform: uppercase; white-space: nowrap;";
+                    let otherNamesStyle = "font-size: 20px; font-weight: 900; text-transform: uppercase; color: #334155; white-space: nowrap;";
+
+                    if (st.finalRank === 1) { 
+                        rankStyle += `color: #d97706; text-shadow: 1px 1px 2px rgba(217, 119, 6, 0.4);`; 
+                        medalHtml = "🥇"; rowBg = "#fffbeb"; nameStyle += " color: #065f46;";
+                    }
+                    else if (st.finalRank === 2) { 
+                        rankStyle += `color: #64748b;`; 
+                        medalHtml = "🥈"; rowBg = "#f1f5f9"; 
+                    }
+                    else if (st.finalRank === 3) { 
+                        rankStyle += `color: #9a3412;`; 
+                        medalHtml = "🥉"; rowBg = "#ffedd5"; 
+                    }
+
+                    // Added solid borders (1px solid #94a3b8) to all <td> elements
+                    tBody += `
+                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 75px;">
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; ${rankStyle}">${st.finalRank} ${medalHtml}</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 20px; font-weight: 900; color: #475569; white-space: nowrap;">${st.roll_no || '-'}</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${nameStyle}">${st.name || '-'}</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.father || '-'}</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.mother || '-'}</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 22px; font-weight: 900; color: #1e3a8a; white-space: nowrap;">${st.sTotal}</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 22px; font-weight: 900; color: #ea580c; white-space: nowrap;">${pct}%</td>
+                        </tr>
+                    `;
+                });
+
+                // Padding Empty Rows for Fixed Table Height with visible borders
+                let emptyRowsCount = ROWS_PER_PAGE - chunk.length;
+                for (let e = 0; e < emptyRowsCount; e++) {
+                    let rowBg = (chunk.length + e) % 2 === 0 ? "#ffffff" : "#f8fafc";
+                    tBody += `
+                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 75px;">
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                        </tr>
+                    `;
+                }
+
+                pdfSandbox.innerHTML = `
+                    <div style="width: 1300px; height: 1865px; display: flex; flex-direction: column; border: 12px solid #1e3a8a; border-radius: 24px; padding: 40px; background: #fff; box-sizing: border-box; position: relative;">
+                        
+                        <div style="border: 4px solid #1e3a8a; border-radius: 16px; padding: 30px; background: #f8fafc; display: flex; align-items: center; margin-bottom: 30px; flex-shrink: 0;">
+                            <div style="flex-shrink: 0; padding-right: 30px; border-right: 3px solid #cbd5e1;">
+                                <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 140px; height: 140px; object-fit: contain;">
+                            </div>
+                            
+                            <div style="flex-grow: 1; text-align: center; padding: 0 20px;">
+                                <h1 style="margin:0; font-size: 52px; color:#1e3a8a; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">TLSM WORLD SCHOOL</h1>
+                                <p style="margin:8px 0 15px 0; font-size: 18px; font-weight: bold; color: #475569; text-transform: uppercase; letter-spacing: 1px;">Affiliated to CBSE Delhi Upto+2 Level</p>
+                                
+                                <div style="background-color: #1e3a8a; padding: 12px 50px; border-radius: 12px; border-bottom: 5px solid #ea580c; display: inline-block;">
+                                    <span style="color: #ffffff; font-family: 'Arial', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">
+                                        PMT 2026-27 CLASS TOPPERS 
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div style="flex-shrink: 0; width: 140px; padding-left: 30px;"></div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0 10px; flex-shrink: 0;">
+                            <div>
+                                <h3 style="margin:0; font-size: 42px; color:#0f172a; font-weight: 900; border-bottom: 4px solid #ea580c; padding-bottom: 5px;">CLASS: <span style="color: #1e3a8a;">${cName}</span></h3>
+                                ${chunks.length > 1 ? `<p style="margin:8px 0 0 0; font-size: 20px; font-weight: bold; color: #64748b;">(Page ${pageIndex+1}/${chunks.length})</p>` : ''}
+                            </div>
+                            <div style="text-align: right; background: #fff; padding: 12px 25px; border-radius: 12px; border: 3px solid #1e3a8a;">
+                                <p style="margin:0; font-size: 18px; font-weight: bold; color: #64748b; text-transform: uppercase;">SESSION: <span style="color: #ea580c; font-weight: 900;">${sessionSel}</span></p>
+                                <p style="margin:5px 0 0 0; font-size: 22px; font-weight: 900; color: #1e3a8a; text-transform: uppercase;">${examSel.replace(/_/g, ' ')}</p>
+                            </div>
+                        </div>
+
+                        <div style="border-radius: 16px; overflow: hidden; border: 3px solid #1e3a8a; flex-grow: 1;">
+                            <table style="width:100%; height: 100%; border-collapse:collapse; font-family: 'Arial', sans-serif; border: 2px solid #1e3a8a;">
+                                <thead style="background: #1e3a8a; color: #ffffff; text-transform: uppercase; font-size: 17px; letter-spacing: 1px;">
+                                    <tr>
+                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 70px; font-weight: 900; white-space: nowrap;">RANK</th>
+                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 80px; font-weight: 900; white-space: nowrap;">ROLL</th>
+                                        <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">CANDIDATE NAME</th>
+                                        <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">FATHER'S NAME</th>
+                                        <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">MOTHER'S NAME</th>
+                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 100px; font-weight: 900; white-space: nowrap;">SCORE</th>
+                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 110px; font-weight: 900; white-space: nowrap;">PERCENT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tBody}</tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="margin-top: auto; text-align: center; padding-top: 25px; border-top: 3px dashed #cbd5e1; flex-shrink: 0;">
+                            <p style="margin: 0; font-size: 20px; font-weight: 900; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1.5px;">🌟 Congratulations to all the Top Performers! 🌟</p>
+                            <p style="margin: 8px 0 0 0; font-size: 14px; font-weight: bold; color: #64748b;">This document is system generated and belongs to TLSM World School administration.</p>
+                        </div>
+                    </div>
+                `;
+
+                window.updateProgress(Math.round((sortedClasses.indexOf(cName) / sortedClasses.length) * 30 + 60), `Rendering Layout for Class ${cName} (Pg ${pageIndex+1})...`);
+                await new Promise(r => setTimeout(r, 150));
+
+                const canvas = await html2canvas(pdfSandbox, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
+                const imgData = canvas.toDataURL("image/jpeg", 0.8);
+
+                const pageWidth = 210; const pageHeight = 297; const margin = 5;
+                let imgWidth = pageWidth - (margin * 2);
+                let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                if (!isFirstPage) {
+                    pdf.addPage();
+                } else {
+                    isFirstPage = false;
+                }
+
+                pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+            }
+        }
+
+        if (pdfSandbox) pdfSandbox.remove();
+        window.updateProgress(95, "Finalizing Document...");
+        pdf.save(`Top_10_Rankers_${examSel}_${sessionSel}.pdf`);
+        
+        if(window.hideProgress) window.hideProgress();
+        alert("Success! Perfect Clean Header Top 10 List generated.");
+
+    } catch (error) {
+        console.error("Top 10 PDF Gen Error:", error);
+        if (pdfSandbox) pdfSandbox.remove();
+        if(window.hideProgress) window.hideProgress();
+        alert("Error while rendering Top 10 List: " + error.message);
+    }
+};
 
 </script>
 
