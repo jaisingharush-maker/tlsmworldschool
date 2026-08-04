@@ -7087,66 +7087,59 @@ window.fetchCBTAnalysis = async () => {
     }
 };
 
-// ⌨️ DESKTOP KEYBOARD CONTROLS FOR CBT TEST ENGINE (RELIABLE & FAST)
-window.addEventListener('keydown', (e) => {
-    const quizModal = document.getElementById("quiz-modal");
-    
-    // Check agar quiz screen active nahi hai ya test submit ho chuka hai, to cancel kar do
-    if (!quizModal || quizModal.style.display === 'none' || quizModal.style.display === '' || typeof quizSubmitted === 'undefined' || quizSubmitted) {
-        return;
+// ⌨️ ULTIMATE BULLETPROOF DESKTOP KEYBOARD CONTROLS
+document.addEventListener('keydown', (e) => {
+    // Sirf tabhi aage badho jab test sach mein start ho chuka ho aur submit na hua ho
+    if (typeof quizStarted === 'undefined' || quizStarted === false || quizSubmitted === true) {
+        return; 
     }
 
+    // Agar candidate kisi input field (jaise Integer question) me type kar raha hai, to normal typing hone do
     const activeEl = document.activeElement;
-    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
-
-    // Integer Question Input handling
-    if (isTyping && activeEl.id === 'integer-ans') {
-        if (e.key === 'Enter') {
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        if (e.key === 'Enter' && activeEl.id === 'integer-ans') {
             e.preventDefault();
-            window.nextQuestion();
+            if(typeof window.nextQuestion === 'function') window.nextQuestion();
         }
-        return; // Typing ke time baki shortcuts block karo
+        return; 
     }
 
     const key = e.key.toUpperCase();
 
-    // 1. Next Question (Right Arrow / 'N')
+    // 1. Next Question (Right Arrow / N)
     if (e.key === 'ArrowRight' || key === 'N') {
         e.preventDefault();
-        const nextBtn = document.getElementById('next-q');
-        if (nextBtn && !nextBtn.classList.contains('hidden')) {
-            window.nextQuestion();
-        }
+        if(typeof window.nextQuestion === 'function') window.nextQuestion();
     }
-    // 2. Previous Question (Left Arrow / 'P')
+    // 2. Previous Question (Left Arrow / P)
     else if (e.key === 'ArrowLeft' || key === 'P') {
         e.preventDefault();
-        const prevBtn = document.getElementById('prev-q');
-        if (prevBtn && !prevBtn.classList.contains('hidden')) {
-            window.prevQuestion();
-        }
+        if(typeof window.prevQuestion === 'function') window.prevQuestion();
     }
-    // 3. Mark For Review ('M' / 'R')
+    // 3. Mark For Review (M / R)
     else if (key === 'M' || key === 'R') {
         e.preventDefault();
-        window.toggleReview();
+        if(typeof window.toggleReview === 'function') window.toggleReview();
     }
-    // 4. Select Options (A, B, C, D) ya (1, 2, 3, 4)
+    // 4. Select Option A (A / 1)
     else if (key === 'A' || key === '1') {
         e.preventDefault();
-        window.saveAns(0);
+        if(typeof window.saveAns === 'function') window.saveAns(0);
     }
+    // 5. Select Option B (B / 2)
     else if (key === 'B' || key === '2') {
         e.preventDefault();
-        window.saveAns(1);
+        if(typeof window.saveAns === 'function') window.saveAns(1);
     }
+    // 6. Select Option C (C / 3)
     else if (key === 'C' || key === '3') {
         e.preventDefault();
-        window.saveAns(2);
+        if(typeof window.saveAns === 'function') window.saveAns(2);
     }
+    // 7. Select Option D (D / 4)
     else if (key === 'D' || key === '4') {
         e.preventDefault();
-        window.saveAns(3);
+        if(typeof window.saveAns === 'function') window.saveAns(3);
     }
 });
 
