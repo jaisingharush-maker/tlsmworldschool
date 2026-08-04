@@ -4226,32 +4226,37 @@ window.saveDPP = async () => {
         if(rawText.trim().startsWith('[')) {
             questions = JSON.parse(rawText);
         } else {
-            // Smart Text Parser: Q., Q1., Q 1. sab handle karega
             let blocks = rawText.split(/Q\d*\s*\./i).filter(b => b.trim() !== '');
             blocks.forEach(block => {
                 let lines = block.split('\n').map(l => l.trim()).filter(l => l !== '');
-                if(lines.length < 3) return; // At least Question + Option + Ans hona chahiye
+                if(lines.length < 3) return; 
                 
-                let qText = lines[0]; let options = []; let ans = 0;
-                
+                let qText = lines[0]; 
+                let options = []; 
+                let ans = 0;
+                let imgUrl = ""; // 🚨 NAYA: Image URL store karne ke liye variable
+
                 lines.slice(1).forEach(line => {
                     if(line.match(/^[A-D]\s*\./i)) {
-                        // Options: A. ya B. etc extract karega
                         options.push(line.replace(/^[A-D]\s*\./i, '').trim());
                     }
                     else if(line.toLowerCase().startsWith('ans')) {
-                        // Answer: Ans. 1 ya Ans: 1 sab handle karega
                         let ansStr = line.replace(/[^0-9]/g, '');
                         if(ansStr !== '') ans = parseInt(ansStr);
                     }
+                    // 🚨 NAYA: Agar line 'Img.' ya 'Img:' se start hoti hai, to link nikal lo
+                    else if(line.toLowerCase().startsWith('img')) {
+                        imgUrl = line.replace(/^img[\.\:]?\s*/i, '').trim();
+                    }
                 });
-                questions.push({ q: qText, o: options, a: ans, type: 'mcq' });
+                
+                // 🚨 NAYA: Question array me imgUrl pass karna
+                questions.push({ q: qText, o: options, a: ans, type: 'mcq', img: imgUrl });
             });
         }
     } catch(e) { return alert("Formatting Error! Text format ko theek se check karein."); }
 
-    // Agar ek bhi question format nahi hua toh alert de dega
-    if(questions.length === 0) return alert("Warning: 0 Questions detected! Please check formatting. Format: Q. / A. / B. / Ans. 0");
+    if(questions.length === 0) return alert("Warning: 0 Questions detected! Please check formatting. Format: Q. / Img. / A. / Ans.");
 
     const id = editDppId || ("cbt_" + Date.now());  
     await setDoc(doc(db, "dpps", id), { 
@@ -4262,6 +4267,7 @@ window.saveDPP = async () => {
     editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE CBT TEST";  
     ['dpp-batch','dpp-title','cbt-time','cbt-endtime','dpp-data'].forEach(i=>document.getElementById(i).value="");  
 };
+
 
   
 window.saveBook = async () => {  
