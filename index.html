@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+    <!DOCTYPE html>  
 <html lang="en">  
 <head>    
 <meta charset="UTF-8">  
@@ -189,7 +189,23 @@
 
               <button onclick="window.fetchStudentResult()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-search mr-2"></i>Get Result</button>  
           </div>  
+          
+          <div id="cbt-analysis-input-box" class="glass !p-5 mt-4">
+          <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-2"><i class="fas fa-laptop-code mr-2 text-orange-600"></i>CBT Test Analysis</h2>
+          <p class="text-[10px] text-slate-500 mb-4">Enter your Scholar ID to view your past CBT tests detailed answer key and analysis.</p>
+          <div class="flex flex-col gap-2">
+              <input type="text" id="analysis-scholar-id" class="publisher-input !mb-0 text-center text-sm font-bold tracking-widest uppercase py-3" placeholder="ENTER SCHOLAR ID">
+              <button onclick="window.fetchCBTAnalysis()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-search mr-2"></i>Get Answer Key</button>
+          </div>
+      </div>
+      <div id="cbt-analysis-display-panel" class="hidden mt-4 space-y-4 w-full"></div>
+      ```
+
+          
       </div>  
+      
+      
+      
       <div id="result-display-panel" class="hidden bg-white text-black rounded-3xl p-4 border border-slate-200 shadow-2xl overflow-x-auto"></div>  
       <button id="download-btn" onclick="downloadResult()" class="mt-3 bg-orange-600 text-white px-5 py-2 rounded-xl font-bold text-xs w-full max-w-xl mx-auto hidden md:block">📥 Download Result</button>  
       
@@ -260,13 +276,28 @@
             <input id="lec-notes" class="publisher-input" placeholder="Notes Link">  
             <button id="lec-save-btn" onclick="saveLecture()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE LECTURE</button>  
         </div>  
-        <div class="glass !p-4">  
-            <p class="text-[9px] font-black text-red-600 mb-2 uppercase">Publish DPP Quiz</p>  
-            <input id="dpp-batch" class="publisher-input" placeholder="Batch ID">  
-            <input id="dpp-title" class="publisher-input" placeholder="DPP Title">  
-            <textarea id="dpp-data" class="publisher-input h-20" placeholder='JSON Questions'></textarea>  
-            <button id="dpp-save-btn" onclick="saveDPP()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE DPP</button>  
-        </div>  
+       <div class="glass !p-4">  
+    <p class="text-[9px] font-black text-red-600 mb-2 uppercase">Publish CBT Test / DPP</p>  
+    <input id="dpp-batch" class="publisher-input" placeholder="Batch ID (e.g. UDAAN 2027)">  
+    <input id="dpp-title" class="publisher-input" placeholder="Test Title">  
+    
+    <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+            <label class="text-[9px] font-bold text-slate-500">Time Limit (Mins)</label>
+            <input type="number" id="cbt-time" class="publisher-input !m-0" placeholder="e.g. 30">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold text-slate-500">Test End Date & Time</label>
+            <input type="datetime-local" id="cbt-endtime" class="publisher-input !m-0">
+        </div>
+    </div>
+
+    <label class="text-[9px] font-bold text-slate-500">Questions (Normal Text Format)</label>
+    <p class="text-[8px] text-slate-400 mb-1">Format: Q. Question \n A. Opt1 \n B. Opt2 \n Ans. 0 (Index)</p>
+    <textarea id="dpp-data" class="publisher-input h-32" placeholder="Q. What is 2+2?&#10;A. 3&#10;B. 4&#10;Ans. 1"></textarea>  
+    <button id="dpp-save-btn" onclick="saveDPP()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE CBT TEST</button>  
+</div>
+
         <div class="glass !p-4">  
             <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Publish Book</p>  
             <input id="book-title" class="publisher-input" placeholder="Book Title">  
@@ -427,6 +458,8 @@
                     <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="er-mother" class="publisher-input !mb-0"></div>
                     <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="er-dob" class="publisher-input !mb-0" placeholder="DD/MM/YYYY"></div>
                     <div><label class="text-[9px] font-bold text-slate-500 ml-1">Days Present</label><input type="text" id="er-days" class="publisher-input !mb-0" placeholder="e.g. 200/220"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Photo URL</label><input type="text" id="er-photo" class="publisher-input !mb-0" placeholder="Direct Photo Link"></div>
+
                     <div>
                         <label class="text-[9px] font-bold text-slate-500 ml-1">Fee Due (Block Result?)</label>
                         <select id="er-fee" class="publisher-input !mb-0 font-bold bg-white">
@@ -788,18 +821,102 @@
     <div id="modal-content" class="flex-1 relative bg-black overflow-hidden"></div>  
 </div>  
 
-<div id="quiz-modal" class="fs-modal !bg-white">  
-    <div class="p-4 bg-slate-100 text-slate-900 flex justify-between items-center border-b border-slate-200">  
-        <span id="quiz-title" class="text-[10px] font-bold uppercase">Test</span>  
-        <button onclick="closeQuiz()"><i class="fas fa-times"></i></button>  
+<div id="cbt-details-modal" class="fs-modal !bg-slate-900/60 justify-center items-center p-4" style="z-index: 6000;">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl mx-auto mt-20">
+        <h2 class="text-lg font-black text-slate-900 uppercase mb-1">CBT Registration</h2>
+        <p class="text-[10px] text-slate-500 mb-4 font-bold">Please verify your details before starting.</p>
+        
+        <input type="text" id="cbt-cand-name" class="publisher-input mb-2 font-bold" placeholder="Candidate Name">
+        <input type="text" id="cbt-cand-roll" class="publisher-input mb-2 font-bold" placeholder="Roll No">
+        <input type="text" id="cbt-cand-scholar" class="publisher-input mb-4 font-bold" placeholder="Scholar ID">
+        
+        <button onclick="window.beginCBTTest()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg hover:bg-orange-700 transition-all">Save Details & Start Test</button>
+    </div>
+</div>
+
+<div id="cbt-instructions-modal" class="fs-modal !bg-slate-900/60 justify-center items-center p-4" style="z-index: 6500; display: none;">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl mx-auto my-auto max-h-[90vh] flex flex-col">
+        
+        <div class="border-b border-slate-200 pb-3 mb-3">
+            <h2 class="text-lg font-black text-slate-900 uppercase">General Instructions</h2>
+            <p class="text-[10px] text-slate-500 font-bold">Read the instructions carefully before starting the test.</p>
+        </div>
+
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2 text-xs text-slate-700 font-medium mb-4">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <p class="font-bold text-slate-900 mb-1">📌 Important Rules:</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px]">
+                    <li>Ensure you have a stable internet connection.</li>
+                    <li>The clock/timer will be set at the top right corner.</li>
+                    <li>When the timer reaches zero, the test will be <b>automatically submitted</b>.</li>
+                    <li>Do not refresh the page or close the browser during the test.</li>
+                    <li>Rank will be decided based on Score & Time Taken.</li>
+                    
+                <li><b>Next Question:</b> Arrow Right (➡️) ya 'N'</li>
+        <li><b>Prev Question:</b> Arrow Left (⬅️) ya 'P'</li>
+        <li><b>Select Option A/B/C/D:</b> Keys 'A', 'B', 'C', 'D' ya '1', '2', '3', '4'</li>
+        <li><b>Mark for Review:</b> 'M' ya 'R' Key</li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-200 pt-4">
+            <label class="flex items-center gap-2 mb-4 cursor-pointer">
+                <input type="checkbox" id="cbt-agree-check" onchange="window.toggleStartTestBtn()" class="w-4 h-4 accent-orange-600">
+                <span class="text-[11px] font-bold text-slate-800">I have read and understood all the instructions.</span>
+            </label>
+
+            <button id="btn-real-start-test" onclick="window.launchActualTest()" disabled class="w-full bg-slate-300 text-slate-500 py-3 rounded-xl font-black text-xs uppercase shadow transition-all cursor-not-allowed">
+                Start Test
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div id="quiz-modal" class="fs-modal !bg-white flex-col h-screen">  
+    <div class="p-4 bg-slate-100 text-slate-900 flex justify-between items-center border-b border-slate-200 shrink-0">  
+        <span id="quiz-title" class="text-[10px] font-bold uppercase truncate max-w-[45%]">Test</span>  
+        
+        <div id="cbt-timer-display" class="hidden items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full font-black text-[11px] animate-pulse">
+            <i class="fas fa-clock"></i> <span id="cbt-time-left">00:00</span>
+        </div>
+        <button onclick="closeQuiz()"><i class="fas fa-times text-lg"></i></button>  
     </div>  
-    <div id="quiz-screen" class="p-6 overflow-y-auto max-w-2xl mx-auto w-full"></div>  
-    <div id="quiz-footer" class="p-4 border-t border-slate-200 mt-auto flex justify-between bg-slate-50">  
-        <button id="prev-q" class="bg-white border border-slate-300 px-4 py-2 rounded-xl text-[10px] font-bold text-slate-900 hidden shadow-sm">PREV</button>  
-        <button id="next-q" class="bg-orange-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold ml-auto shadow-lg">NEXT</button>  
-        <button id="submit-q" class="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold hidden ml-auto shadow-lg">SUBMIT</button>  
-    </div>  
-</div>  
+
+    <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+        
+        <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
+            <div id="quiz-screen" class="p-6 overflow-y-auto max-w-2xl mx-auto w-full flex-1 pb-20 md:pb-6"></div>  
+            
+            <div id="quiz-footer" class="p-4 border-t border-slate-200 mt-auto flex flex-wrap gap-2 justify-between bg-slate-50 shrink-0 w-full">  
+                </div>
+        </div>
+
+        <div class="w-full md:w-72 bg-slate-50 flex flex-col h-48 md:h-full shrink-0 border-t md:border-t-0 border-slate-200">
+            <div class="p-3 border-b border-slate-200 bg-white font-black text-[10px] uppercase text-slate-800 flex justify-between items-center cursor-pointer md:cursor-default" onclick="document.getElementById('palette-container').classList.toggle('hidden')">
+                <span>Question Palette</span>
+                <i class="fas fa-th md:hidden text-slate-400"></i>
+            </div>
+            
+            <div id="palette-container" class="flex-1 flex flex-col overflow-hidden hidden md:flex">
+                <div id="question-palette" class="p-4 grid grid-cols-5 gap-2 overflow-y-auto flex-1 content-start">
+                    </div>
+                
+                <div class="p-3 border-t border-slate-200 bg-white text-[9px] font-bold text-slate-600 flex flex-col gap-1.5 shrink-0">
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-green-500 shadow-inner"></span> Answered</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-red-500 shadow-inner"></span> Not Answered</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-purple-500 shadow-inner"></span> Marked for Review</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-slate-200 border border-slate-300"></span> Not Visited</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script type="module">  
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";  
@@ -821,6 +938,12 @@ window.closeMobileMenu = () => {
         nav.classList.remove('flex');
     }
 };
+
+window.getSafeMark = function(val) {
+    if (val === 'AB' || val === 'ABS') return 0;
+    return Number(val || 0);
+};
+
   
 window.getGrade = function(percent) {  
     if (percent >= 91) return "A1";  
@@ -1490,15 +1613,15 @@ window.fetchStudentResult = async () => {
 
                 if (snap1.exists()) {
                     let s = typeof snap1.data().subjects_json === "string" ? JSON.parse(snap1.data().subjects_json) : snap1.data().subjects_json;
-                    if(Array.isArray(s)) s.forEach(sub => examTotals["PMT"][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0));
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["PMT"][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0));
                 }
                 if (snap2.exists() && examType === "ANNUAL") {
                     let s = typeof snap2.data().subjects_json === "string" ? JSON.parse(snap2.data().subjects_json) : snap2.data().subjects_json;
-                    if(Array.isArray(s)) s.forEach(sub => examTotals["MT"][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)));
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["MT"][sanitizeSub(sub.name)] = (sub.theory !== undefined ? sub.theory : (sub.total || 0)));
                 }
                 if (snap3.exists() && examType === "ANNUAL") {
                     let s = typeof snap3.data().subjects_json === "string" ? JSON.parse(snap3.data().subjects_json) : snap3.data().subjects_json;
-                    if(Array.isArray(s)) s.forEach(sub => examTotals["PAT"][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0));
+                    if(Array.isArray(s)) s.forEach(sub => examTotals["PAT"][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0));
                 }
             } catch(e) { console.error("Error fetching prev exams:", e); }
         }
@@ -1513,10 +1636,12 @@ window.fetchStudentResult = async () => {
                 let pmt = examTotals["PMT"][subName] !== undefined ? examTotals["PMT"][subName] : '---';
                 let mt = examTotals["MT"][subName] !== undefined ? examTotals["MT"][subName] : '---';
                 let pat = examTotals["PAT"][subName] !== undefined ? examTotals["PAT"][subName] : '---';
-                let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0); 
+                let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0); 
                 
-                let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
-                let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0; 
+                let mtVal = (mt !== '---') ? window.getSafeMark(mt) : 0;
+                let patVal = (pat !== '---') ? window.getSafeMark(pat) : 0; 
+                let annualVal = (annual !== '---') ? window.getSafeMark(annual) : 0;
                 let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
                 
                 totalMarks += avg; maxMarks += calculatedMax;
@@ -1535,10 +1660,11 @@ window.fetchStudentResult = async () => {
                 </tr>`;
             } else if (examType === "HALF_YEARLY") {
                 let pmt = examTotals["PMT"][subName] !== undefined ? examTotals["PMT"][subName] : '---';
-                let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
                 
-                let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
-                let calculatedTotal = mt + pmtVal;
+                let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0;
+                let mtVal = window.getSafeMark(mt);
+                let calculatedTotal = mtVal + pmtVal;
                 
                 totalMarks += calculatedTotal; maxMarks += calculatedMax;
                 let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;
@@ -1555,8 +1681,8 @@ window.fetchStudentResult = async () => {
                 </tr>`;
             } else {
                 let calculatedTotal = 0;
-                if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                else calculatedTotal = Number(sub.total || 0);
+                if (isClass9or10) calculatedTotal = window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                else calculatedTotal = window.getSafeMark(sub.total || 0);
                 
                 totalMarks += calculatedTotal; maxMarks += calculatedMax;
                 let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0;  
@@ -1595,9 +1721,9 @@ window.fetchStudentResult = async () => {
                 
                 const [snapP, snapM, snapPa] = await Promise.all([getDocs(qPmtClass), getDocs(qMtClass), getDocs(qPatClass)]);
 
-                snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
-                snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
-                snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
+                snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = (sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
             }
 
             classSnap.forEach(docSnap => {  
@@ -1613,20 +1739,20 @@ window.fetchStudentResult = async () => {
                         let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
                         let mt = (allMt[sid] && allMt[sid][subName] !== undefined) ? allMt[sid][subName] : 0;
                         let pat = (allPat[sid] && allPat[sid][subName] !== undefined) ? allPat[sid][subName] : 0;
-                        let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
-                        sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                        let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                        sTotal += Math.round((window.getSafeMark(pmt) + window.getSafeMark(mt) + window.getSafeMark(pat) + window.getSafeMark(annual)) / 2);
                     });
                 } else if (examType === "HALF_YEARLY") {
                     sSubs.forEach(sub => {
                         let subName = sanitizeSub(sub.name);
                         let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
-                        let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                        sTotal += (pmt + mt);
+                        let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                        sTotal += (window.getSafeMark(pmt) + window.getSafeMark(mt));
                     });
                 } else {
                     sSubs.forEach(sub => {
-                        if (isClass9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                        else sTotal += Number(sub.total || 0);
+                        if (isClass9or10) sTotal += window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                        else sTotal += window.getSafeMark(sub.total || 0);
                     });  
                 }
                 classStudents.push({ scholar_id: sid, totalMarks: sTotal });  
@@ -1663,7 +1789,6 @@ window.fetchStudentResult = async () => {
 
         let pracHeaderHtml = hidePracColumn ? '' : `<th class="p-2 border border-blue-900">${pracHeader}</th>`;
 
-        // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
         let graphHtml = examType === "ANNUAL" ? `
         <div class="border border-blue-900 bg-white rounded-2xl p-3 mb-4">
             <p class="text-[9px] sm:text-[10px] font-black text-blue-900 uppercase mb-2 tracking-wide"><i class="fas fa-chart-bar mr-1"></i>Analysis</p>
@@ -1671,15 +1796,19 @@ window.fetchStudentResult = async () => {
         </div>
         ` : '';
 
-        // 🔥 FETCH PHOTO FROM Master Data LOGIC FOR ONLINE VIEW 🔥
+        // UPDATED PHOTO PRIORITY LOGIC
         let photoHtml = `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
-        try {
-            const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
-            let pMasterSnap = await getDoc(doc(db, "students_master", `${schoolNameSafe}_${currentScholarId}_${displayAcademicYear}`));
-            if (pMasterSnap.exists() && pMasterSnap.data().photo_url) {
-                photoHtml = `<img src="${pMasterSnap.data().photo_url}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">`;
-            }
-        } catch(e) { console.warn("Online view photo load error:", e); }
+        if (data.photo_url && data.photo_url.trim() !== "") {
+            photoHtml = `<img src="${data.photo_url}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">`;
+        } else {
+            try {
+                const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
+                let pMasterSnap = await getDoc(doc(db, "students_master", `${schoolNameSafe}_${currentScholarId}_${displayAcademicYear}`));
+                if (pMasterSnap.exists() && pMasterSnap.data().photo_url) {
+                    photoHtml = `<img src="${pMasterSnap.data().photo_url}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">`;
+                }
+            } catch(e) { console.warn("Online view photo load error:", e); }
+        }
 
         targetPanel.innerHTML = `  
          <div class="border-4 border-blue-900 p-3 sm:p-4 bg-slate-50 relative">  
@@ -1788,7 +1917,6 @@ window.fetchStudentResult = async () => {
 
 
 window.printBulkClassResults = async () => {
-    
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
         return;
@@ -1807,7 +1935,8 @@ window.printBulkClassResults = async () => {
         if(n === 'IT/COM') return 'IT/COMP'; return n;
     };
 
-    let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"] || "https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png";
+    // Sirf principal ka signature fetch hoga
+    let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
     let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
     let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
 
@@ -1824,9 +1953,9 @@ window.printBulkClassResults = async () => {
                 const qPat = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", "PAT"), where("academic_year", "==", academicYear));
                 const [snapPmt, snapMt, snapPat] = await Promise.all([getDocs(qPmt), getDocs(qMt), getDocs(qPat)]);
 
-                snapPmt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmtData[sid]) allPmtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
-                snapMt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMtData[sid]) allMtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
-                snapPat.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPatData[sid]) allPatData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = isClass9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                snapPmt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmtData[sid]) allPmtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
+                snapMt.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMtData[sid]) allMtData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = (sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                snapPat.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPatData[sid]) allPatData[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = isClass9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
             } catch(e) { console.error(e); }
         }
 
@@ -1857,20 +1986,20 @@ window.printBulkClassResults = async () => {
                     let pmt = (allPmtData[sid] && allPmtData[sid][subName] !== undefined) ? allPmtData[sid][subName] : 0;
                     let mt = (allMtData[sid] && allMtData[sid][subName] !== undefined) ? allMtData[sid][subName] : 0;
                     let pat = (allPatData[sid] && allPatData[sid][subName] !== undefined) ? allPatData[sid][subName] : 0;
-                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
-                    sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                    let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                    sTotal += Math.round((window.getSafeMark(pmt) + window.getSafeMark(mt) + window.getSafeMark(pat) + window.getSafeMark(annual)) / 2);
                 });
             } else if (examType === "HALF_YEARLY") {
                 sSubs.forEach(sub => {
                     let subName = sanitizeSub(sub.name);
                     let pmt = (allPmtData[sid] && allPmtData[sid][subName] !== undefined) ? allPmtData[sid][subName] : 0;
-                    let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                    sTotal += (pmt + mt);
+                    let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                    sTotal += (window.getSafeMark(pmt) + window.getSafeMark(mt));
                 });
             } else {
                 sSubs.forEach(sub => {
-                    if (isClass9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                    else sTotal += Number(sub.total || 0);
+                    if (isClass9or10) sTotal += window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else sTotal += window.getSafeMark(sub.total || 0);
                 });
             }
             classStudents.push({ ...sData, totalMarks: sTotal });
@@ -1924,10 +2053,12 @@ window.printBulkClassResults = async () => {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
                     let mt = (allMtData[scholarStr] && allMtData[scholarStr][subName] !== undefined) ? allMtData[scholarStr][subName] : '---';
                     let pat = (allPatData[scholarStr] && allPatData[scholarStr][subName] !== undefined) ? allPatData[scholarStr][subName] : '---';
-                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0);
                     
-                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
-                    let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                    let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0; 
+                    let mtVal = (mt !== '---') ? window.getSafeMark(mt) : 0;
+                    let patVal = (pat !== '---') ? window.getSafeMark(pat) : 0; 
+                    let annualVal = (annual !== '---') ? window.getSafeMark(annual) : 0;
                     let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
                     
                     totalMarks += avg; maxMarks += calculatedMax;
@@ -1942,10 +2073,11 @@ window.printBulkClassResults = async () => {
                     </tr>`;
                 } else if (examType === "HALF_YEARLY") {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
-                    let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
                     
-                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
-                    let calculatedTotal = mt + pmtVal;
+                    let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0;
+                    let mtVal = window.getSafeMark(mt);
+                    let calculatedTotal = mtVal + pmtVal;
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
@@ -1960,8 +2092,8 @@ window.printBulkClassResults = async () => {
                     </tr>`;
                 } else {
                     let calculatedTotal = 0;
-                    if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                    else calculatedTotal = Number(sub.total || 0);
+                    if (isClass9or10) calculatedTotal = window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else calculatedTotal = window.getSafeMark(sub.total || 0);
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
@@ -1984,12 +2116,13 @@ window.printBulkClassResults = async () => {
             let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
             let uniqueChartId = `bulk-chart-${Date.now()}-${idx}`;
 
-            let photoUrl = photoMap[scholarStr];
+            // UPDATED PHOTO PRIORITY LOGIC
+            let photoUrl = data.photo_url || photoMap[scholarStr];
+            
             let photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
                 : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
 
-            // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
             let graphHtml = examType === "ANNUAL" ? `
             <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
                 <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
@@ -2067,12 +2200,13 @@ window.printBulkClassResults = async () => {
                     <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
                         <div style="text-align: center; width: 140px;">
                             <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                ${teacherSignUrl !== classTeacherSignatures["DEFAULT"] ? `<img src="${teacherSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
-                            </div>
+                                </div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
                         </div>
                         <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px;"></div>
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
+                                ${principalSignUrl ? `<img src="${principalSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
+                            </div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
                         </div>
                     </div>
@@ -2084,7 +2218,6 @@ window.printBulkClassResults = async () => {
                 </div>
             `;
 
-            // 🔥 FIX APPLIED HERE: Only initialize chart if ANNUAL exam 🔥
             if (examType === 'ANNUAL') {
                 let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
                 let canvasEl = document.getElementById(uniqueChartId);
@@ -2118,15 +2251,13 @@ window.printBulkClassResults = async () => {
     } catch(err) { console.error(err); window.hideProgress(); alert("An extraction processing fault occurred: " + err.message); }
 };
 
+
+
 window.printSpecificStudentResults = async () => {
-    
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
         return;
     }
-
-    
-    
 
     const inputIds = document.getElementById("admin-print-specific-results-ids").value.trim().toUpperCase();
     const examType = document.getElementById("admin-print-specific-results-exam").value;
@@ -2189,9 +2320,9 @@ window.printSpecificStudentResults = async () => {
                     
                     const [snapP, snapM, snapPa] = await Promise.all([getDocs(qP), getDocs(qM), getDocs(qPa)]);
 
-                    snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
-                    snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
-                    snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); });
+                    snapP.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPmt[sid]) allPmt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPmt[sid][sanitizeSub(sub.name)] = is9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
+                    snapM.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allMt[sid]) allMt[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allMt[sid][sanitizeSub(sub.name)] = (sub.theory !== undefined ? sub.theory : (sub.total || 0))); });
+                    snapPa.forEach(doc => { let d = doc.data(); let s = typeof d.subjects_json === "string" ? JSON.parse(d.subjects_json) : d.subjects_json; let sid = (d.scholar_id || '').toString().trim().toUpperCase(); if(!allPat[sid]) allPat[sid] = {}; if(Array.isArray(s)) s.forEach(sub => allPat[sid][sanitizeSub(sub.name)] = is9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); });
                 }
 
                 let classStudentsTemp = [];
@@ -2208,20 +2339,20 @@ window.printSpecificStudentResults = async () => {
                             let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
                             let mt = (allMt[sid] && allMt[sid][subName] !== undefined) ? allMt[sid][subName] : 0;
                             let pat = (allPat[sid] && allPat[sid][subName] !== undefined) ? allPat[sid][subName] : 0;
-                            let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
-                            sTotal += Math.round((pmt + mt + pat + annual) / 2);
+                            let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                            sTotal += Math.round((window.getSafeMark(pmt) + window.getSafeMark(mt) + window.getSafeMark(pat) + window.getSafeMark(annual)) / 2);
                         });
                     } else if (examType === "HALF_YEARLY") {
                         sSubs.forEach(sub => {
                             let subName = sanitizeSub(sub.name);
                             let pmt = (allPmt[sid] && allPmt[sid][subName] !== undefined) ? allPmt[sid][subName] : 0;
-                            let mt = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                            sTotal += (pmt + mt);
+                            let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
+                            sTotal += (window.getSafeMark(pmt) + window.getSafeMark(mt));
                         });
                     } else {
                         sSubs.forEach(sub => { 
-                            if (is9or10) sTotal += Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                            else sTotal += Number(sub.total || 0);
+                            if (is9or10) sTotal += window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                            else sTotal += window.getSafeMark(sub.total || 0);
                         });
                     }
                     classStudentsTemp.push({ scholar_id: sid, totalMarks: sTotal });
@@ -2253,9 +2384,9 @@ window.printSpecificStudentResults = async () => {
 
                     allPmtData[sid] = {}; allMtData[sid] = {}; allPatData[sid] = {};
 
-                    if(snapPmt.exists()) { let s = typeof snapPmt.data().subjects_json === "string" ? JSON.parse(snapPmt.data().subjects_json) : snapPmt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); }
-                    if(snapMt.exists()) { let s = typeof snapMt.data().subjects_json === "string" ? JSON.parse(snapMt.data().subjects_json) : snapMt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0))); }
-                    if(snapPat.exists()) { let s = typeof snapPat.data().subjects_json === "string" ? JSON.parse(snapPat.data().subjects_json) : snapPat.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = is9or10 ? Number(sub.theory !== undefined ? sub.theory : (sub.total || 0)) : Number(sub.total || 0)); }
+                    if(snapPmt.exists()) { let s = typeof snapPmt.data().subjects_json === "string" ? JSON.parse(snapPmt.data().subjects_json) : snapPmt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPmtData[sid][sanitizeSub(sub.name)] = is9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); }
+                    if(snapMt.exists()) { let s = typeof snapMt.data().subjects_json === "string" ? JSON.parse(snapMt.data().subjects_json) : snapMt.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allMtData[sid][sanitizeSub(sub.name)] = (sub.theory !== undefined ? sub.theory : (sub.total || 0))); }
+                    if(snapPat.exists()) { let s = typeof snapPat.data().subjects_json === "string" ? JSON.parse(snapPat.data().subjects_json) : snapPat.data().subjects_json; if(Array.isArray(s)) s.forEach(sub => allPatData[sid][sanitizeSub(sub.name)] = is9or10 ? (sub.theory !== undefined ? sub.theory : (sub.total || 0)) : (sub.total || 0)); }
                 } catch(e) { console.error(e); }
             }
         }
@@ -2287,7 +2418,8 @@ window.printSpecificStudentResults = async () => {
             const percent = Math.round((((idx + 1) / selectedStudents.length) * 50) + 50);
             window.updateProgress(percent, `Rendering Card Layer ${idx + 1} of ${selectedStudents.length}`);
 
-            let teacherSignUrl = classTeacherSignatures[targetClass] || classTeacherSignatures["DEFAULT"];
+            // Sirf principal ka signature fetch hoga
+            let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
             let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
             let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
 
@@ -2310,10 +2442,12 @@ window.printSpecificStudentResults = async () => {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
                     let mt = (allMtData[scholarStr] && allMtData[scholarStr][subName] !== undefined) ? allMtData[scholarStr][subName] : '---';
                     let pat = (allPatData[scholarStr] && allPatData[scholarStr][subName] !== undefined) ? allPatData[scholarStr][subName] : '---';
-                    let annual = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    let annual = sub.theory !== undefined ? sub.theory : (sub.total || 0);
                     
-                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0; let mtVal = (mt !== '---') ? Number(mt) : 0;
-                    let patVal = (pat !== '---') ? Number(pat) : 0; let annualVal = (annual !== '---') ? Number(annual) : 0;
+                    let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0; 
+                    let mtVal = (mt !== '---') ? window.getSafeMark(mt) : 0;
+                    let patVal = (pat !== '---') ? window.getSafeMark(pat) : 0; 
+                    let annualVal = (annual !== '---') ? window.getSafeMark(annual) : 0;
                     let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
                     
                     totalMarks += avg; maxMarks += calculatedMax;
@@ -2329,10 +2463,11 @@ window.printSpecificStudentResults = async () => {
                     </tr>`;
                 } else if (examType === "HALF_YEARLY") {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
-                    let mt = sub.theory !== undefined ? Number(sub.theory) : Number(sub.total || 0);
+                    let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
                     
-                    let pmtVal = (pmt !== '---') ? Number(pmt) : 0;
-                    let calculatedTotal = mt + pmtVal;
+                    let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0;
+                    let mtVal = window.getSafeMark(mt);
+                    let calculatedTotal = mtVal + pmtVal;
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
@@ -2348,8 +2483,8 @@ window.printSpecificStudentResults = async () => {
                     </tr>`;
                 } else {
                     let calculatedTotal = 0;
-                    if (isClass9or10) calculatedTotal = Number(sub.theory !== undefined ? sub.theory : (sub.total || 0));
-                    else calculatedTotal = Number(sub.total || 0);
+                    if (isClass9or10) calculatedTotal = window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
+                    else calculatedTotal = window.getSafeMark(sub.total || 0);
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
@@ -2373,12 +2508,13 @@ window.printSpecificStudentResults = async () => {
             let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
             let uniqueChartId = `bulk-specific-chart-${Date.now()}-${idx}`;
 
-            let photoUrl = photoMap[scholarStr];
+            // UPDATED PHOTO PRIORITY LOGIC
+            let photoUrl = data.photo_url || photoMap[scholarStr];
+            
             let photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
                 : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
 
-            // 🔥 ONLY ANNUAL EXAM GETS THE GRAPH 🔥
             let graphHtml = examType === "ANNUAL" ? `
             <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
                 <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
@@ -2456,12 +2592,13 @@ window.printSpecificStudentResults = async () => {
                     <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
                         <div style="text-align: center; width: 140px;">
                             <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                ${teacherSignUrl !== classTeacherSignatures["DEFAULT"] ? `<img src="${teacherSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
-                            </div>
+                                </div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
                         </div>
                         <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px;"></div>
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
+                                ${principalSignUrl ? `<img src="${principalSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
+                            </div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
                         </div>
                     </div>
@@ -2473,7 +2610,6 @@ window.printSpecificStudentResults = async () => {
                 </div>
             `;
 
-            // 🔥 FIX APPLIED HERE: Only initialize chart if ANNUAL exam 🔥
             if (examType === 'ANNUAL') {
                 let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
                 let canvasEl = document.getElementById(uniqueChartId);
@@ -2509,10 +2645,6 @@ window.printSpecificStudentResults = async () => {
     }
 };
 
-
-
-
-  
 window.processExcelUpload = () => {  
     if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
 
@@ -2552,12 +2684,10 @@ window.processExcelUpload = () => {
                 let scholarIdRaw = row.scholar_id ? row.scholar_id.toString().trim().toUpperCase() : null;  
                 if(!scholarIdRaw) continue;  
                   
-                // 🚀 SMART AUTOMATIC IDENTIFIER FROM EXCEL ROWS
                 let excelClass = row.class ? row.class.toString().trim().toUpperCase() : "N/A";
                 let excelSection = row.section ? row.section.toString().trim().toUpperCase() : "A";
                 let excelSchool = row.school || row.school_name || currentSchoolName;
 
-                // 🚀 BUG FIXED HERE: Ab result exact purane format me save hoga, taaki app use asani se dhoondh sake
                 let uniqueDocId = `${scholarIdRaw}_${selectedExamType}_${selectedAcademicYear}`;  
                 
                 let subjects = [];  
@@ -2565,33 +2695,47 @@ window.processExcelUpload = () => {
                 let detectedSubjects = {};  
   
                 allColumns.forEach(col => {  
-                    const skipFields = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "school", "result_status", "fee_due", "section", "days_present", "school_name"];  
+                    const skipFields = ["scholar_id", "roll_no", "name", "mother", "father", "dob", "class", "school", "result_status", "fee_due", "section", "days_present", "school_name", "photo_url"];  
+
                     if(skipFields.includes(col.toLowerCase())) return;  
   
                     const cleanCol = col.toUpperCase().trim();  
+                    
+                    // 🔥 YAHAN EXCEL SE 'AB' READ KARNE KA LOGIC LAGA HAI 🔥
+                    let rawVal = row[col];
+                    let strVal = String(rawVal).trim().toUpperCase();
+                    let parsedVal = (strVal === 'AB' || strVal === 'ABS') ? 'AB' : Number(rawVal || 0);
+
                     if(cleanCol.endsWith("_TH") || cleanCol.endsWith("_THEORY")) {  
                         let subjectName = cleanCol.replace("_TH", "").replace("_THEORY", "");  
                         if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {};  
-                        detectedSubjects[subjectName].theory = Number(row[col] || 0);  
+                        detectedSubjects[subjectName].theory = parsedVal;  
                     }  
                     else if(cleanCol.endsWith("_PR") || cleanCol.endsWith("_PRACTICAL") || cleanCol.endsWith("_IA")) {  
                         let subjectName = cleanCol.replace("_PR", "").replace("_PRACTICAL", "").replace("_IA", "");  
                         if(!detectedSubjects[subjectName]) detectedSubjects[subjectName] = {};  
-                        detectedSubjects[subjectName].practical = Number(row[col] || 0);  
+                        detectedSubjects[subjectName].practical = parsedVal;  
                     }  
                 });  
   
                 Object.keys(detectedSubjects).forEach((sub, index) => {  
-                    const theory = detectedSubjects[sub].theory || 0;  
-                    const practical = detectedSubjects[sub].practical || 0;  
-                    if(theory === 0 && practical === 0) return;  
+                    const theory = detectedSubjects[sub].theory !== undefined ? detectedSubjects[sub].theory : 0;  
+                    const practical = detectedSubjects[sub].practical !== undefined ? detectedSubjects[sub].practical : 0;  
+                    
+                    // Ignore completely empty subjects, but DO NOT ignore if student is 'AB'
+                    if(theory === 0 && practical === 0 && theory !== 'AB' && practical !== 'AB') return;  
   
-                    const totalSubjectMarks = theory + practical;  
+                    // Safe math calculation for Grade & Percentage
+                    let thNum = (theory === 'AB') ? 0 : Number(theory);
+                    let prNum = (practical === 'AB') ? 0 : Number(practical);
+                    const totalSubjectMarks = thNum + prNum;  
+                    
                     let customFullMarks = row[`FULL_${sub}`] || row[`FULL_${sub}_MARKS`] || 100;  
                     let autoCode = window.getSubjectCode(sub, (100 + index).toString());  
                     let subPercent = (totalSubjectMarks / Number(customFullMarks)) * 100;  
                     let grade = window.getGrade(subPercent);  
   
+                    // Push to final array (keeping 'AB' string intact for database)
                     subjects.push({ code: autoCode, name: sub, theory: theory, practical: practical, total: totalSubjectMarks, fullMarks: Number(customFullMarks), grade: grade });  
                 });  
   
@@ -2612,7 +2756,9 @@ window.processExcelUpload = () => {
                     result_status: row.result_status || "PASS",  
                     fee_due: row.fee_due === true || row.fee_due === "TRUE",  
                     days_present: row.days_present !== undefined ? row.days_present : 0,
-                    updatedAt: new Date()
+photo_url: row.photo_url || row.Photo_URL || "",
+updatedAt: new Date()
+
                 };  
                   
                 await setDoc(doc(db, "school_results", uniqueDocId), processedPayload, { merge: true });  
@@ -3436,6 +3582,267 @@ window.downloadMasterDataCSV = async () => {
     }
 };
 
+// 🚨 YE 6 LINES SABSE IMPORTANT HAIN (VARIABLES DECLARATION) 🚨
+let quizData = [];
+let reviewStatus = []; 
+let visitedStatus = [];
+let currentQ = 0;
+let userAnswers = [];
+let cbtTimerInterval; 
+let activeCBTData = null;
+let activeDPPId = null;
+
+
+window.startQuiz = (dppId) => {
+    activeDPPId = dppId;
+    activeCBTData = currentDPPs.find(d => d.id === dppId);
+    
+    // Check if test has ended
+    if (activeCBTData.endTime && new Date() > new Date(activeCBTData.endTime)) {
+        return alert("This test has officially ended and is no longer accepting submissions.");
+    }
+
+    // Modal open and auto-fill names
+    document.getElementById("cbt-cand-name").value = auth.currentUser.displayName || "";
+    document.getElementById("cbt-cand-roll").value = "";
+    document.getElementById("cbt-cand-scholar").value = "";
+    document.getElementById("cbt-details-modal").style.display = "flex";
+};
+
+window.beginCBTTest = async () => {
+    const cName = document.getElementById("cbt-cand-name").value.trim();
+    const cRoll = document.getElementById("cbt-cand-roll").value.trim();
+    const cScholar = document.getElementById("cbt-cand-scholar").value.trim();
+
+    if(!cName || !cRoll || !cScholar) return alert("All fields are mandatory to begin CBT.");
+
+    if(window.showProgress) window.showProgress("Verifying Details...");
+    try {
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const db = fs.getFirestore(appMod.getApp());
+
+        const submissionId = activeDPPId + "_" + (cScholar || cRoll);
+        const docSnap = await fs.getDoc(fs.doc(db, "user_submissions", submissionId));
+
+        if (docSnap.exists()) {
+            if(window.hideProgress) window.hideProgress();
+            return alert("❌ FRAUD ALERT: Ye student already test submit kar chuka hai!");
+        }
+    } catch(e) { console.log("Verification error", e); }
+    if(window.hideProgress) window.hideProgress();
+    
+    window.currentCandidateDetails = { name: cName, roll: cRoll, scholar: cScholar };
+    
+    // Details modal band karo aur Instructions modal kholo
+    document.getElementById("cbt-details-modal").style.display = "none";
+    document.getElementById("cbt-agree-check").checked = false;
+    window.toggleStartTestBtn();
+    document.getElementById("cbt-instructions-modal").style.display = "flex";
+};
+
+// 🚨 ANTI-CHEAT ENGINE (TAB SWITCH & FULLSCREEN) 🚨
+let warningCount = 0;
+const MAX_WARNINGS = 3;
+
+const handleVisibilityChange = () => {
+    // Agar baccha tab change karega ya browser minimize karega
+    if (document.hidden || document.visibilityState === 'hidden') {
+        triggerCheatWarning();
+    }
+};
+
+const handleWindowBlur = () => {
+    // Agar baccha screen se bahar (doosri app par) click karega
+    triggerCheatWarning();
+};
+
+function triggerCheatWarning() {
+    if(!quizStarted || quizSubmitted) return; // Agar test nahi chal raha toh ignore karo
+    
+    warningCount++;
+    if(warningCount >= MAX_WARNINGS) {
+        alert(`🚨 EXAM TERMINATED! Aapne ${MAX_WARNINGS} baar exam rules tode hain. Aapka test auto-submit ho raha hai!`);
+        window.submitQuiz(true); // 3 warning pe auto-submit
+    } else {
+        alert(`⚠️ WARNING ${warningCount} of ${MAX_WARNINGS} ⚠️\n\nPlease do not switch tabs, minimize the browser, or open other apps. \n\n${MAX_WARNINGS} warnings ke baad test apne aap submit ho jayega!`);
+    }
+}
+
+
+// 🌟 Ye test ko asliyat me start karega jab baccha AGREE karega 🌟
+window.launchActualTest = () => {
+    // Palette wapas laane ka logic
+    const paletteCol = document.getElementById("palette-container")?.parentElement;
+    if (paletteCol) paletteCol.style.display = "flex";
+
+    try { 
+        let rawData = typeof activeCBTData.data === 'string' ? JSON.parse(activeCBTData.data) : activeCBTData.data; 
+        if (!rawData || rawData.length === 0) {
+            return alert("Error: Is test me koi questions nahi mile!");
+        }
+
+        // 🚨 NAYA LOGIC: JUMBLING QUESTIONS & OPTIONS (ANTI-CHEAT ENGINE) 🚨
+        
+        // 1. Data ka Deep Copy banayenge taaki original database modify na ho
+        quizData = JSON.parse(JSON.stringify(rawData));
+        
+        // 2. Questions ko Shuffle (Jumble) Karna
+        for (let i = quizData.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+        }
+        
+        // 3. Har Question ke Options ko Shuffle Karna aur Correct Answer Index Fix Karna
+        quizData.forEach(q => {
+            if (q.type !== "integer" && q.o && q.o.length > 0) {
+                // Pehle original correct answer ka text nikal lo
+                let correctAnsText = q.o[q.a]; 
+                
+                // Options array ko shuffle karo
+                for (let i = q.o.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [q.o[i], q.o[j]] = [q.o[j], q.o[i]];
+                }
+                
+                // Ab naye shuffled array mein check karo ki correct answer kis index par gaya
+                q.a = q.o.indexOf(correctAnsText);
+            }
+        });
+        
+        // 🚨 JUMBLING ENGINE END 🚨
+
+    } catch(e) { return alert("System Error: " + e.message); }
+
+    document.getElementById("cbt-instructions-modal").style.display = "none";
+
+    currentQ = 0; 
+    userAnswers = new Array(quizData.length).fill(null);
+    reviewStatus = new Array(quizData.length).fill(false);
+    visitedStatus = new Array(quizData.length).fill(false);
+    visitedStatus[0] = true; 
+    
+    quizStarted = true; 
+    quizSubmitted = false;
+    
+    document.getElementById("quiz-title").innerText = activeCBTData.title;
+    document.getElementById("quiz-modal").style.display = "flex";
+    
+    if(activeCBTData.timeLimit && activeCBTData.timeLimit > 0) {
+        startCBTCountdown(activeCBTData.timeLimit);
+    } else {
+        document.getElementById("cbt-timer-display").classList.add("hidden");
+    }
+
+    document.getElementById("quiz-footer").innerHTML = `
+        <button id="mark-review-btn" onclick="window.toggleReview()" class="bg-purple-100 text-purple-700 border border-purple-300 px-4 py-2 rounded-xl text-[10px] font-bold shadow-sm transition-all flex items-center">
+            <i class="fas fa-bookmark mr-1"></i> MARK REVIEW
+        </button>
+        <div class="flex gap-2 ml-auto">
+            <button id="prev-q" onclick="window.prevQuestion()" class="bg-white border border-slate-300 px-4 py-2 rounded-xl text-[10px] font-bold text-slate-900 hidden shadow-sm">PREV</button>  
+            <button id="next-q" onclick="window.nextQuestion()" class="bg-orange-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold shadow-lg">NEXT</button>  
+            <button id="submit-q" onclick="window.submitQuiz()" class="bg-green-600 text-white px-6 py-2 rounded-xl text-[10px] font-bold hidden shadow-lg">SUBMIT</button>  
+        </div>
+    `;
+
+    window.cbtStartTime = Date.now(); 
+    
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen blocked by browser"));
+    }
+
+    warningCount = 0; 
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("contextmenu", e => e.preventDefault()); 
+    document.addEventListener("copy", e => e.preventDefault());
+  
+    showQuestion();
+};
+
+
+
+function startCBTCountdown(minutes) {
+    const display = document.getElementById("cbt-time-left");
+    
+    document.getElementById("cbt-timer-display").classList.remove("hidden");
+    document.getElementById("cbt-timer-display").classList.add("flex");
+
+    clearInterval(cbtTimerInterval); 
+    
+    // NAYA LOGIC: Total limit aur guzra hua time (elapsed) compare karenge
+    let totalSecondsLimit = parseInt(minutes) * 60;
+    
+    cbtTimerInterval = setInterval(() => {
+        // Asli ghadi ke hisaab se kitne seconds beet gaye test start hone ke baad:
+        let elapsedSeconds = Math.floor((Date.now() - window.cbtStartTime) / 1000);
+        let remainingSeconds = totalSecondsLimit - elapsedSeconds;
+        
+        if(remainingSeconds <= 0) {
+            clearInterval(cbtTimerInterval);
+            display.innerText = "00:00";
+            alert("Time's up! Your test is being auto-submitted.");
+            window.submitQuiz(true); 
+            return;
+        }
+        
+        let m = Math.floor(remainingSeconds / 60);
+        let s = remainingSeconds % 60;
+        
+        display.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    }, 1000); 
+}
+
+
+
+
+window.renderPalette = () => {
+    const palette = document.getElementById("question-palette");
+    if (!palette) return;
+    palette.innerHTML = "";
+    
+    quizData.forEach((_, i) => {
+        let bgClass = "bg-slate-200 text-slate-700 border-slate-300"; // Default: Not Visited
+
+        if (reviewStatus[i]) {
+            bgClass = "bg-purple-500 text-white border-purple-600 shadow-inner"; // Marked Review
+        } else if (userAnswers[i] !== null && userAnswers[i] !== "") {
+            bgClass = "bg-green-500 text-white border-green-600 shadow-inner"; // Answered
+        } else if (visitedStatus[i]) {
+            bgClass = "bg-red-500 text-white border-red-600 shadow-inner"; // Visited but Unanswered
+        }
+
+        // Highlight active question (blue ring)
+        let ring = currentQ === i ? "ring-2 ring-offset-2 ring-blue-600 scale-105" : "";
+
+        palette.innerHTML += `<button onclick="window.jumpToQuestion(${i})" class="w-8 h-8 rounded-md flex items-center justify-center text-[11px] font-black border ${bgClass} ${ring} transition-all">${i + 1}</button>`;
+    });
+};
+
+function updateReviewBtnUI() {
+    const btn = document.getElementById("mark-review-btn");
+    if(!btn) return;
+    if(reviewStatus[currentQ]) {
+        btn.classList.replace("bg-purple-100", "bg-purple-600");
+        btn.classList.replace("text-purple-700", "text-white");
+    } else {
+        btn.classList.replace("bg-purple-600", "bg-purple-100");
+        btn.classList.replace("text-white", "text-purple-700");
+    }
+}
+
+window.toggleReview = () => {
+    reviewStatus[currentQ] = !reviewStatus[currentQ];
+    window.renderPalette();
+    updateReviewBtnUI();
+};
+
+window.jumpToQuestion = (index) => {
+    currentQ = index;
+    visitedStatus[currentQ] = true;
+    showQuestion();
+};
+
 function showQuestion() {  
     const q = quizData[currentQ];  
     let html = `<p class="text-slate-500 text-[10px] mb-2 font-bold">QUESTION ${currentQ + 1} OF ${quizData.length}</p>  
@@ -3457,56 +3864,130 @@ function showQuestion() {
     document.getElementById("prev-q").classList.toggle("hidden", currentQ === 0);  
     document.getElementById("next-q").classList.toggle("hidden", currentQ === quizData.length - 1);  
     document.getElementById("submit-q").classList.toggle("hidden", currentQ !== quizData.length - 1);  
+
+    window.renderPalette();
+    updateReviewBtnUI();
 }  
   
-window.saveAns = (val) => { userAnswers[currentQ] = val; if(quizData[currentQ].type !== "integer") showQuestion(); };  
-window.nextQuestion = () => { if(currentQ < quizData.length - 1) { currentQ++; showQuestion(); } };  
-window.prevQuestion = () => { if(currentQ > 0) { currentQ--; showQuestion(); } };  
+window.saveAns = (val) => { 
+    userAnswers[currentQ] = val; 
+    window.renderPalette(); 
+    if(quizData[currentQ].type !== "integer") showQuestion(); 
+};  
+
+window.nextQuestion = () => { 
+    if(currentQ < quizData.length - 1) { 
+        currentQ++; 
+        visitedStatus[currentQ] = true;
+        showQuestion(); 
+    } 
+};  
+
+window.prevQuestion = () => { 
+    if(currentQ > 0) { 
+        currentQ--; 
+        visitedStatus[currentQ] = true;
+        showQuestion(); 
+    } 
+};
+
+
   
-window.submitQuiz = async () => {  
-    if(!confirm("Are you sure you want to submit?")) return;  
-    quizSubmitted = true; let score = 0;  
+window.submitQuiz = async (isAutoSubmit = false) => {  
+    if(!isAutoSubmit && !confirm("Are you sure you want to submit?")) return;  
+    
+    clearInterval(cbtTimerInterval);
+    
+    // 🔓 Anti-Cheat Sensors Off Karna
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    window.removeEventListener("blur", handleWindowBlur);
+
+    // 🔓 Full Screen Mode se Bahar Aana
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(e => console.log(e));
+    }
+
+    quizSubmitted = true; 
+    let score = 0;  
+    let questionAnalytics = [];
       
     quizData.forEach((q, i) => {  
-        if(q.type === "integer") { if(userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim()) score++; } 
-        else { if(userAnswers[i] === q.a) score++; }  
+        let isCorrect = false;
+        if(q.type === "integer") { 
+            isCorrect = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());
+        } else { 
+            isCorrect = (userAnswers[i] === q.a);
+        }  
+        if(isCorrect) score++;
+
+        questionAnalytics.push({
+            q: q.q,
+            options: q.o || [],
+            type: q.type || 'mcq',
+            correctAns: q.a,
+            studentAns: userAnswers[i],
+            isCorrect: isCorrect
+        });
     });  
+
+    // 🚨 BULLETPROOF TIMER LOGIC 🚨
+    // Jis exact second test chalu hua tha wahan se ab tak ka difference nikalenge
+    let elapsedSinceStart = Math.floor((Date.now() - window.cbtStartTime) / 1000);
+    let timeTakenSec = 0;
+    
+    if (activeCBTData.timeLimit && parseInt(activeCBTData.timeLimit) > 0) {
+        let totalLimitSec = parseInt(activeCBTData.timeLimit) * 60;
+        // Agar time taken total limit se cross ho gaya (due to lag), toh total limit hi show karega
+        timeTakenSec = Math.min(elapsedSinceStart, totalLimitSec);
+    } else {
+        timeTakenSec = elapsedSinceStart;
+    }
+
+    let mins = Math.floor(timeTakenSec / 60);
+    let secs = timeTakenSec % 60;
+    let timeTakenFormatted = `${mins < 10 ? '0'+mins : mins}m ${secs < 10 ? '0'+secs : secs}s`;
+
+    // 🚨 HIDE PALETTE AND TOP TIMER
+    const paletteCol = document.getElementById("palette-container")?.parentElement;
+    if (paletteCol) paletteCol.style.display = "none";
+    document.getElementById("cbt-timer-display").classList.add("hidden");
   
-    let questionAnalytics = [];  
-    quizData.forEach((q, i) => {  
-        let correct = false;  
-        if (q.type === "integer") correct = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());  
-        else correct = userAnswers[i] === q.a;  
-        questionAnalytics.push({ question: q.q, studentAnswer: userAnswers[i], correctAnswer: q.a, isCorrect: correct });  
+    window.showProgress("Saving your response...");
+    const cand = window.currentCandidateDetails || {};
+    const uniqueSubmissionId = activeDPPId + "_" + (cand.scholar || cand.roll || Date.now());
+
+    await setDoc(doc(db, "user_submissions", uniqueSubmissionId), { 
+        uid: auth.currentUser.uid, 
+        studentName: cand.name || auth.currentUser.displayName, 
+        studentEmail: auth.currentUser.email, 
+        rollNo: cand.roll || "N/A",
+        scholarId: cand.scholar || "N/A",
+        dppId: activeDPPId, 
+        score: score, 
+        totalQuestions: quizData.length,
+        timeTakenSec: timeTakenSec,            
+        timeTakenFormatted: timeTakenFormatted,
+        answers: questionAnalytics,
+        timestamp: Timestamp.now() 
     });  
-  
-    await setDoc(doc(db, "user_submissions", auth.currentUser.uid + "_" + activeDPPId), { uid: auth.currentUser.uid, studentName: auth.currentUser.displayName, studentEmail: auth.currentUser.email, dppId: activeDPPId, score: score, answers: questionAnalytics, timestamp: Timestamp.now() });  
-  
-    let resHtml = `<div class="bg-orange-100 text-orange-700 p-6 rounded-3xl text-center mb-6 border border-orange-200">  
-                    <p class="text-[10px] font-black uppercase tracking-widest">Test Result</p>  
-                    <h2 class="text-3xl font-black">${score} / ${quizData.length}</h2>  
-                  </div><div class="space-y-4">`;  
-  
-    quizData.forEach((q, i) => {  
-        let isCorrect = false;  
-        if(q.type === "integer") isCorrect = (userAnswers[i] && userAnswers[i].toString().trim() == q.a.toString().trim());  
-        else isCorrect = (userAnswers[i] === q.a);  
-  
-        let userText = userAnswers[i] === null ? 'Skipped' : (q.type === 'integer' ? userAnswers[i] : q.o[userAnswers[i]]);  
-        let solText = q.type === 'integer' ? q.a : q.o[q.a];  
-  
-        resHtml += `<div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">  
-            <p class="text-[11px] font-bold text-slate-900 mb-2">${i+1}. ${q.q}</p>  
-            <p class="text-[10px] ${isCorrect?'text-green-600':'text-red-600'} font-black uppercase">  
-                YOURS: ${userText}  
-            </p>  
-            <p class="text-[10px] text-orange-600 font-black uppercase mt-1">SOLUTION: ${solText}</p>  
+    window.hideProgress();
+
+    let resHtml = `
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-3xl text-center mb-6 shadow-xl relative overflow-hidden">
+            <i class="fas fa-check-circle absolute -bottom-4 -right-4 text-7xl opacity-20"></i>
+            <p class="text-[10px] font-black uppercase tracking-widest opacity-80">Test Submitted Successfully</p>  
+            <h2 class="text-4xl font-black mt-2">${score} / ${quizData.length}</h2>  
+            <p class="text-[11px] font-bold mt-2 bg-white/20 inline-block px-3 py-1 rounded-full">⏱️ Time Taken: ${timeTakenFormatted}</p>
+            <div class="mt-4 bg-white/20 px-4 py-2 rounded-xl text-[10px] font-bold shadow-sm backdrop-blur-sm">
+                You can check your detailed Question Analysis from the Results Tab using your Scholar ID.
+            </div>
         </div>`;  
-    });  
   
-    document.getElementById("quiz-screen").innerHTML = resHtml + `</div>`;  
-    document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">DONE</button>`;  
-};  
+    document.getElementById("quiz-screen").innerHTML = resHtml;  
+    document.getElementById("quiz-footer").innerHTML = `<button onclick="closeQuiz()" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg hover:bg-slate-900 transition-all">RETURN TO DASHBOARD</button>`;  
+};
+
+
   
 window.closeQuiz = () => { quizStarted = false; document.getElementById("quiz-modal").style.display = "none"; };  
 
@@ -3578,8 +4059,19 @@ function loadAdminData() {
         s.forEach(d => { const l = d.data(); g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900"><span><b>[${l.batch}]</b> ${l.title}</span><div class="flex gap-2"><button onclick='window.editItem("lec", ${JSON.stringify({...l, id:d.id})})' class="text-orange-600 font-bold">EDIT</button><button onclick="window.delDoc('lectures','${d.id}')" class="text-red-600 font-bold">DEL</button></div></div>`; });  
     });  
     onSnapshot(collection(db, "dpps"), s => {  
-        const g = document.getElementById("manageDPPGrid"); g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black mt-2'>DPP Tests</p>";  
-        s.forEach(d => { const dp = d.data(); g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900"><span><b>[${dp.batch}]</b> ${dp.title}</span><div class="flex gap-2"><button onclick='window.editItem("dpp", ${JSON.stringify({...dp, id:d.id})})' class="text-orange-600 font-bold">EDIT</button><button onclick="window.delDoc('dpps','${d.id}')" class="text-red-600 font-bold">DEL</button></div></div>`; });  
+                        const g = document.getElementById("manageDPPGrid");
+        g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black mt-2'>CBT Tests</p>";
+        s.forEach(d => {
+            const dp = d.data();
+            g.innerHTML += `<div class="bg-white p-3 rounded-xl flex justify-between items-center text-[10px] border border-slate-200 shadow-sm text-slate-900">
+                <span><b>[${dp.batch}]</b> ${dp.title}</span>
+                <div class="flex gap-2">
+                    <button onclick="window.downloadCBTFullLedgerPdf('${d.id}', '${dp.title}')" class="bg-emerald-600 text-white px-2 py-1.5 rounded-lg text-[9px] font-bold shadow"><i class="fas fa-file-pdf mr-1"></i> FULL LEDGER</button>
+                    <button onclick='window.editItem("dpp", ${JSON.stringify({...dp, id:d.id})})' class="text-orange-600 font-bold">EDIT</button>
+                    <button onclick="window.delDoc('dpps','${d.id}')" class="text-red-600 font-bold">DEL</button>
+                </div>
+            </div>`;
+        });
     });  
     onSnapshot(collection(db, "secure_ebooks"), s => {  
         const g = document.getElementById("manageBookGrid"); g.innerHTML = "<p class='text-[10px] text-orange-600 uppercase font-black mt-2'>Books</p>";  
@@ -3721,11 +4213,56 @@ window.saveLecture = async () => {
 };  
   
 window.saveDPP = async () => {  
-    const id = editDppId || ("dpp_" + Date.now());  
-    await setDoc(doc(db, "dpps", id), { batch: document.getElementById("dpp-batch").value.toUpperCase(), title: document.getElementById("dpp-title").value, data: document.getElementById("dpp-data").value }, {merge: true});   
-    alert("Saved!"); editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE DPP";  
-    ['dpp-batch','dpp-title','dpp-data'].forEach(i=>document.getElementById(i).value="");  
-};  
+    const batch = document.getElementById("dpp-batch").value.toUpperCase();
+    const title = document.getElementById("dpp-title").value;
+    const timeLimit = document.getElementById("cbt-time").value;
+    const endTime = document.getElementById("cbt-endtime").value;
+    const rawText = document.getElementById("dpp-data").value;
+    
+    if(!batch || !title || !rawText) return alert("Please fill all required fields!");
+
+    let questions = [];
+    try {
+        if(rawText.trim().startsWith('[')) {
+            questions = JSON.parse(rawText);
+        } else {
+            // Smart Text Parser: Q., Q1., Q 1. sab handle karega
+            let blocks = rawText.split(/Q\d*\s*\./i).filter(b => b.trim() !== '');
+            blocks.forEach(block => {
+                let lines = block.split('\n').map(l => l.trim()).filter(l => l !== '');
+                if(lines.length < 3) return; // At least Question + Option + Ans hona chahiye
+                
+                let qText = lines[0]; let options = []; let ans = 0;
+                
+                lines.slice(1).forEach(line => {
+                    if(line.match(/^[A-D]\s*\./i)) {
+                        // Options: A. ya B. etc extract karega
+                        options.push(line.replace(/^[A-D]\s*\./i, '').trim());
+                    }
+                    else if(line.toLowerCase().startsWith('ans')) {
+                        // Answer: Ans. 1 ya Ans: 1 sab handle karega
+                        let ansStr = line.replace(/[^0-9]/g, '');
+                        if(ansStr !== '') ans = parseInt(ansStr);
+                    }
+                });
+                questions.push({ q: qText, o: options, a: ans, type: 'mcq' });
+            });
+        }
+    } catch(e) { return alert("Formatting Error! Text format ko theek se check karein."); }
+
+    // Agar ek bhi question format nahi hua toh alert de dega
+    if(questions.length === 0) return alert("Warning: 0 Questions detected! Please check formatting. Format: Q. / A. / B. / Ans. 0");
+
+    const id = editDppId || ("cbt_" + Date.now());  
+    await setDoc(doc(db, "dpps", id), { 
+        batch: batch, title: title, timeLimit: parseInt(timeLimit) || 0, endTime: endTime, data: JSON.stringify(questions) 
+    }, {merge: true});   
+    
+    alert("CBT Test Saved Successfully! (" + questions.length + " questions added)"); 
+    editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE CBT TEST";  
+    ['dpp-batch','dpp-title','cbt-time','cbt-endtime','dpp-data'].forEach(i=>document.getElementById(i).value="");  
+};
+
   
 window.saveBook = async () => {  
     const id = editBookId || ("book_" + Date.now());  
@@ -3890,6 +4427,8 @@ window.fetchSingleResultData = async () => {
         document.getElementById("er-mother").value = d.mother || "";
         document.getElementById("er-dob").value = d.dob || "";
         document.getElementById("er-days").value = d.days_present !== undefined ? d.days_present : "";
+        document.getElementById("er-photo").value = d.photo_url || "";
+
         document.getElementById("er-fee").value = d.fee_due === true ? "true" : "false";
         
         // 🔄 UI Fields Generate Karna
@@ -3914,13 +4453,14 @@ window.addSubjectFieldUI = (name = "", th = 0, pr = 0, full = 100) => {
     div.className = "flex items-center gap-1 sm:gap-2 bg-white p-2 rounded border border-slate-200 subject-row-ui";
     div.innerHTML = `
         <input type="text" placeholder="Subject Name" value="${name}" class="sub-name publisher-input !mb-0 text-[10px] w-24 sm:w-1/3 uppercase font-bold" />
-        <input type="number" placeholder="TH" value="${th !== undefined ? th : 0}" class="sub-th publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center" />
-        <input type="number" placeholder="PR" value="${pr !== undefined ? pr : 0}" class="sub-pr publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center" />
+        <input type="text" placeholder="TH (or AB)" value="${th !== undefined ? th : 0}" class="sub-th publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center uppercase" />
+        <input type="text" placeholder="PR (or AB)" value="${pr !== undefined ? pr : 0}" class="sub-pr publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center uppercase" />
         <input type="number" placeholder="MAX" value="${full !== undefined ? full : 100}" class="sub-full publisher-input !mb-0 text-[10px] w-12 sm:w-16 text-center text-blue-700 font-bold" />
         <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash-alt text-[10px]"></i></button>
     `;
     container.appendChild(div);
 };
+
 
 // ==========================================
 // 🚀 ADD/EDIT SAVE SINGLE RESULT DATA (UI VER)
@@ -3935,9 +4475,13 @@ window.updateSingleResultData = async () => {
     const rows = document.querySelectorAll("#dynamic-subjects-container .subject-row-ui");
     rows.forEach(row => {
         let name = row.querySelector(".sub-name").value.trim().toUpperCase();
-        let th = Number(row.querySelector(".sub-th").value || 0);
-        let pr = Number(row.querySelector(".sub-pr").value || 0);
+        let thInput = row.querySelector(".sub-th").value.trim().toUpperCase();
+        let prInput = row.querySelector(".sub-pr").value.trim().toUpperCase();
+        
+        let th = (thInput === 'AB' || thInput === 'ABS') ? 'AB' : Number(thInput || 0);
+        let pr = (prInput === 'AB' || prInput === 'ABS') ? 'AB' : Number(prInput || 0);
         let full = Number(row.querySelector(".sub-full").value || 100);
+        
         if(name) {
             parsedSubjects.push({ name, theory: th, practical: pr, fullMarks: full });
         }
@@ -3961,15 +4505,14 @@ window.updateSingleResultData = async () => {
         let sClass = document.getElementById("er-class").value.trim().toUpperCase();
         let isClass9or10 = sClass === "9" || sClass.startsWith("9TH") || sClass.startsWith("9-") || sClass.startsWith("9 ") || sClass === "IX" || sClass.startsWith("IX-") || sClass.startsWith("IX ") || sClass === "10" || sClass.startsWith("10TH") || sClass.startsWith("10-") || sClass.startsWith("10 ") || sClass === "X" || sClass.startsWith("X-") || sClass.startsWith("X ");
 
-        // 🔥 Save karte waqt class aur exam type ke basis par TOTAL calculate karega
         parsedSubjects = parsedSubjects.map(sub => {
-            let th = Number(sub.theory || 0);
-            let pr = Number(sub.practical || 0);
+            let numericTh = (sub.theory === 'AB') ? 0 : Number(sub.theory || 0);
+            let numericPr = (sub.practical === 'AB') ? 0 : Number(sub.practical || 0);
             let tot = 0;
             
-            if ((exam === "PMT" || exam === "PAT") && isClass9or10) tot = th;
-            else if (exam === "HALF_YEARLY" || exam === "ANNUAL") tot = th;
-            else tot = th + pr;
+            if ((exam === "PMT" || exam === "PAT") && isClass9or10) tot = numericTh;
+            else if (exam === "HALF_YEARLY" || exam === "ANNUAL") tot = numericTh;
+            else tot = numericTh + numericPr;
             
             let full = Number(sub.fullMarks || 100);
             let pct = full > 0 ? (tot / full) * 100 : 0;
@@ -3993,13 +4536,16 @@ window.updateSingleResultData = async () => {
             mother: document.getElementById("er-mother").value.trim() || "---",
             dob: document.getElementById("er-dob").value.trim() || "---",
             days_present: document.getElementById("er-days").value.trim() || "---",
-            fee_due: feeDue, result_status: status, subjects_json: parsedSubjects, updatedAt: fs.Timestamp.now()
+photo_url: document.getElementById("er-photo").value.trim(),
+fee_due: feeDue, result_status: status, subjects_json: parsedSubjects, updatedAt: fs.Timestamp.now()
+
         }, { merge: true });
         
         alert("Success! Student Result Record Applied Safely to the Cloud Database.");
         document.getElementById("edit-result-form").classList.add("hidden"); document.getElementById("edit-result-scholar").value = "";
     } catch(e) { console.error(e); alert("Upload Failed. Connection Error: " + e.message); }
 };
+
 
 
 async function loadSettings() {   
@@ -4016,26 +4562,36 @@ async function loadSettings() {
 
         const pc = document.getElementById("plans-container"); pc.innerHTML = "";  
         const pi = document.getElementById("plan-inputs"); pi.innerHTML = "";  
+        
         appBatches.forEach(b => {  
             window.addNewPlanInput(b.name, b.price);  
-            pc.innerHTML += `<div class="bg-white border border-slate-200 p-4 rounded-2xl flex justify-between items-center shadow-sm"><b class="text-xs uppercase text-slate-900">${b.name}</b><button onclick="window.open('https://wa.me/919229809156?text=Enroll in ${b.name}')" class="bg-orange-600 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg">₹${b.price} ENROLL</button></div>`;  
+            
+            // 🚨 NAYA LOGIC: Check agar price FREE ya 0 hai 🚨
+            let isFree = (b.price.toString().trim() === '0' || b.price.toString().toUpperCase().trim() === 'FREE' || b.price.toString().trim() === '');
+            
+            if (isFree) {
+                pc.innerHTML += `<div class="bg-white border border-slate-200 p-4 rounded-2xl flex justify-between items-center shadow-sm"><b class="text-xs uppercase text-slate-900">${b.name}</b><button onclick="window.autoEnrollFree('${b.name}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg transition-all">ENROLL FOR FREE</button></div>`;
+            } else {
+                pc.innerHTML += `<div class="bg-white border border-slate-200 p-4 rounded-2xl flex justify-between items-center shadow-sm"><b class="text-xs uppercase text-slate-900">${b.name}</b><button onclick="window.open('https://wa.me/919229809156?text=Enroll in ${b.name}')" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg transition-all">₹${b.price} ENROLL</button></div>`;
+            }
         });  
 
         renderExamSessionUI();
         populateDropdowns();
 
-        if(auth.currentUser?.email === adminEmail) {
+        if(auth.currentUser && adminEmails.includes(auth.currentUser.email)) {
             renderUserList(allUsers);
             window.renderSignatures();
         } 
     } else {
         renderExamSessionUI();
         populateDropdowns();
-        if(auth.currentUser?.email === adminEmail) {
+        if(auth.currentUser && adminEmails.includes(auth.currentUser.email)) {
             window.renderSignatures();
         }
     }
 }  
+
 
 window.saveExamSettings = async () => {
     let sessions = []; document.querySelectorAll('.session-row .s-name').forEach(i => { if(i.value.trim()) sessions.push(i.value.trim().toUpperCase()); });
@@ -4175,6 +4731,31 @@ window.resetD = async (id) => {
 };  
 
 window.grant = async (id, b) => { let exp = new Date(); exp.setFullYear(exp.getFullYear() + 1); await updateDoc(doc(db,"users",id), { erpExpiry: Timestamp.fromDate(exp), activeBatchCode: b }); alert("Batch Assigned!"); };  
+
+window.autoEnrollFree = async (batchName) => {
+    if (!globalUID) return alert("Please login first to enroll!");
+    try {
+        if(window.showProgress) window.showProgress(`Enrolling you in ${batchName}...`);
+        
+        let exp = new Date(); 
+        exp.setFullYear(exp.getFullYear() + 1); // 1 saal ki validity
+        
+        await updateDoc(doc(db, "users", globalUID), { 
+            erpExpiry: Timestamp.fromDate(exp), 
+            activeBatchCode: batchName 
+        }); 
+        
+        if(window.hideProgress) window.hideProgress();
+        alert(`Congratulations! You have successfully enrolled in the ${batchName} batch for FREE! 🎉`);
+        
+        // UI Turant update ho uske liye
+        window.checkAccess(globalUID);
+    } catch (e) {
+        if(window.hideProgress) window.hideProgress();
+        alert("Failed to enroll. Please check your connection.");
+    }
+};
+
   
 window.searchAnalytics = () => {  
     const searchText = document.getElementById("analyticsSearch").value.toLowerCase().trim();  
@@ -5452,14 +6033,12 @@ window.downloadResultDataPDF = async () => {
         const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
         const app = appMod.getApp(); const db = fs.getFirestore(app);
 
-        // 1. Main Exam Data Fetch
         const snap = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", examSel)));
         if (snap.empty) { if(window.hideProgress) window.hideProgress(); alert(`No records found to generate PDF!`); return; }
 
         let allMainData = [];
         snap.forEach(d => allMainData.push(d.data()));
 
-        // 2. Previous Exams Sync
         let allPmt = {}; let allMt = {}; let allPat = {};
         if (examSel === "HALF_YEARLY" || examSel === "ANNUAL") {
             window.updateProgress(20, "Syncing PMT Matrix...");
@@ -5477,7 +6056,6 @@ window.downloadResultDataPDF = async () => {
 
         const sanitizeSub = (n) => n ? (n.toUpperCase().trim() === 'IT/COM' ? 'IT/COMP' : n.toUpperCase().trim()) : '---';
 
-        // 3. Group by Class
         let classGroups = {};
         allMainData.forEach(data => {
             let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
@@ -5485,7 +6063,6 @@ window.downloadResultDataPDF = async () => {
             classGroups[cName].push(data);
         });
 
-        // Logical Class Sorter
         const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
         const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
         let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
@@ -5496,7 +6073,6 @@ window.downloadResultDataPDF = async () => {
 
         window.updateProgress(60, "Chunking Pages for Full Utilization...");
 
-        // 🔥 Cutoff fix karne ke liye rows ko 15 kar diya, taki safe margin mile
         const ROWS_PER_PAGE = 15; 
 
         pdfSandbox = document.createElement('div');
@@ -5511,7 +6087,7 @@ window.downloadResultDataPDF = async () => {
             let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
             let allSubjectsForClass = new Set();
 
-            // Computations
+            // Computations with AB handling
             group.forEach(st => {
                 let sid = st.scholar_id.toString().toUpperCase();
                 let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
@@ -5521,19 +6097,28 @@ window.downloadResultDataPDF = async () => {
                     let subName = sanitizeSub(sub.name);
                     allSubjectsForClass.add(subName);
                     
-                    let th = Number(sub.theory || 0); let pr = Number(sub.practical || 0); let tot = Number(sub.total || 0);
+                    let rawTh = sub.theory !== undefined ? sub.theory : 0;
+                    let rawPr = sub.practical !== undefined ? sub.practical : 0;
+                    let rawTot = sub.total !== undefined ? sub.total : 0;
+                    
+                    let thNum = window.getSafeMark(rawTh);
+                    let prNum = window.getSafeMark(rawPr);
+                    let totNum = window.getSafeMark(rawTot);
+                    
                     let maxM = (examSel === "PMT" || examSel === "PAT") ? 20 : 100;
 
                     if (examSel === "PMT" || examSel === "PAT") {
-                        let finalScore = is9or10 ? th : tot;
-                        st.computedMarks[subName] = { th: th, pr: pr, final: finalScore };
+                        let finalScore = is9or10 ? thNum : totNum;
+                        st.computedMarks[subName] = { th: rawTh, pr: rawPr, final: finalScore };
                         st.sTotal += finalScore; st.sMax += maxM;
                     } 
                     else if (examSel === "HALF_YEARLY") {
                         let pmtData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        let pmtMark = pmtData ? (is9or10 ? Number(pmtData.theory||0) : Number(pmtData.total||0)) : 0;
-                        let final = pmtMark + th;
-                        st.computedMarks[subName] = { pmt: pmtMark, mt: th, final: final };
+                        let pmtRaw = pmtData ? (is9or10 ? (pmtData.theory !== undefined ? pmtData.theory : (pmtData.total||0)) : (pmtData.total||0)) : '---';
+                        let pmtNum = window.getSafeMark(pmtRaw);
+                        
+                        let final = pmtNum + thNum;
+                        st.computedMarks[subName] = { pmt: pmtRaw, mt: rawTh, final: final };
                         st.sTotal += final; st.sMax += maxM;
                     } 
                     else if (examSel === "ANNUAL") {
@@ -5541,13 +6126,18 @@ window.downloadResultDataPDF = async () => {
                         let mData = allMt[sid] ? (typeof allMt[sid].subjects_json === "string" ? JSON.parse(allMt[sid].subjects_json) : allMt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
                         let paData = allPat[sid] ? (typeof allPat[sid].subjects_json === "string" ? JSON.parse(allPat[sid].subjects_json) : allPat[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
                         
-                        let pmtMark = pData ? (is9or10 ? Number(pData.theory||0) : Number(pData.total||0)) : 0;
-                        let mtMark = mData ? Number(mData.theory||0) : 0;
-                        let patMark = paData ? (is9or10 ? Number(paData.theory||0) : Number(paData.total||0)) : 0;
-                        let term1 = pmtMark + mtMark; let term2 = patMark + th;
+                        let pmtRaw = pData ? (is9or10 ? (pData.theory !== undefined ? pData.theory : (pData.total||0)) : (pData.total||0)) : '---';
+                        let mtRaw = mData ? (mData.theory !== undefined ? mData.theory : (mData.total||0)) : '---';
+                        let patRaw = paData ? (is9or10 ? (paData.theory !== undefined ? paData.theory : (paData.total||0)) : (paData.total||0)) : '---';
+                        
+                        let pmtNum = window.getSafeMark(pmtRaw);
+                        let mtNum = window.getSafeMark(mtRaw);
+                        let patNum = window.getSafeMark(patRaw);
+                        
+                        let term1 = pmtNum + mtNum; let term2 = patNum + thNum;
                         let final = Math.round((term1 + term2) / 2);
                         
-                        st.computedMarks[subName] = { pmt: pmtMark, mt: mtMark, pat: patMark, ann: th, final: final };
+                        st.computedMarks[subName] = { pmt: pmtRaw, mt: mtRaw, pat: patRaw, ann: rawTh, final: final };
                         st.sTotal += final; st.sMax += maxM;
                     }
                 });
@@ -5556,13 +6146,8 @@ window.downloadResultDataPDF = async () => {
             group.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
             let sortedSubs = Array.from(allSubjectsForClass).sort();
 
-            // Font Sizes (Clear & Professional)
-            let headerFontSize = "15px";
-            let subHeaderFontSize = "12px";
-            let dataFontSize = "13px";
-            let nameFontSize = "15px"; 
+            let headerFontSize = "15px"; let subHeaderFontSize = "12px"; let dataFontSize = "13px"; let nameFontSize = "15px"; 
 
-            // Headers Construction
             let thRow1 = `
                 <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 90px;">ID</th>
                 <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 70px;">ROLL</th>
@@ -5597,7 +6182,6 @@ window.downloadResultDataPDF = async () => {
                 <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">STATUS</th>
             `;
 
-            // Group into chunks
             let chunks = [];
             for (let i = 0; i < group.length; i += ROWS_PER_PAGE) {
                 chunks.push(group.slice(i, i + ROWS_PER_PAGE));
@@ -5656,7 +6240,6 @@ window.downloadResultDataPDF = async () => {
                     tBody += tr;
                 });
 
-                // Set HTML for this specific chunk
                 pdfSandbox.innerHTML = `
                     <div style="border: 5px solid #1e3a8a; padding: 25px; background: #fff; box-sizing: border-box;">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:5px double #1e3a8a; padding-bottom:12px; margin-bottom:20px;">
@@ -5684,32 +6267,22 @@ window.downloadResultDataPDF = async () => {
                 const canvas = await html2canvas(pdfSandbox, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
                 const imgData = canvas.toDataURL("image/jpeg", 0.9);
 
-                // 🔥 Fix applied here for auto-scaling and proper fit!
                 const pageWidth = 297; 
                 const pageHeight = 210; 
                 const margin = 5;
-
                 const usableWidth = pageWidth - (margin * 2);
                 const usableHeight = pageHeight - (margin * 2);
 
                 let imgWidth = usableWidth;
                 let imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                // Scale down if image height exceeds available A4 height
                 if (imgHeight > usableHeight) {
                     imgHeight = usableHeight;
                     imgWidth = (canvas.width * imgHeight) / canvas.height;
                 }
-
-                // Center horizontally if scaled down
                 let xOffset = margin + (usableWidth - imgWidth) / 2;
 
-                if (!isFirstPage) {
-                    pdf.addPage();
-                } else {
-                    isFirstPage = false;
-                }
-
+                if (!isFirstPage) { pdf.addPage(); } else { isFirstPage = false; }
                 pdf.addImage(imgData, "JPEG", xOffset, margin, imgWidth, imgHeight);
             }
         }
@@ -5728,6 +6301,7 @@ window.downloadResultDataPDF = async () => {
         alert("Error while rendering Ledger Layout: " + error.message);
     }
 };
+
 
 
 // ==========================================
@@ -6014,23 +6588,25 @@ window.downloadTop10ListPDF = async () => {
             let group = classGroups[cName];
             let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
 
-            // Calculate Totals
+            // AB-SAFE Totals Calculation
             group.forEach(st => {
                 let sid = st.scholar_id.toString().toUpperCase();
                 let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
                 st.sTotal = 0; st.sMax = 0;
 
                 subs.forEach(sub => {
-                    let th = Number(sub.theory || 0); let tot = Number(sub.total || 0);
+                    let thNum = window.getSafeMark(sub.theory !== undefined ? sub.theory : 0); 
+                    let totNum = window.getSafeMark(sub.total !== undefined ? sub.total : 0);
                     let maxM = (examSel === "PMT" || examSel === "PAT") ? 20 : 100;
                     let subName = sanitizeSub(sub.name);
 
                     if (examSel === "PMT" || examSel === "PAT") {
-                        st.sTotal += (is9or10 ? th : tot); st.sMax += maxM;
+                        st.sTotal += (is9or10 ? thNum : totNum); st.sMax += maxM;
                     } 
                     else if (examSel === "HALF_YEARLY") {
                         let pmtData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        st.sTotal += ((pmtData ? (is9or10 ? Number(pmtData.theory||0) : Number(pmtData.total||0)) : 0) + th); 
+                        let pmtRaw = pmtData ? (is9or10 ? (pmtData.theory !== undefined ? pmtData.theory : (pmtData.total||0)) : (pmtData.total||0)) : 0;
+                        st.sTotal += (window.getSafeMark(pmtRaw) + thNum); 
                         st.sMax += maxM;
                     } 
                     else if (examSel === "ANNUAL") {
@@ -6038,14 +6614,17 @@ window.downloadTop10ListPDF = async () => {
                         let mData = allMt[sid] ? (typeof allMt[sid].subjects_json === "string" ? JSON.parse(allMt[sid].subjects_json) : allMt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
                         let paData = allPat[sid] ? (typeof allPat[sid].subjects_json === "string" ? JSON.parse(allPat[sid].subjects_json) : allPat[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
                         
-                        let term1 = (pData ? (is9or10 ? Number(pData.theory||0) : Number(pData.total||0)) : 0) + (mData ? Number(mData.theory||0) : 0);
-                        let term2 = (paData ? (is9or10 ? Number(paData.theory||0) : Number(paData.total||0)) : 0) + th;
+                        let pmtRaw = pData ? (is9or10 ? (pData.theory !== undefined ? pData.theory : (pData.total||0)) : (pData.total||0)) : 0;
+                        let mtRaw = mData ? (mData.theory !== undefined ? mData.theory : (mData.total||0)) : 0;
+                        let patRaw = paData ? (is9or10 ? (paData.theory !== undefined ? paData.theory : (paData.total||0)) : (paData.total||0)) : 0;
+
+                        let term1 = window.getSafeMark(pmtRaw) + window.getSafeMark(mtRaw);
+                        let term2 = window.getSafeMark(patRaw) + thNum;
                         st.sTotal += Math.round((term1 + term2) / 2); st.sMax += maxM;
                     }
                 });
             });
 
-            // Dense Ranking (1, 1, 2, 3...)
             group.sort((a, b) => b.sTotal - a.sTotal);
             let cRank = 1;
             group.forEach((st, i) => {
@@ -6056,7 +6635,6 @@ window.downloadTop10ListPDF = async () => {
             let top10 = group.filter(st => st.finalRank <= 10);
             if (top10.length === 0) continue; 
 
-            // Pagination Chunking
             const ROWS_PER_PAGE = 11; 
             let chunks = [];
             for (let i = 0; i < top10.length; i += ROWS_PER_PAGE) {
@@ -6090,7 +6668,6 @@ window.downloadTop10ListPDF = async () => {
                         medalHtml = "🥉"; rowBg = "#ffedd5"; 
                     }
 
-                    // Added solid borders (1px solid #94a3b8) to all <td> elements
                     tBody += `
                         <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 75px;">
                             <td style="padding: 10px 8px; border: 1px solid #94a3b8; ${rankStyle}">${st.finalRank} ${medalHtml}</td>
@@ -6104,7 +6681,6 @@ window.downloadTop10ListPDF = async () => {
                     `;
                 });
 
-                // Padding Empty Rows for Fixed Table Height with visible borders
                 let emptyRowsCount = ROWS_PER_PAGE - chunk.length;
                 for (let e = 0; e < emptyRowsCount; e++) {
                     let rowBg = (chunk.length + e) % 2 === 0 ? "#ffffff" : "#f8fafc";
@@ -6135,7 +6711,7 @@ window.downloadTop10ListPDF = async () => {
                                 
                                 <div style="background-color: #1e3a8a; padding: 12px 50px; border-radius: 12px; border-bottom: 5px solid #ea580c; display: inline-block;">
                                     <span style="color: #ffffff; font-family: 'Arial', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">
-                                        PMT 2026-27 CLASS TOPPERS 
+                                        ${examSel.replace(/_/g, ' ')} ${sessionSel} CLASS TOPPERS 
                                     </span>
                                 </div>
                             </div>
@@ -6212,6 +6788,352 @@ window.downloadTop10ListPDF = async () => {
         alert("Error while rendering Top 10 List: " + error.message);
     }
 };
+
+window.downloadCBTPdf = async (testId, testTitle) => {
+    window.showProgress("Fetching CBT Records...");
+    try {
+        // 🔥 FIREBASE AUTO-LOADER (Isse kabhi scope error nahi aayega) 🔥
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); 
+        const db = fs.getFirestore(app);
+
+        // Fetching records using 'fs'
+        const q = fs.query(fs.collection(db, "user_submissions"), fs.where("dppId", "==", testId));
+        const snap = await fs.getDocs(q);
+
+        if(snap.empty) {
+            window.hideProgress();
+            return alert("No students have taken this test yet.");
+        }
+
+        let participants = [];
+        snap.forEach(docSnap => participants.push(docSnap.data()));
+        
+        participants.sort((a, b) => b.score - a.score);
+
+        let sandbox = document.getElementById("bulk-print-sandbox");
+        if(!sandbox) {
+            sandbox = document.createElement('div');
+            sandbox.id = "bulk-print-sandbox";
+            sandbox.style.position = 'absolute'; sandbox.style.top = '-9999px'; sandbox.style.left = '-9999px';
+            document.body.appendChild(sandbox);
+        }
+
+        let rowsHtml = participants.map((p, index) => `
+            <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px; background: ${index < 10 ? '#fffbeb' : '#fff'};">
+                <td style="padding: 8px;">${index + 1} ${index < 3 ? '🏆' : ''}</td>
+                <td style="padding: 8px; font-weight: bold; text-align: left; text-transform: uppercase;">${p.studentName}</td>
+                <td style="padding: 8px;">${p.rollNo || 'N/A'}</td>
+                <td style="padding: 8px;">${p.scholarId || 'N/A'}</td>
+                <td style="padding: 8px; font-weight: 900; color: #ea580c;">${p.score}</td>
+            </tr>
+        `).join('');
+
+        sandbox.innerHTML = `
+            <div id="cbt-pdf-container" style="width: 800px; padding: 30px; background: white; font-family: sans-serif;">
+                <h1 style="color: #1e3a8a; font-size: 24px; text-transform: uppercase; text-align: center; margin-bottom: 5px;">TLSM WORLD SCHOOL</h1>
+                <h2 style="color: #ea580c; font-size: 16px; text-transform: uppercase; text-align: center; margin-bottom: 20px;">CBT TEST REPORT: ${testTitle}</h2>
+                <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e3a8a;">
+                    <thead style="background: #1e3a8a; color: white; font-size: 12px;">
+                        <tr>
+                            <th style="padding: 10px;">RANK</th>
+                            <th style="padding: 10px; text-align: left;">CANDIDATE NAME</th>
+                            <th style="padding: 10px;">ROLL NO</th>
+                            <th style="padding: 10px;">SCHOLAR ID</th>
+                            <th style="padding: 10px;">SCORE</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        `;
+
+        window.updateProgress(80, "Rendering PDF...");
+        const element = document.getElementById("cbt-pdf-container");
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight);
+        pdf.save(`CBT_Result_${testTitle.replace(/\s+/g, '_')}.pdf`);
+        
+        sandbox.innerHTML = "";
+        window.hideProgress();
+        alert("CBT Results PDF Downloaded Successfully!");
+
+    } catch(err) {
+        window.hideProgress();
+        alert("Failed to generate PDF: " + err.message);
+    }
+};
+
+window.downloadCBTFullLedgerPdf = async (testId, testTitle) => {
+    window.showProgress("Fetching All Candidates Data...");
+    try {
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const app = appMod.getApp(); 
+        const db = fs.getFirestore(app);
+
+        const q = fs.query(fs.collection(db, "user_submissions"), fs.where("dppId", "==", testId));
+        const snap = await fs.getDocs(q);
+
+        if(snap.empty) {
+            window.hideProgress();
+            return alert("No students have participated in this test yet.");
+        }
+
+        let participants = [];
+        snap.forEach(docSnap => participants.push(docSnap.data()));
+        
+        // 🏆 TIE-BREAKER SORTING LOGIC
+        participants.sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score; // 1. Jiska score zyada, wo upar
+            }
+            return (a.timeTakenSec || 0) - (b.timeTakenSec || 0); // 2. Score same toh jiska time kam, wo upar
+        });
+
+        // 🏅 DYNAMIC RANK CALCULATOR
+        participants.forEach((p, idx) => {
+            if (idx === 0) {
+                p.calculatedRank = 1;
+            } else {
+                let prev = participants[idx - 1];
+                let isScoreSame = (p.score === prev.score);
+                let isTimeSame = ((p.timeTakenSec || 0) === (prev.timeTakenSec || 0));
+
+                if (isScoreSame && isTimeSame) {
+                    p.calculatedRank = prev.calculatedRank; // Score + Time dono same to SAME RANK
+                } else {
+                    p.calculatedRank = idx + 1; // Warna next rank
+                }
+            }
+        });
+
+        // Hidden PDF box create karna
+        let sandbox = document.getElementById("bulk-print-sandbox");
+        if(!sandbox) {
+            sandbox = document.createElement('div');
+            sandbox.id = "bulk-print-sandbox";
+            sandbox.style.position = 'absolute'; sandbox.style.top = '-9999px'; sandbox.style.left = '-9999px';
+            document.body.appendChild(sandbox);
+        }
+
+        let rowsHtml = participants.map((p) => {
+            let rankBadge = `#${p.calculatedRank}`;
+            let rowBg = "#ffffff";
+            if (p.calculatedRank === 1) { rankBadge = "🥇 #1"; rowBg = "#fffbeb"; }
+            else if (p.calculatedRank === 2) { rankBadge = "🥈 #2"; rowBg = "#f8fafc"; }
+            else if (p.calculatedRank === 3) { rankBadge = "🥉 #3"; rowBg = "#ffedd5"; }
+
+            return `
+                <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px; background: ${rowBg};">
+                    <td style="padding: 8px; font-weight: 900; color: #1e3a8a;">${rankBadge}</td>
+                    <td style="padding: 8px; font-weight: 900; text-align: left; text-transform: uppercase;">${p.studentName}</td>
+                    <td style="padding: 8px; font-weight: bold;">${p.rollNo || 'N/A'}</td>
+                    <td style="padding: 8px; font-weight: bold; font-family: monospace;">${p.scholarId || 'N/A'}</td>
+                    <td style="padding: 8px; font-weight: 900; color: #ea580c; font-size: 12px;">${p.score}</td>
+                    <td style="padding: 8px; font-weight: bold; color: #047857;">${p.timeTakenFormatted || 'N/A'}</td>
+                </tr>
+            `;
+        }).join('');
+
+        sandbox.innerHTML = `
+            <div id="cbt-full-ledger-container" style="width: 800px; padding: 35px; background: white; font-family: 'Arial', sans-serif;">
+                <div style="text-align: center; border-bottom: 3px double #1e3a8a; padding-bottom: 15px; margin-bottom: 25px;">
+                    <h1 style="color: #1e3a8a; font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 0;">TLSM WORLD SCHOOL</h1>
+                    <h2 style="color: #ea580c; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-top: 5px;">CBT MASTER MARKS LEDGER: ${testTitle}</h2>
+                    <p style="font-size: 11px; color: #64748b; font-weight: bold; margin-top: 5px;">Total Participants: ${participants.length} | Tie-Breaker: Higher Score &gt; Lesser Time Taken</p>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; border: 2px solid #1e3a8a;">
+                    <thead style="background: #1e3a8a; color: white; font-size: 12px;">
+                        <tr>
+                            <th style="padding: 10px; border: 1px solid #1e3a8a;">RANK</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #1e3a8a;">CANDIDATE NAME</th>
+                            <th style="padding: 10px; border: 1px solid #1e3a8a;">ROLL NO</th>
+                            <th style="padding: 10px; border: 1px solid #1e3a8a;">SCHOLAR ID</th>
+                            <th style="padding: 10px; border: 1px solid #1e3a8a;">SCORE</th>
+                            <th style="padding: 10px; border: 1px solid #1e3a8a;">TIME TAKEN</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        `;
+
+        window.updateProgress(85, "Building PDF File...");
+        const element = document.getElementById("cbt-full-ledger-container");
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        pdf.addImage(imgData, "JPEG", 10, 10, imgWidth, imgHeight);
+        pdf.save(`Full_Marks_Ledger_${testTitle.replace(/\s+/g, '_')}.pdf`);
+        
+        sandbox.innerHTML = "";
+        window.hideProgress();
+        alert(`Success! Downloaded Marks Ledger for all ${participants.length} participated candidates.`);
+
+    } catch(err) {
+        window.hideProgress();
+        alert("Failed to generate Full Ledger PDF: " + err.message);
+    }
+};
+
+window.toggleStartTestBtn = () => {
+    const isChecked = document.getElementById("cbt-agree-check").checked;
+    const startBtn = document.getElementById("btn-real-start-test");
+
+    if (isChecked) {
+        startBtn.disabled = false;
+        startBtn.className = "w-full bg-orange-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg hover:bg-orange-700 transition-all cursor-pointer";
+    } else {
+        startBtn.disabled = true;
+        startBtn.className = "w-full bg-slate-300 text-slate-500 py-3 rounded-xl font-black text-xs uppercase shadow transition-all cursor-not-allowed";
+    }
+};
+
+window.fetchCBTAnalysis = async () => {
+    const scholarId = document.getElementById("analysis-scholar-id").value.trim().toUpperCase();
+    if (!scholarId) return alert("Please enter Scholar ID!");
+    
+    const panel = document.getElementById("cbt-analysis-display-panel");
+    panel.innerHTML = `<p class="text-center text-xs font-bold text-slate-500"><i class="fas fa-spinner fa-spin"></i> Fetching records...</p>`;
+    panel.classList.remove("hidden");
+    
+    try {
+        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const db = fs.getFirestore(appMod.getApp());
+        
+        // Scholar ID se bache ke saare CBT tests fetch karna
+        const q = fs.query(fs.collection(db, "user_submissions"), fs.where("scholarId", "==", scholarId));
+        const snap = await fs.getDocs(q);
+        
+        if (snap.empty) {
+            panel.innerHTML = `<div class="glass text-center !p-4"><p class="text-[10px] font-bold text-red-500 uppercase">No CBT records found for Scholar ID: ${scholarId}</p></div>`;
+            return;
+        }
+        
+        let html = `<h3 class="text-xs font-black text-slate-800 uppercase mb-3 border-b border-slate-300 pb-2">Your Test History</h3>`;
+        
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const testId = docSnap.id;
+            
+            let answersHtml = "";
+            if (data.answers && data.answers.length > 0) {
+                data.answers.forEach((ans, idx) => {
+                    // Agar bacche ne skip kiya to 'Skipped', warna usne jo select kiya wo dikhega
+                    let studentText = ans.studentAns === null ? 'Skipped' : (ans.type === 'integer' ? ans.studentAns : ans.options[ans.studentAns]);
+                    let correctText = ans.type === 'integer' ? ans.correctAns : ans.options[ans.correctAns];
+                    
+                    answersHtml += `
+                        <div class="p-3 mb-2 rounded-xl border ${ans.isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}">
+                            <p class="text-[11px] font-bold text-slate-800 mb-1 leading-relaxed">Q${idx+1}. ${ans.q}</p>
+                            <p class="text-[10px] ${ans.isCorrect ? 'text-emerald-700' : 'text-red-700'} font-black uppercase">
+                                ${ans.isCorrect ? '<i class="fas fa-check-circle mr-1"></i>' : '<i class="fas fa-times-circle mr-1"></i>'} YOUR ANSWER: ${studentText}
+                            </p>
+                            ${!ans.isCorrect ? `<p class="text-[10px] text-emerald-700 font-black uppercase mt-1"><i class="fas fa-check-double mr-1"></i> CORRECT ANSWER: ${correctText}</p>` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                answersHtml = `<p class="text-[10px] text-slate-500 italic text-center py-4">Detailed analysis not available for this older test.</p>`;
+            }
+            
+            // Accordion (Dropdown) Design
+            html += `
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-3">
+                <div class="p-4 bg-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-all" onclick="document.getElementById('ans-${testId}').classList.toggle('hidden')">
+                    <div>
+                        <p class="text-xs font-black text-slate-900 uppercase">${data.dppId}</p>
+                        <p class="text-[10px] text-slate-500 font-bold mt-1">Score: <span class="text-orange-600 font-black">${data.score}/${data.totalQuestions}</span> | Time: ${data.timeTakenFormatted || 'N/A'}</p>
+                    </div>
+                    <i class="fas fa-chevron-down text-slate-400"></i>
+                </div>
+                <div id="ans-${testId}" class="hidden p-4 border-t border-slate-200 bg-white">
+                    ${answersHtml}
+                </div>
+            </div>
+            `;
+        });
+        
+        panel.innerHTML = html;
+        
+    } catch (e) {
+        console.error(e);
+        panel.innerHTML = `<p class="text-center text-xs font-bold text-red-500">Failed to fetch data. Check connection.</p>`;
+    }
+};
+
+// ⌨️ DESKTOP KEYBOARD CONTROLS FOR CBT TEST
+window.addEventListener('keydown', (e) => {
+    // Sirf tabhi kaam karega jab test active ho aur submit na hua ho
+    if (!quizStarted || quizSubmitted) return;
+
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+    // Agar candidate Integer type question me type kar rha hai
+    if (isTyping && activeEl.id === 'integer-ans') {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            window.nextQuestion();
+        }
+        return; // Normal typing chalne do, shortcuts block kar do
+    }
+
+    const key = e.key.toUpperCase();
+
+    // 1. Next Question (Right Arrow ya 'N')
+    if (e.key === 'ArrowRight' || key === 'N') {
+        e.preventDefault();
+        window.nextQuestion();
+    }
+    // 2. Previous Question (Left Arrow ya 'P')
+    else if (e.key === 'ArrowLeft' || key === 'P') {
+        e.preventDefault();
+        window.prevQuestion();
+    }
+    // 3. Mark For Review ('M' ya 'R')
+    else if (key === 'M' || key === 'R') {
+        e.preventDefault();
+        window.toggleReview();
+    }
+    // 4. Option A / 1 Select Karna
+    else if (key === 'A' || key === '1') {
+        e.preventDefault();
+        window.saveAns(0);
+    }
+    // 5. Option B / 2 Select Karna
+    else if (key === 'B' || key === '2') {
+        e.preventDefault();
+        window.saveAns(1);
+    }
+    // 6. Option C / 3 Select Karna
+    else if (key === 'C' || key === '3') {
+        e.preventDefault();
+        window.saveAns(2);
+    }
+    // 7. Option D / 4 Select Karna
+    else if (key === 'D' || key === '4') {
+        e.preventDefault();
+        window.saveAns(3);
+    }
+});
+
 
 </script>
 
