@@ -4226,37 +4226,32 @@ window.saveDPP = async () => {
         if(rawText.trim().startsWith('[')) {
             questions = JSON.parse(rawText);
         } else {
+            // Smart Text Parser: Q., Q1., Q 1. sab handle karega
             let blocks = rawText.split(/Q\d*\s*\./i).filter(b => b.trim() !== '');
             blocks.forEach(block => {
                 let lines = block.split('\n').map(l => l.trim()).filter(l => l !== '');
-                if(lines.length < 3) return; 
+                if(lines.length < 3) return; // At least Question + Option + Ans hona chahiye
                 
-                let qText = lines[0]; 
-                let options = []; 
-                let ans = 0;
-                let imgUrl = ""; // 🚨 NAYA: Image URL store karne ke liye variable
-
+                let qText = lines[0]; let options = []; let ans = 0;
+                
                 lines.slice(1).forEach(line => {
                     if(line.match(/^[A-D]\s*\./i)) {
+                        // Options: A. ya B. etc extract karega
                         options.push(line.replace(/^[A-D]\s*\./i, '').trim());
                     }
                     else if(line.toLowerCase().startsWith('ans')) {
+                        // Answer: Ans. 1 ya Ans: 1 sab handle karega
                         let ansStr = line.replace(/[^0-9]/g, '');
                         if(ansStr !== '') ans = parseInt(ansStr);
                     }
-                    // 🚨 NAYA: Agar line 'Img.' ya 'Img:' se start hoti hai, to link nikal lo
-                    else if(line.toLowerCase().startsWith('img')) {
-                        imgUrl = line.replace(/^img[\.\:]?\s*/i, '').trim();
-                    }
                 });
-                
-                // 🚨 NAYA: Question array me imgUrl pass karna
-                questions.push({ q: qText, o: options, a: ans, type: 'mcq', img: imgUrl });
+                questions.push({ q: qText, o: options, a: ans, type: 'mcq' });
             });
         }
     } catch(e) { return alert("Formatting Error! Text format ko theek se check karein."); }
 
-    if(questions.length === 0) return alert("Warning: 0 Questions detected! Please check formatting. Format: Q. / Img. / A. / Ans.");
+    // Agar ek bhi question format nahi hua toh alert de dega
+    if(questions.length === 0) return alert("Warning: 0 Questions detected! Please check formatting. Format: Q. / A. / B. / Ans. 0");
 
     const id = editDppId || ("cbt_" + Date.now());  
     await setDoc(doc(db, "dpps", id), { 
@@ -4267,7 +4262,6 @@ window.saveDPP = async () => {
     editDppId = null; document.getElementById('dpp-save-btn').innerText = "SAVE CBT TEST";  
     ['dpp-batch','dpp-title','cbt-time','cbt-endtime','dpp-data'].forEach(i=>document.getElementById(i).value="");  
 };
-
 
   
 window.saveBook = async () => {  
@@ -6026,222 +6020,6 @@ window.initAutoAssignmentDate = () => {
 // ==========================================
 // 📄 TABULAR PDF MASTER LEDGER (FIXED DATA CUTOFF BUG)
 // ==========================================
-window.downloadResultDataPDF = async () => {
-    let pdfSandbox = null; 
-    try {
-        const sessionSel = document.getElementById("admin-upload-academic-year").value;
-        const examSel = document.getElementById("admin-upload-exam-type").value;
-        
-        if(!sessionSel || !examSel) { alert("Please select Academic Year and Exam Type from the dropdowns first."); return; }
-        if(window.showProgress) window.showProgress(`Fetching Master Database for ${examSel.replace(/_/g, ' ')}...`);
-
-        const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
-        const app = appMod.getApp(); const db = fs.getFirestore(app);
-
-        const snap = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", examSel)));
-        if (snap.empty) { if(window.hideProgress) window.hideProgress(); alert(`No records found to generate PDF!`); return; }
-
-        let allMainData = [];
-        snap.forEach(d => allMainData.push(d.data()));
-
-        let allPmt = {}; let allMt = {}; let allPat = {};
-        if (examSel === "HALF_YEARLY" || examSel === "ANNUAL") {
-            window.updateProgress(20, "Syncing PMT Matrix...");
-            const snapPmt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PMT")));
-            snapPmt.forEach(d => allPmt[d.data().scholar_id.toString().toUpperCase()] = d.data());
-        }
-        if (examSel === "ANNUAL") {
-            window.updateProgress(40, "Syncing Half-Yearly & PAT Matrix...");
-            const snapMt = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "HALF_YEARLY")));
-            snapMt.forEach(d => allMt[d.data().scholar_id.toString().toUpperCase()] = d.data());
-            
-            const snapPat = await fs.getDocs(fs.query(fs.collection(db, "school_results"), fs.where("academic_year", "==", sessionSel), fs.where("exam_type", "==", "PAT")));
-            snapPat.forEach(d => allPat[d.data().scholar_id.toString().toUpperCase()] = d.data());
-        }
-
-        const sanitizeSub = (n) => n ? (n.toUpperCase().trim() === 'IT/COM' ? 'IT/COMP' : n.toUpperCase().trim()) : '---';
-
-        let classGroups = {};
-        allMainData.forEach(data => {
-            let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
-            if(!classGroups[cName]) classGroups[cName] = [];
-            classGroups[cName].push(data);
-        });
-
-        const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
-        const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
-        let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF("l", "mm", "a4"); 
-        let isFirstPage = true;
-
-        window.updateProgress(60, "Chunking Pages for Full Utilization...");
-
-        const ROWS_PER_PAGE = 15; 
-
-        pdfSandbox = document.createElement('div');
-        pdfSandbox.style.position = 'absolute'; pdfSandbox.style.top = '-9999px'; pdfSandbox.style.left = '-9999px';
-        pdfSandbox.style.width = '1600px'; 
-        pdfSandbox.style.background = '#ffffff'; 
-        pdfSandbox.style.padding = '30px';
-        document.body.appendChild(pdfSandbox);
-
-        for (let cName of sortedClasses) {
-            let group = classGroups[cName];
-            let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
-            let allSubjectsForClass = new Set();
-
-            // Computations with AB handling
-            group.forEach(st => {
-                let sid = st.scholar_id.toString().toUpperCase();
-                let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
-                st.computedMarks = {}; st.sTotal = 0; st.sMax = 0;
-
-                subs.forEach(sub => {
-                    let subName = sanitizeSub(sub.name);
-                    allSubjectsForClass.add(subName);
-                    
-                    let rawTh = sub.theory !== undefined ? sub.theory : 0;
-                    let rawPr = sub.practical !== undefined ? sub.practical : 0;
-                    let rawTot = sub.total !== undefined ? sub.total : 0;
-                    
-                    let thNum = window.getSafeMark(rawTh);
-                    let prNum = window.getSafeMark(rawPr);
-                    let totNum = window.getSafeMark(rawTot);
-                    
-                    let maxM = (examSel === "PMT" || examSel === "PAT") ? 20 : 100;
-
-                    if (examSel === "PMT" || examSel === "PAT") {
-                        let finalScore = is9or10 ? thNum : totNum;
-                        st.computedMarks[subName] = { th: rawTh, pr: rawPr, final: finalScore };
-                        st.sTotal += finalScore; st.sMax += maxM;
-                    } 
-                    else if (examSel === "HALF_YEARLY") {
-                        let pmtData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        let pmtRaw = pmtData ? (is9or10 ? (pmtData.theory !== undefined ? pmtData.theory : (pmtData.total||0)) : (pmtData.total||0)) : '---';
-                        let pmtNum = window.getSafeMark(pmtRaw);
-                        
-                        let final = pmtNum + thNum;
-                        st.computedMarks[subName] = { pmt: pmtRaw, mt: rawTh, final: final };
-                        st.sTotal += final; st.sMax += maxM;
-                    } 
-                    else if (examSel === "ANNUAL") {
-                        let pData = allPmt[sid] ? (typeof allPmt[sid].subjects_json === "string" ? JSON.parse(allPmt[sid].subjects_json) : allPmt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        let mData = allMt[sid] ? (typeof allMt[sid].subjects_json === "string" ? JSON.parse(allMt[sid].subjects_json) : allMt[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        let paData = allPat[sid] ? (typeof allPat[sid].subjects_json === "string" ? JSON.parse(allPat[sid].subjects_json) : allPat[sid].subjects_json).find(x => sanitizeSub(x.name) === subName) : null;
-                        
-                        let pmtRaw = pData ? (is9or10 ? (pData.theory !== undefined ? pData.theory : (pData.total||0)) : (pData.total||0)) : '---';
-                        let mtRaw = mData ? (mData.theory !== undefined ? mData.theory : (mData.total||0)) : '---';
-                        let patRaw = paData ? (is9or10 ? (paData.theory !== undefined ? paData.theory : (paData.total||0)) : (paData.total||0)) : '---';
-                        
-                        let pmtNum = window.getSafeMark(pmtRaw);
-                        let mtNum = window.getSafeMark(mtRaw);
-                        let patNum = window.getSafeMark(patRaw);
-                        
-                        let term1 = pmtNum + mtNum; let term2 = patNum + thNum;
-                        let final = Math.round((term1 + term2) / 2);
-                        
-                        st.computedMarks[subName] = { pmt: pmtRaw, mt: mtRaw, pat: patRaw, ann: rawTh, final: final };
-                        st.sTotal += final; st.sMax += maxM;
-                    }
-                });
-            });
-
-            group.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
-            let sortedSubs = Array.from(allSubjectsForClass).sort();
-
-            let headerFontSize = "15px"; let subHeaderFontSize = "12px"; let dataFontSize = "13px"; let nameFontSize = "15px"; 
-
-            let thRow1 = `
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 90px;">ID</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 70px;">ROLL</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 250px;">CANDIDATE NAME</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 190px;">FATHER'S NAME</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; text-align:left; font-size:${headerFontSize}; width: 190px;">MOTHER'S NAME</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 110px;">DOB</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 70px;">ATTD</th>
-            `;
-            let thRow2 = ``;
-
-            sortedSubs.forEach(sName => {
-                if (examSel === "PMT" || examSel === "PAT") {
-                    if (is9or10) {
-                        thRow1 += `<th rowspan="2" style="border:2px solid #000; padding:10px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}<br><span style="font-size:10px;font-weight:bold;">(TH)</span></th>`;
-                    } else {
-                        thRow1 += `<th colspan="2" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
-                        thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">TH</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PR</th>`;
-                    }
-                } else if (examSel === "HALF_YEARLY") {
-                    thRow1 += `<th colspan="3" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
-                    thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PMT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">MT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize}; font-weight:900;">TOT</th>`;
-                } else if (examSel === "ANNUAL") {
-                    thRow1 += `<th colspan="5" style="border:2px solid #000; padding:8px; background:#e2e8f0; color:#0f172a; font-size:${headerFontSize};">${sName}</th>`;
-                    thRow2 += `<th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PMT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">MT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">PAT</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize};">ANN</th><th style="border:2px solid #000; padding:6px; font-size:${subHeaderFontSize}; font-weight:900;">AVG</th>`;
-                }
-            });
-
-            thRow1 += `
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">TOTAL</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">%</th>
-                <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize};">STATUS</th>
-            `;
-
-            let chunks = [];
-            for (let i = 0; i < group.length; i += ROWS_PER_PAGE) {
-                chunks.push(group.slice(i, i + ROWS_PER_PAGE));
-            }
-
-            for (let pageIndex = 0; pageIndex < chunks.length; pageIndex++) {
-                let chunk = chunks[pageIndex];
-                let tBody = ``;
-
-                chunk.forEach(st => {
-                    let dp = st.days_present !== undefined ? st.days_present : "---";
-                    let pct = st.sMax > 0 ? ((st.sTotal / st.sMax) * 100).toFixed(1) : "0.0";
-                    let status = Number(pct) >= 33 ? "PASS" : "FAIL";
-
-                    let tr = `
-                        <tr style="text-align:center; color:#000; border-bottom:2px solid #000; height: 48px;">
-                            <td style="border:2px solid #000; padding:9px 5px; font-family:monospace; font-weight:bold; font-size:${dataFontSize};">${st.scholar_id}</td>
-                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize};">${st.roll_no || '-'}</td>
-                            <td style="border:2px solid #000; padding:9px 8px; text-align:left; font-weight:900; font-size:${nameFontSize}; text-transform:uppercase;">${st.name || '-'}</td>
-                            <td style="border:2px solid #000; padding:9px 6px; text-align:left; font-size:${dataFontSize}; font-weight:bold; text-transform:uppercase;">${st.father || '-'}</td>
-                            <td style="border:2px solid #000; padding:9px 6px; text-align:left; font-size:${dataFontSize}; font-weight:bold; text-transform:uppercase;">${st.mother || '-'}</td>
-                            <td style="border:2px solid #000; padding:9px 5px; font-size:${dataFontSize}; font-weight:bold;">${st.dob || '-'}</td>
-                            <td style="border:2px solid #000; padding:9px 5px; font-weight:bold; font-size:${dataFontSize};">${dp}</td>
-                    `;
-
-                    sortedSubs.forEach(sName => {
-                        let marks = st.computedMarks[sName];
-                        if(!marks) {
-                            if (examSel === "PMT" || examSel === "PAT") {
-                                if (is9or10) tr += `<td style="border:2px solid #000;">-</td>`;
-                                else tr += `<td colspan="2" style="border:2px solid #000;">-</td>`;
-                            }
-                            else if (examSel === "HALF_YEARLY") tr += `<td colspan="3" style="border:2px solid #000;">-</td>`;
-                            else if (examSel === "ANNUAL") tr += `<td colspan="5" style="border:2px solid #000;">-</td>`;
-                        } else {
-                            if (examSel === "PMT" || examSel === "PAT") {
-                                if (is9or10) {
-                                    tr += `<td style="border:2px solid #000; padding:8px 4px; font-weight:900; font-size:${dataFontSize};">${marks.th}</td>`;
-                                } else {
-                                    tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize}; font-weight:bold;">${marks.th}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize}; font-weight:bold;">${marks.pr}</td>`;
-                                }
-                            } else if (examSel === "HALF_YEARLY") {
-                                tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pmt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.mt}</td><td style="border:2px solid #000; padding:8px 4px; font-weight:900; font-size:${dataFontSize}; background:#f8fafc;">${marks.final}</td>`;
-                            } else if (examSel === "ANNUAL") {
-                                tr += `<td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pmt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.mt}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.pat}</td><td style="border:2px solid #000; padding:8px 4px; font-size:${dataFontSize};">${marks.ann}</td><td style="border:2px solid #000; padding:8px 4px; font-weight:900; color:#1e3a8a; font-size:${dataFontSize}; background:#f0fdf4;">${marks.final}</td>`;
-                            }
-                        }
-                    });
-
-                    tr += `
-                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize}; background:#f1f5f9;">${st.sTotal}/${st.sMax}</td>
-                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize};">${pct}%</td>
-                            <td style="border:2px solid #000; padding:9px 5px; font-weight:900; font-size:${dataFontSize}; color:${status==='PASS'?'#047857':'#b91c1c'};">${status}</td>
-                        </tr>
 // ==========================================
 // 📄 TABULAR PDF MASTER LEDGER (BOLD MARKS & LARGE FONT)
 // ==========================================
@@ -6531,6 +6309,7 @@ window.downloadResultDataPDF = async () => {
         alert("Error while rendering Ledger Layout: " + error.message);
     }
 };
+
 
 
 // ==========================================
