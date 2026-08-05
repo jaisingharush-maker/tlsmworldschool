@@ -1599,6 +1599,7 @@ window.fetchStudentResult = async () => {
         let totalMarks = 0; let maxMarks = 0;  
 
         const studentClass = data.class ? data.class.toString().trim().toUpperCase() : "N/A";
+        const studentSection = data.section ? data.section.toString().trim().toUpperCase() : "A";
         let isClass9or10 = studentClass === "9" || studentClass.startsWith("9TH") || studentClass.startsWith("9-") || studentClass.startsWith("9 ") || studentClass === "IX" || studentClass.startsWith("IX-") || studentClass.startsWith("IX ") || studentClass === "10" || studentClass.startsWith("10TH") || studentClass.startsWith("10-") || studentClass.startsWith("10 ") || studentClass === "X" || studentClass.startsWith("X-") || studentClass.startsWith("X ");
         let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
   
@@ -1728,6 +1729,10 @@ window.fetchStudentResult = async () => {
 
             classSnap.forEach(docSnap => {  
                 let sData = docSnap.data(); if(!sData.scholar_id) return;  
+                
+                let sSec = sData.section ? sData.section.toString().trim().toUpperCase() : "A";
+                if (sSec !== studentSection) return; 
+                
                 let sid = sData.scholar_id.toString().trim().toUpperCase();
                 let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}  
                 if (!Array.isArray(sSubs)) sSubs = [];
@@ -1796,7 +1801,6 @@ window.fetchStudentResult = async () => {
         </div>
         ` : '';
 
-        // UPDATED PHOTO PRIORITY LOGIC
         let photoHtml = `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
         if (data.photo_url && data.photo_url.trim() !== "") {
             photoHtml = `<img src="${data.photo_url}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">`;
@@ -1838,12 +1842,13 @@ window.fetchStudentResult = async () => {
                         <div><span class="text-blue-900 font-black uppercase">Name:</span></div><div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Mother's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.mother || ''}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Father's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.father || ''}</div>  
-                        <div><span class="text-blue-900 font-black uppercase">Class:</span></div><div class="col-span-2 font-bold uppercase text-black">${studentClass} - ${(data.section || "A").toUpperCase().trim()}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Class:</span></div><div class="col-span-2 font-bold uppercase text-black">${studentClass} - ${studentSection}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Pen No :</span></div><div class="col-span-2 font-mono font-bold text-black">${data.dob || ''}</div>  
                     </div>  
-                    <div class="w-[65px] h-[80px] flex-shrink-0 mr-[25px]">
-                        ${photoHtml}
-                    </div>
+                    <div class="w-[90px] h-[110px] flex-shrink-0 mr-[25px]">
+    ${photoHtml}
+</div>
+
                 </div>
                 
                 <div class="overflow-x-auto w-full mb-4 rounded-lg">
@@ -1935,7 +1940,6 @@ window.printBulkClassResults = async () => {
         if(n === 'IT/COM') return 'IT/COMP'; return n;
     };
 
-    // Sirf principal ka signature fetch hoga
     let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
     let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
     let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
@@ -2005,15 +2009,28 @@ window.printBulkClassResults = async () => {
             classStudents.push({ ...sData, totalMarks: sTotal });
         });
 
-        classStudents.sort((a, b) => b.totalMarks - a.totalMarks);
-        let totalInClass = classStudents.length;
+        let studentsBySection = {};
+        classStudents.forEach(st => {
+            let sec = st.section ? st.section.toString().trim().toUpperCase() : "A";
+            if(!studentsBySection[sec]) studentsBySection[sec] = [];
+            studentsBySection[sec].push(st);
+        });
 
-        let rankedStudentsMap = {}; let currentRank = 1;
-        for (let i = 0; i < classStudents.length; i++) {
-            if (i > 0 && classStudents[i].totalMarks < classStudents[i-1].totalMarks) { currentRank++; }
-            let sid = classStudents[i].scholar_id ? classStudents[i].scholar_id.toString().trim().toUpperCase() : 'UNKNOWN';
-            rankedStudentsMap[sid] = currentRank;
-        }
+        let rankedStudentsMap = {};
+        let totalInSectionMap = {};
+
+        Object.keys(studentsBySection).forEach(sec => {
+            let secStudents = studentsBySection[sec];
+            secStudents.sort((a, b) => b.totalMarks - a.totalMarks);
+            totalInSectionMap[sec] = secStudents.length;
+
+            let currentRank = 1;
+            for (let i = 0; i < secStudents.length; i++) {
+                if (i > 0 && secStudents[i].totalMarks < secStudents[i-1].totalMarks) { currentRank++; }
+                let sid = secStudents[i].scholar_id ? secStudents[i].scholar_id.toString().trim().toUpperCase() : 'UNKNOWN';
+                rankedStudentsMap[sid] = currentRank;
+            }
+        });
 
         const { jsPDF } = window.jspdf; const pdf = new jsPDF("l", "mm", "a4");
         const pageWidth = 297; const pageHeight = 210; const margin = 5; const gap = 5;    
@@ -2032,8 +2049,13 @@ window.printBulkClassResults = async () => {
             await new Promise(r => setTimeout(r, 10));
             window.updateProgress(Math.round(((idx + 1) / classStudents.length) * 100), `Compiled ${idx + 1} of ${classStudents.length} report cards`);
 
-            let data = classStudents[idx]; let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
+            let data = classStudents[idx]; 
+            let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
+            let studentSec = data.section ? data.section.toString().trim().toUpperCase() : "A";
+            
             let classRank = rankedStudentsMap[scholarStr] || 'N/A';
+            let totalInClass = totalInSectionMap[studentSec] || 0;
+            
             let subjects = []; try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e){}
             if (!Array.isArray(subjects)) subjects = []; 
             
@@ -2116,9 +2138,7 @@ window.printBulkClassResults = async () => {
             let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
             let uniqueChartId = `bulk-chart-${Date.now()}-${idx}`;
 
-            // UPDATED PHOTO PRIORITY LOGIC
             let photoUrl = data.photo_url || photoMap[scholarStr];
-            
             let photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
                 : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
@@ -2154,12 +2174,13 @@ window.printBulkClassResults = async () => {
                             <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${(data.section || "A")}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${studentSec}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
                         </div>
                         <div style="width: 65px; height: 80px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
-                            ${photoHtml}
-                        </div>
+    ${photoHtml}
+</div>
+
                     </div>  
                       
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
@@ -2199,8 +2220,7 @@ window.printBulkClassResults = async () => {
 
                     <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
                         <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                </div>
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;"></div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
                         </div>
                         <div style="text-align: center; width: 140px;">
@@ -2303,10 +2323,13 @@ window.printSpecificStudentResults = async () => {
 
         for (let st of selectedStudents) {
             let sClass = st.class ? st.class.toString().trim().toUpperCase() : "N/A";
+            let sSec = st.section ? st.section.toString().trim().toUpperCase() : "A";
+            let groupKey = `${sClass}_${sSec}`;
+            
             let is9or10 = sClass === "9" || sClass.startsWith("9TH") || sClass.startsWith("9-") || sClass.startsWith("9 ") || sClass === "IX" || sClass.startsWith("IX-") || sClass.startsWith("IX ") || sClass === "10" || sClass.startsWith("10TH") || sClass.startsWith("10-") || sClass.startsWith("10 ") || sClass === "X" || sClass.startsWith("X-") || sClass.startsWith("X ");
             
-            if (!classRanksMaps[sClass]) {
-                classRanksMaps[sClass] = {}; classTotalsMaps[sClass] = 0;
+            if (!classRanksMaps[groupKey]) {
+                classRanksMaps[groupKey] = {}; classTotalsMaps[groupKey] = 0;
 
                 const qClass = query(collection(db, "school_results"), where("class", "==", sClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear));
                 const classSnap = await getDocs(qClass);
@@ -2328,6 +2351,8 @@ window.printSpecificStudentResults = async () => {
                 let classStudentsTemp = [];
                 classSnap.forEach(docSnap => {
                     let sData = docSnap.data(); if(!sData.scholar_id) return;
+                    let docSec = sData.section ? sData.section.toString().trim().toUpperCase() : "A";
+                    if (docSec !== sSec) return; 
                     let sid = sData.scholar_id.toString().trim().toUpperCase();
                     let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
                     if (!Array.isArray(sSubs)) sSubs = [];
@@ -2359,11 +2384,11 @@ window.printSpecificStudentResults = async () => {
                 });
 
                 classStudentsTemp.sort((a, b) => b.totalMarks - a.totalMarks);
-                classTotalsMaps[sClass] = classStudentsTemp.length;
+                classTotalsMaps[groupKey] = classStudentsTemp.length;
                 let currentRank = 1;
                 for(let i = 0; i < classStudentsTemp.length; i++) {
                     if (i > 0 && classStudentsTemp[i].totalMarks < classStudentsTemp[i-1].totalMarks) currentRank++;
-                    classRanksMaps[sClass][classStudentsTemp[i].scholar_id] = currentRank;
+                    classRanksMaps[groupKey][classStudentsTemp[i].scholar_id] = currentRank;
                 }
             }
         }
@@ -2412,13 +2437,15 @@ window.printSpecificStudentResults = async () => {
             let data = selectedStudents[idx];
             let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
             let targetClass = data.class ? data.class.toString().trim().toUpperCase() : "N/A";
-            let classRank = classRanksMaps[targetClass] ? (classRanksMaps[targetClass][scholarStr] || 'N/A') : 'N/A';
-            let totalInClass = classTotalsMaps[targetClass] || 0;
+            let targetSec = data.section ? data.section.toString().trim().toUpperCase() : "A";
+            let targetGroupKey = `${targetClass}_${targetSec}`;
+            
+            let classRank = classRanksMaps[targetGroupKey] ? (classRanksMaps[targetGroupKey][scholarStr] || 'N/A') : 'N/A';
+            let totalInClass = classTotalsMaps[targetGroupKey] || 0;
 
             const percent = Math.round((((idx + 1) / selectedStudents.length) * 50) + 50);
             window.updateProgress(percent, `Rendering Card Layer ${idx + 1} of ${selectedStudents.length}`);
 
-            // Sirf principal ka signature fetch hoga
             let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
             let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
             let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
@@ -2508,9 +2535,7 @@ window.printSpecificStudentResults = async () => {
             let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
             let uniqueChartId = `bulk-specific-chart-${Date.now()}-${idx}`;
 
-            // UPDATED PHOTO PRIORITY LOGIC
             let photoUrl = data.photo_url || photoMap[scholarStr];
-            
             let photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
                 : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
@@ -2546,12 +2571,13 @@ window.printSpecificStudentResults = async () => {
                             <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${(data.section || "A")}</div>
+                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${targetSec}</div>
                             <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
                         </div>
-                        <div style="width: 65px; height: 80px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
-                            ${photoHtml}
-                        </div>
+                        <div style="width: 90px; height: 110px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
+    ${photoHtml}
+</div>
+
                     </div>  
                       
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
@@ -2591,8 +2617,7 @@ window.printSpecificStudentResults = async () => {
 
                     <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
                         <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                </div>
+                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;"></div>
                             <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
                         </div>
                         <div style="text-align: center; width: 140px;">
@@ -2644,6 +2669,7 @@ window.printSpecificStudentResults = async () => {
         sandbox.innerHTML = ""; if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
     }
 };
+
 
 window.processExcelUpload = () => {  
     if (!isCurrentUserAdmin && !isSubAdmin) { alert("Unauthorized Access!"); return; }
@@ -6062,13 +6088,25 @@ window.downloadResultDataPDF = async () => {
         let classGroups = {};
         allMainData.forEach(data => {
             let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
-            if(!classGroups[cName]) classGroups[cName] = [];
-            classGroups[cName].push(data);
+            let sName = data.section ? data.section.toString().toUpperCase().trim() : "A";
+            let groupKey = `${cName} - SECTION ${sName}`; 
+            if(!classGroups[groupKey]) classGroups[groupKey] = [];
+            classGroups[groupKey].push(data);
         });
 
         const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
-        const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
-        let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
+        
+        const getWeight = (c) => { 
+            let clean = c.split('-')[0].replace(/[^A-Z0-9]/g, ''); 
+            for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } 
+            return 99; 
+        };
+        
+        let sortedClasses = Object.keys(classGroups).sort((a, b) => {
+            let diff = getWeight(a) - getWeight(b);
+            if (diff === 0) return a.localeCompare(b);
+            return diff;
+        });
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF("l", "mm", "a4"); 
@@ -6148,12 +6186,11 @@ window.downloadResultDataPDF = async () => {
             group.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
             let sortedSubs = Array.from(allSubjectsForClass).sort();
 
-            // 🚨 NAYE BADE AUR BOLD FONTS YAHAN HAIN 🚨
             let headerFontSize = "16px"; 
             let subHeaderFontSize = "13px"; 
             let dataFontSize = "14px"; 
             let nameFontSize = "16px"; 
-            let marksFontSize = "18px"; // <--- Marks ka size bada kiya gaya hai!
+            let marksFontSize = "18px"; 
 
             let thRow1 = `
                 <th rowspan="2" style="border:2px solid #000; padding:10px; font-size:${headerFontSize}; width: 90px;">ID</th>
@@ -6214,7 +6251,6 @@ window.downloadResultDataPDF = async () => {
                             <td style="border:2px solid #000; padding:9px 5px; font-weight:bold; font-size:${dataFontSize};">${dp}</td>
                     `;
 
-                    // 🚨 MARKS KO BOLD AUR BADA YAHAN KIYA GAYA HAI 🚨
                     sortedSubs.forEach(sName => {
                         let marks = st.computedMarks[sName];
                         if(!marks) {
@@ -6572,13 +6608,25 @@ window.downloadTop10ListPDF = async () => {
         let classGroups = {};
         allMainData.forEach(data => {
             let cName = data.class ? data.class.toString().toUpperCase().trim() : "UNKNOWN";
-            if(!classGroups[cName]) classGroups[cName] = [];
-            classGroups[cName].push(data);
+            let sName = data.section ? data.section.toString().toUpperCase().trim() : "A";
+            let groupKey = `${cName} - SECTION ${sName}`; 
+            if(!classGroups[groupKey]) classGroups[groupKey] = [];
+            classGroups[groupKey].push(data);
         });
 
         const classWeights = { "NURSERY":1, "NUR":1, "LKG":2, "UKG":3, "1":4, "I":4, "1ST":4, "2":5, "II":5, "2ND":5, "3":6, "III":6, "3RD":6, "4":7, "IV":7, "4TH":7, "5":8, "V":8, "5TH":8, "6":9, "VI":9, "6TH":9, "7":10, "VII":10, "7TH":10, "8":11, "VIII":11, "8TH":11, "9":12, "IX":12, "9TH":12, "10":13, "X":13, "10TH":13 };
-        const getWeight = (c) => { let clean = c.replace(/[^A-Z0-9]/g, ''); for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } return 99; };
-        let sortedClasses = Object.keys(classGroups).sort((a, b) => getWeight(a) - getWeight(b));
+        
+        const getWeight = (c) => { 
+            let clean = c.split('-')[0].replace(/[^A-Z0-9]/g, ''); 
+            for(let k in classWeights) { if(clean.startsWith(k) || clean === k) return classWeights[k]; } 
+            return 99; 
+        };
+        
+        let sortedClasses = Object.keys(classGroups).sort((a, b) => {
+            let diff = getWeight(a) - getWeight(b);
+            if (diff === 0) return a.localeCompare(b);
+            return diff;
+        });
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF("p", "mm", "a4"); 
@@ -6596,7 +6644,6 @@ window.downloadTop10ListPDF = async () => {
             let group = classGroups[cName];
             let is9or10 = cName === "9" || cName.startsWith("9TH") || cName.startsWith("9-") || cName.startsWith("9 ") || cName === "IX" || cName.startsWith("IX-") || cName.startsWith("IX ") || cName === "10" || cName.startsWith("10TH") || cName.startsWith("10-") || cName.startsWith("10 ") || cName === "X" || cName.startsWith("X-") || cName.startsWith("X ");
 
-            // AB-SAFE Totals Calculation
             group.forEach(st => {
                 let sid = st.scholar_id.toString().toUpperCase();
                 let subs = []; try { subs = typeof st.subjects_json === "string" ? JSON.parse(st.subjects_json) : st.subjects_json; } catch(e){} if(!Array.isArray(subs)) subs = [];
@@ -6796,6 +6843,7 @@ window.downloadTop10ListPDF = async () => {
         alert("Error while rendering Top 10 List: " + error.message);
     }
 };
+
 
 window.downloadCBTPdf = async (testId, testTitle) => {
     window.showProgress("Fetching CBT Records...");
