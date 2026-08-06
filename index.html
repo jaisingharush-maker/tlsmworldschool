@@ -3,12 +3,16 @@
 <head>    
 <meta charset="UTF-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
-<title>TLSM WORLD SCHOOL</title>  
+<title>TLSM WORLD SCHOOL</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script> <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+
 <script src="https://cdn.tailwindcss.com"></script>  
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>  
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -380,18 +384,22 @@
     </div>  
 
         <div id="sec-excel-results" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
-        <div class="glass !p-4 border-2 border-orange-200">
-            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Class Results</p>
-            <p class="text-[9px] text-slate-500 mb-3">Ek hi baar me kisi ek class ke sabhi bacho ka result card single PDF me print karein.</p>
-            <div class="space-y-2">
-                <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2" placeholder="ENTER CLASS (e.g. 10, 12, 9TH)">
-                <div class="grid grid-cols-2 gap-2">
-                    <select id="admin-print-academic-year" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
-                    <select id="admin-print-exam-type" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
-                </div>
-                <button onclick="window.printBulkClassResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Generate Bulk Class PDF</button>
-            </div>
+      <div class="glass !p-4 border-2 border-orange-200">
+    <p class="text-[10px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Class Results</p>
+    <p class="text-[9px] text-slate-500 mb-3">Ek hi baar me kisi ek class & section ke sabhi bacho ka result card single PDF me print karein.</p>
+    <div class="space-y-2">
+        <div class="flex gap-2">
+            <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2 flex-1" placeholder="CLASS (e.g. 10)">
+            <input type="text" id="admin-print-section" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2 w-1/3" placeholder="SEC (A, B, ALL)" value="ALL">
         </div>
+        <div class="grid grid-cols-2 gap-2">
+            <select id="admin-print-academic-year" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+            <select id="admin-print-exam-type" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+        </div>
+        <button onclick="window.printBulkClassResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Generate Bulk Class PDF</button>
+    </div>
+</div>
+
 
                <div class="glass !p-4">  
             <p class="text-[10px] font-black text-orange-600 mb-2 uppercase">Bulk Upload & Download Results</p>  
@@ -1555,6 +1563,9 @@ window.adminDirectUpdateMarks = async () => {
     }
 };
 
+// ==========================================
+// 1. ONLINE RESULT VIEW (PORTAL)
+// ==========================================
 window.fetchStudentResult = async () => {  
     if (!isResultsPortalVisible && !isCurrentUserAdmin) {
         alert("Action Forbidden. Results portal is offline right now."); return;
@@ -1626,6 +1637,11 @@ window.fetchStudentResult = async () => {
                 }
             } catch(e) { console.error("Error fetching prev exams:", e); }
         }
+
+        // 🔥 Yahan PRAC ko I/A kiya gaya hai
+        let theoryHeader = "THEORY"; let pracHeader = "I/A";
+        if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } 
+        else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
 
         let subjectRows = "";  
         subjects.forEach(sub => {  
@@ -1778,10 +1794,6 @@ window.fetchStudentResult = async () => {
 
         let examDisplayName = data.exam_type ? data.exam_type.replace(/_/g, " ") : "Examination";  
         let displayAcademicYear = data.academic_year || academicYear;   
-        
-        let theoryHeader = "THEORY"; let pracHeader = "I.A / PRAC";
-        if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } 
-        else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
 
         let daysPresentStr = "N/A";
         if (data.days_present !== undefined && data.days_present !== null) {
@@ -1814,6 +1826,7 @@ window.fetchStudentResult = async () => {
             } catch(e) { console.warn("Online view photo load error:", e); }
         }
 
+        // 🔥 Scholar ID & Modified Layout injected here
         targetPanel.innerHTML = `  
          <div class="border-4 border-blue-900 p-3 sm:p-4 bg-slate-50 relative">  
                 <div class="flex items-center justify-between border-b-2 border-blue-900 pb-3 mb-4 relative">  
@@ -1826,7 +1839,8 @@ window.fetchStudentResult = async () => {
                     <div class="text-center flex-1 mt-4 px-1 sm:px-2">  
                         <h2 class="text-blue-900 font-black text-sm sm:text-xl tracking-wide uppercase leading-tight">TLSM WORLD SCHOOL</h2>  
                         <p class="text-[7px] sm:text-[9px] font-bold text-slate-700 uppercase mt-1 md:mt-1.5 leading-tight">
-                            Ganga Tola, Bihiya Road, Piro Bhojpur-802207  <span class="hidden md:inline">|</span><br class="md:hidden"> Mob: 9661651050 | asktlsmschool@gmail.com
+                            Ganga Tola, Bihiya Road, Piro Bhojpur-802207<br>
+                            Mob: 9661651050 | asktlsmschool@gmail.com
                         </p>
                         <p class="text-slate-700 text-[9px] sm:text-[11px] md:text-[12px] font-extrabold uppercase mt-2 tracking-tight whitespace-nowrap">${examDisplayName} Report Card (Class ${studentClass})</p>  
                         <p class="text-orange-600 text-[9px] sm:text-[10px] font-black uppercase">Session: ${displayAcademicYear}</p>  
@@ -1839,16 +1853,16 @@ window.fetchStudentResult = async () => {
                 <div class="flex justify-between items-center border-b border-dashed border-slate-400 pb-3 mb-3 gap-4">
                     <div class="grid grid-cols-3 gap-y-1 gap-x-2 text-[9px] sm:text-[10px] text-slate-800 flex-1">  
                         <div><span class="text-blue-900 font-black uppercase">Roll No:</span></div><div class="col-span-2 font-mono font-bold text-black">${data.roll_no || 'N/A'}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">Scholar ID:</span></div><div class="col-span-2 font-mono font-bold text-black">${currentScholarId || 'N/A'}</div>
                         <div><span class="text-blue-900 font-black uppercase">Name:</span></div><div class="col-span-2 font-black uppercase text-black">${data.name || ''}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Mother's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.mother || ''}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Father's Name:</span></div><div class="col-span-2 font-bold uppercase text-black">${data.father || ''}</div>  
                         <div><span class="text-blue-900 font-black uppercase">Class:</span></div><div class="col-span-2 font-bold uppercase text-black">${studentClass} - ${studentSection}</div>  
-                        <div><span class="text-blue-900 font-black uppercase">Pen No :</span></div><div class="col-span-2 font-mono font-bold text-black">${data.dob || ''}</div>  
+                        <div><span class="text-blue-900 font-black uppercase">DOB:</span></div><div class="col-span-2 font-mono font-bold text-black">${data.dob || ''}</div>  
                     </div>  
-                    <div class="w-[90px] h-[110px] flex-shrink-0 mr-[25px]">
-    ${photoHtml}
-</div>
-
+                    <div class="w-[90px] h-[110px] flex-shrink-0 mr-6 sm:mr-10">
+                        ${photoHtml}
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto w-full mb-4 rounded-lg">
@@ -1920,7 +1934,9 @@ window.fetchStudentResult = async () => {
 };
 
 
-
+// ==========================================
+// 2. BULK PRINT CLASS RESULTS (WITH REAL MEDAL IMAGES)
+// ==========================================
 window.printBulkClassResults = async () => {
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
@@ -1928,12 +1944,15 @@ window.printBulkClassResults = async () => {
     }
 
     const targetClass = document.getElementById("admin-print-class").value.trim().toUpperCase();
+    const targetSection = document.getElementById("admin-print-section").value.trim().toUpperCase() || "ALL";
     const examType = document.getElementById("admin-print-exam-type").value;
     const academicYear = document.getElementById("admin-print-academic-year").value;
-    const sandbox = document.getElementById("bulk-print-sandbox");
 
     if (!targetClass) { alert("Please specify a valid Class to print!"); return; }
-    alert("Fetching class details from firestore database, please hold on...");
+    
+    const btn = event.target; 
+    const oldText = btn ? btn.innerHTML : "Generate Bulk Class PDF";
+    if (btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> FETCHING DATA...`; btn.disabled = true; }
 
     const sanitizeSub = (name) => {
         if(!name) return '---'; let n = name.toUpperCase().trim();
@@ -1947,7 +1966,7 @@ window.printBulkClassResults = async () => {
     try {
         const qClass = query(collection(db, "school_results"), where("class", "==", targetClass), where("exam_type", "==", examType), where("academic_year", "==", academicYear));
         const snapshot = await getDocs(qClass);
-        if (snapshot.empty) { alert("No report records found for this precise configuration."); return; }
+        if (snapshot.empty) { alert("No report records found for this precise configuration."); if(btn) { btn.innerHTML = oldText; btn.disabled = false; } return; }
 
         let allPmtData = {}; let allMtData = {}; let allPatData = {};
         if (examType === "ANNUAL" || examType === "HALF_YEARLY") {
@@ -1963,7 +1982,7 @@ window.printBulkClassResults = async () => {
             } catch(e) { console.error(e); }
         }
 
-        window.showProgress("Syncing Student Photos...");
+        window.showProgress("Syncing Student Photos & Calculating Ranks...");
         let photoMap = {};
         try {
             const schoolNameSafe = typeof currentSchoolName !== 'undefined' ? currentSchoolName : "TLSM WORLD SCHOOL";
@@ -1979,7 +1998,12 @@ window.printBulkClassResults = async () => {
 
         let classStudents = [];
         snapshot.forEach(docSnap => {
-            let sData = docSnap.data(); let sid = (sData.scholar_id || '').toString().trim().toUpperCase();
+            let sData = docSnap.data(); 
+            let sid = (sData.scholar_id || '').toString().trim().toUpperCase();
+            let sSec = sData.section ? sData.section.toString().trim().toUpperCase() : "A";
+            
+            if (targetSection !== "ALL" && sSec !== targetSection) return;
+
             let sSubs = []; try { sSubs = typeof sData.subjects_json === "string" ? JSON.parse(sData.subjects_json) : sData.subjects_json; } catch(e){}
             if (!Array.isArray(sSubs)) sSubs = []; 
             
@@ -2009,6 +2033,14 @@ window.printBulkClassResults = async () => {
             classStudents.push({ ...sData, totalMarks: sTotal });
         });
 
+        if (classStudents.length === 0) {
+            alert(`No students found in Class ${targetClass} for Section ${targetSection}.`);
+            if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
+            return;
+        }
+
+        classStudents.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
+
         let studentsBySection = {};
         classStudents.forEach(st => {
             let sec = st.section ? st.section.toString().trim().toUpperCase() : "A";
@@ -2020,8 +2052,8 @@ window.printBulkClassResults = async () => {
         let totalInSectionMap = {};
 
         Object.keys(studentsBySection).forEach(sec => {
-            let secStudents = studentsBySection[sec];
-            secStudents.sort((a, b) => b.totalMarks - a.totalMarks);
+            let secStudents = [...studentsBySection[sec]];
+            secStudents.sort((a, b) => b.totalMarks - a.totalMarks); 
             totalInSectionMap[sec] = secStudents.length;
 
             let currentRank = 1;
@@ -2032,22 +2064,54 @@ window.printBulkClassResults = async () => {
             }
         });
 
-        const { jsPDF } = window.jspdf; const pdf = new jsPDF("l", "mm", "a4");
-        const pageWidth = 297; const pageHeight = 210; const margin = 5; const gap = 5;    
-        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; const maxCardHeight = pageHeight - margin * 2;
-
-        const waitForImages = (container) => {
-            const images = container.getElementsByTagName('img');
-            const promises = Array.from(images).map(img => {
-                if (img.complete) return Promise.resolve();
-                return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+        const loadImageUrl = (url) => {
+            return new Promise((resolve) => {
+                if (!url || url.trim() === '') { resolve(null); return; } 
+                const img = new Image();
+                let isResolved = false;
+                const finish = (result) => { if (!isResolved) { isResolved = true; resolve(result); } };
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => finish(img);
+                img.onerror = () => finish(null);
+                img.src = url;
+                setTimeout(() => finish(null), 3000); 
             });
-            return Promise.all(promises);
         };
 
+        if (btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING PDF...`; }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) { throw new Error("jsPDF library is not loaded properly. Please refresh the page."); }
+        const { jsPDF } = window.jspdf; 
+        const pdf = new jsPDF("l", "mm", "a4");
+
+        const runAutoTable = (docInstance, options) => {
+            if (typeof docInstance.autoTable === 'function') { docInstance.autoTable(options); } 
+            else if (typeof window.jspdf.autoTable === 'function') { window.jspdf.autoTable(docInstance, options); } 
+            else if (typeof window.autoTable === 'function') { window.autoTable(docInstance, options); } 
+            else { throw new Error("AUTOTABLE_MISSING"); }
+        };
+
+        // 🥇 🥈 🥉 Load Twemoji Medal PNGs 
+        const medalGold = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f947.png");
+        const medalSilver = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f948.png");
+        const medalBronze = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f949.png");
+
+        const logoLeft = await loadImageUrl("https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png");
+        const logoRight = await loadImageUrl("https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png");
+        const princSign = await loadImageUrl(principalSignUrl);
+        
+        const pageWidth = 297; const pageHeight = 210; 
+        const margin = 5; const gap = 5;    
+        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
+        const maxCardHeight = pageHeight - margin * 2;
+
+        const blueColor = [30, 58, 138]; 
+        const orangeColor = [234, 88, 12]; 
+        const grayColor = [100, 116, 139]; 
+
         for (let idx = 0; idx < classStudents.length; idx++) {
-            await new Promise(r => setTimeout(r, 10));
-            window.updateProgress(Math.round(((idx + 1) / classStudents.length) * 100), `Compiled ${idx + 1} of ${classStudents.length} report cards`);
+            await new Promise(r => setTimeout(r, 1)); 
+            window.updateProgress(Math.round(((idx + 1) / classStudents.length) * 100), `Rendering Vector PDF: ${idx + 1} / ${classStudents.length}`);
 
             let data = classStudents[idx]; 
             let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
@@ -2060,12 +2124,129 @@ window.printBulkClassResults = async () => {
             if (!Array.isArray(subjects)) subjects = []; 
             
             let totalMarks = 0; let maxMarks = 0; let examDisplayName = examType.replace(/_/g, " ");
-            let theoryHeader = "THEORY"; let pracHeader = "PRAC";
+            let theoryHeader = "THEORY"; let pracHeader = "I/A";
             if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
-            let daysPresentStr = "N/A"; if (data.days_present !== undefined && data.days_present !== null) { let dp = data.days_present.toString(); if (dp.includes("/")) daysPresentStr = dp; else daysPresentStr = dp + " Days"; }
-            let bulkMedalIcon = ""; if (classRank === 1) bulkMedalIcon = "🥇"; else if (classRank === 2) bulkMedalIcon = "🥈"; else if (classRank === 3) bulkMedalIcon = "🥉";
+            
+            let daysPresentStr = "N/A"; 
+            if (data.days_present !== undefined && data.days_present !== null) { 
+                let dp = data.days_present.toString(); 
+                daysPresentStr = dp.includes("/") ? dp : dp + " Days"; 
+            }
 
-            let subjectRows = "";
+            const isLeft = (idx % 2 === 0); 
+            if (isLeft && idx > 0) pdf.addPage();
+            const startX = isLeft ? margin : (margin + cardWidth + gap);
+            const startY = margin;
+            let currentY = startY;
+
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.8);
+            pdf.rect(startX, startY, cardWidth, maxCardHeight);
+
+            pdf.setFontSize(7);
+            pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.text("AFFILIATION NO.: 331251", startX + 3, currentY + 5);
+            pdf.text("SCHOOL CODE: 67074", startX + cardWidth - 3, currentY + 5, { align: 'right' });
+
+            if (logoLeft) pdf.addImage(logoLeft, 'PNG', startX + 3, currentY + 7, 20, 20);
+            if (logoRight) pdf.addImage(logoRight, 'PNG', startX + cardWidth - 23, currentY + 7, 20, 20);
+
+            const centerX = startX + (cardWidth / 2);
+            currentY += 12;
+            pdf.setFontSize(14);
+            pdf.text("TLSM WORLD SCHOOL", centerX, currentY, { align: 'center' });
+            
+            currentY += 4;
+            pdf.setFontSize(6);
+            pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.text("GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207", centerX, currentY, { align: 'center' });
+            
+            currentY += 3;
+            pdf.text("MOB: 9661651050 | ASKTLSMSCHOOL@GMAIL.COM", centerX, currentY, { align: 'center' });
+            
+            currentY += 5;
+            pdf.setFontSize(9);
+            pdf.setTextColor(0, 0, 0); 
+            pdf.text(`${examDisplayName} REPORT CARD (CLASS ${targetClass})`, centerX, currentY, { align: 'center' });
+            
+            currentY += 4;
+            pdf.setFontSize(8);
+            pdf.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+            pdf.text(`SESSION / YEAR: ${academicYear}`, centerX, currentY, { align: 'center' });
+
+            currentY += 3;
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.4);
+            pdf.line(startX, currentY, startX + cardWidth, currentY);
+
+            currentY += 5;
+            pdf.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setFontSize(8);
+            pdf.setFont("helvetica", "bold");
+            
+            const col1X = startX + 4;
+            const col1ValX = startX + 28;
+            
+            const photoW = 20; const photoH = 26;
+            const photoX = startX + cardWidth - photoW - 12; 
+            const photoY = currentY - 1;
+
+            pdf.text("Roll No:", col1X, currentY + 3);
+            pdf.text("Scholar ID:", col1X, currentY + 8);
+            pdf.text("Candidate Name:", col1X, currentY + 13);
+            pdf.text("Mother's Name:", col1X, currentY + 18);
+            pdf.text("Father's Name:", col1X, currentY + 23);
+            pdf.text("Class / Section:", col1X, currentY + 28);
+            pdf.text("DOB:", col1X, currentY + 33);
+
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(String(data.roll_no || '---'), col1ValX, currentY + 3);
+            pdf.text(String(scholarStr), col1ValX, currentY + 8);
+            pdf.setFont("helvetica", "bold"); 
+            pdf.text(String(data.name || '---').toUpperCase(), col1ValX, currentY + 13);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(String(data.mother || '---').toUpperCase(), col1ValX, currentY + 18);
+            pdf.text(String(data.father || '---').toUpperCase(), col1ValX, currentY + 23);
+            pdf.text(`${targetClass} - ${studentSec}`, col1ValX, currentY + 28);
+            pdf.text(String(data.dob || '---'), col1ValX, currentY + 33);
+
+            pdf.setDrawColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.rect(photoX, photoY, photoW, photoH);
+            
+            let photoUrl = data.photo_url || photoMap[scholarStr];
+            if (photoUrl) {
+                let imgEl = await loadImageUrl(photoUrl);
+                if (imgEl) pdf.addImage(imgEl, 'JPEG', photoX, photoY, photoW, photoH);
+                else {
+                    pdf.setFontSize(6);
+                    pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+                    pdf.text("PHOTO", photoX + photoW/2, photoY + photoH/2, { align: 'center' });
+                }
+            } else {
+                pdf.setFontSize(6);
+                pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+                pdf.text("PHOTO", photoX + photoW/2, photoY + photoH/2, { align: 'center' });
+            }
+
+            currentY += 37; 
+            pdf.setLineDashPattern([1, 1], 0);
+            pdf.line(startX + 2, currentY, startX + cardWidth - 2, currentY);
+            pdf.setLineDashPattern([], 0); 
+
+            let tableHead = [];
+            let tableBody = [];
+            currentY += 3;
+
+            if (examType === 'ANNUAL') {
+                tableHead = [['SUB CODE', 'SUB NAME', 'PMT', 'MT', 'PAT', 'ANNUAL', 'TOTAL', 'GRADE']];
+            } else if (examType === 'HALF_YEARLY') {
+                tableHead = [['SUB CODE', 'SUB NAME', 'MT', 'PMT', 'TOTAL', 'GRADE']];
+            } else {
+                tableHead = hidePracColumn ? [['SUB CODE', 'SUB NAME', theoryHeader, 'TOTAL', 'GRADE']] : [['SUB CODE', 'SUB NAME', theoryHeader, pracHeader, 'TOTAL', 'GRADE']];
+            }
+
             subjects.forEach(sub => {
                 let subName = sanitizeSub(sub.name);
                 let displayCode = window.getSubjectCode(sub.name, sub.code); 
@@ -2084,195 +2265,157 @@ window.printBulkClassResults = async () => {
                     let term1 = pmtVal + mtVal; let term2 = patVal + annualVal; let avg = Math.round((term1 + term2) / 2);
                     
                     totalMarks += avg; maxMarks += calculatedMax;
-                    let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
-                        <td style="padding: 4px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 4px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 4px;">${pmt}</td><td style="padding: 4px;">${mt}</td><td style="padding: 4px;">${pat}</td><td style="padding: 4px; font-weight: 900; color: #1e3a8a;">${annual}</td>
-                        <td style="padding: 4px; font-weight: 900;">${avg} / ${calculatedMax}</td><td style="padding: 4px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+                    tableBody.push([displayCode, sub.name || '---', pmt, mt, pat, annual, `${avg} / ${calculatedMax}`, dynamicGrade]);
                 } else if (examType === "HALF_YEARLY") {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
                     let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
-                    
                     let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0;
                     let mtVal = window.getSafeMark(mt);
                     let calculatedTotal = mtVal + pmtVal;
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
-                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
-                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pmt}</td>
-                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
-                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+                    tableBody.push([displayCode, sub.name || '---', mt, pmt, `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
                 } else {
                     let calculatedTotal = 0;
                     if (isClass9or10) calculatedTotal = window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
                     else calculatedTotal = window.getSafeMark(sub.total || 0);
                     
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
-                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; let dynamicGrade = window.getGrade(subPercent);
-                    let pracCell = hidePracColumn ? '' : `<td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>`;
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
-                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
-                        ${pracCell}
-                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
-                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
+                    let dynamicGrade = window.getGrade(subPercent); 
+                    
+                    if (hidePracColumn) {
+                        tableBody.push([displayCode, sub.name || '---', sub.theory !== undefined ? sub.theory : '---', `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
+                    } else {
+                        tableBody.push([displayCode, sub.name || '---', sub.theory !== undefined ? sub.theory : '---', sub.practical !== undefined ? sub.practical : '---', `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
+                    }
                 }
             });
 
-            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
-            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
-            let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
-            let uniqueChartId = `bulk-chart-${Date.now()}-${idx}`;
-
-            let photoUrl = data.photo_url || photoMap[scholarStr];
-            let photoHtml = photoUrl 
-                ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
-                : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
-
-            let graphHtml = examType === "ANNUAL" ? `
-            <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
-                <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
-            </div>
-            ` : '';
-
-            sandbox.innerHTML = `
-                <div id="bulk-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black; box-sizing: border-box; position: relative;">
-                    
-                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 10px; position: relative;">
-                        <div style="position: absolute; top: -5px; left: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">AFFILIATION NO.: 331251</div>
-                        <div style="position: absolute; top: -5px; right: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">SCHOOL CODE: 67074</div>
-
-                        <div style="width: 75px; text-align: left; margin-top: 15px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous"></div>
-                        <div style="text-align: center; flex: 1; margin-top: 15px;">
-                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 18px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
-                            <p style="font-size: 8px; font-weight: bold; color: #334155; margin: 4px 0 0 0; text-transform: uppercase;">Ganga Tola, Bihiya Road, Piro Bhojpur-802207  | Mob: 9661651050 | asktlsmschool@gmail.com</p>
-                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 6px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
-                            <p style="color: #ea580c; font-size: 11px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
-                        </div>
-                        <div style="width: 75px; text-align: right; margin-top: 15px;">
-                            <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous">
-                        </div>
-                    </div>
-                      
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #94a3b8; padding-bottom: 8px; margin-bottom: 10px;">
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; flex: 1;">
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Roll No:</span></div><div style="font-weight: bold; color: #000;">${data.roll_no || 'N/A'}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${studentSec}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
-                        </div>
-                        <div style="width: 65px; height: 80px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
-    ${photoHtml}
-</div>
-
-                    </div>  
-                      
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
-                        <thead>  
-                            ${examType === 'ANNUAL' ? `
-                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PMT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">MT</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PAT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">ANNUAL</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">AVG TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>
-                            </tr>
-                            ` : `
-                            <tr style="background: #1e3a8a; color: white; font-size: 11px; font-weight: 900; text-transform: uppercase;">  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>${pracHeaderHtml}
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
-                            </tr>  
-                            `}
-                        </thead>  
-                        <tbody>${subjectRows}</tbody>  
-                    </table>  
-                      
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
-                    </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
-                    </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} ${bulkMedalIcon} of ${totalInClass} | Attd: ${daysPresentStr}</span>
-                    </div>  
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px; background: #1e3a8a; color: white; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px;">  
-                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 8px; border-radius: 20px;">${autoResultStatus}</span>  
-                    </div>  
-
-                    ${graphHtml}
-
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
-                        <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;"></div>
-                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
-                        </div>
-                        <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                ${principalSignUrl ? `<img src="${principalSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
-                            </div>
-                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">COPYRIGHT&copy; 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.</span>
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">DEVELOPED BY AARAV TECH-HUB (AJ VNS)</span>
-                    </div>
-                </div>
-            `;
-
-            if (examType === 'ANNUAL') {
-                let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
-                let canvasEl = document.getElementById(uniqueChartId);
-                if (canvasEl) {
-                    let ctx = canvasEl.getContext('2d');
-                    await new Promise((resolve) => {
-                        new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() }, plugins: { legend: { labels: { font: { size: 7 } } } }, scales: { y: { beginAtZero: true, max:100, ticks: { font: { size: 6 } } }, x: { ticks: { font: { size: 6 } } } } } });
-                        setTimeout(resolve, 1500);
-                    });
+            runAutoTable(pdf, {
+                startY: currentY,
+                margin: { left: startX + 4 },
+                tableWidth: cardWidth - 8,
+                head: tableHead,
+                body: tableBody,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'center', cellPadding: 2 },
+                bodyStyles: { fontSize: 8, halign: 'center', textColor: 0, cellPadding: 2 },
+                columnStyles: { 0: { cellWidth: 20 }, 1: { halign: 'left', fontStyle: 'bold' } },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === data.table.columns.length - 1) {
+                        data.cell.styles.textColor = [234, 88, 12];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
                 }
+            });
+
+            currentY = (pdf.lastAutoTable ? pdf.lastAutoTable.finalY : currentY + (tableBody.length * 8)) + 5;
+
+            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : "0.00";
+            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
+
+            pdf.setFontSize(8);
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            
+            // 🥇 EXACT MEDAL PLACEMENT LOGIC 🥇
+            const drawSummaryRow = (yPos, title, value, valColor, rankForMedal = 0) => {
+                pdf.rect(startX + 4, yPos, cardWidth - 8, 6);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont("helvetica", "normal");
+                pdf.text(title, startX + 6, yPos + 4);
+                
+                pdf.setFont("helvetica", "bold");
+                if (valColor) pdf.setTextColor(valColor[0], valColor[1], valColor[2]);
+                pdf.text(value, startX + cardWidth - 6, yPos + 4, { align: 'right' });
+
+                // Agar rank 1, 2, 3 hai toh uske theek pehle actual Medal Image chipkegi
+                let textWidth = pdf.getTextWidth(value);
+                let medalXPosition = startX + cardWidth - 6 - textWidth - 5;
+
+                if (rankForMedal === 1 && medalGold) {
+                    pdf.addImage(medalGold, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                } else if (rankForMedal === 2 && medalSilver) {
+                    pdf.addImage(medalSilver, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                } else if (rankForMedal === 3 && medalBronze) {
+                    pdf.addImage(medalBronze, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                }
+            };
+
+            drawSummaryRow(currentY, "TOTAL MARKS:", `${totalMarks} / ${maxMarks}`);
+            currentY += 8;
+            drawSummaryRow(currentY, "PERCENTAGE:", `${percentage}%`);
+            currentY += 8;
+            
+            // Pass the rank so medal is drawn!
+            drawSummaryRow(currentY, "CLASS RANK & ATTENDANCE:", `Rank ${classRank} of ${totalInClass} | Attd: ${daysPresentStr}`, orangeColor, classRank);
+
+            currentY += 8;
+            pdf.setFillColor(30, 58, 138);
+            pdf.rect(startX + 4, currentY, cardWidth - 8, 8, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFont("helvetica", "bold");
+            pdf.text("FINAL OUTCOME:", startX + 6, currentY + 5.5);
+            
+            pdf.setFillColor(255, 255, 255);
+            pdf.roundedRect(startX + cardWidth - 25, currentY + 1.5, 20, 5, 2.5, 2.5, 'F');
+            if (autoResultStatus === "PASS") pdf.setTextColor(4, 120, 87); 
+            else pdf.setTextColor(185, 28, 28); 
+            pdf.setFontSize(9);
+            pdf.text(autoResultStatus, startX + cardWidth - 15, currentY + 5, { align: 'center' });
+
+            let sigY = startY + maxCardHeight - 15;
+            
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.3);
+            pdf.line(startX + 10, sigY, startX + 50, sigY);
+            pdf.line(startX + cardWidth - 50, sigY, startX + cardWidth - 10, sigY);
+            
+            pdf.setTextColor(30, 58, 138);
+            pdf.setFontSize(8);
+            pdf.text("CLASS TEACHER", startX + 30, sigY + 4, { align: 'center' });
+            pdf.text("PRINCIPAL", startX + cardWidth - 30, sigY + 4, { align: 'center' });
+
+            if (princSign) {
+                pdf.addImage(princSign, 'PNG', startX + cardWidth - 45, sigY - 12, 30, 10);
             }
 
-            let containerEl = document.getElementById(`bulk-container-${idx}`);
-            await waitForImages(containerEl); 
-            
-            let canvas = await html2canvas(containerEl, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
-            let imgData = canvas.toDataURL("image/png");
+            pdf.setLineDashPattern([1, 1], 0);
+            pdf.setDrawColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.line(startX + 2, sigY + 7, startX + cardWidth - 2, sigY + 7);
+            pdf.setLineDashPattern([], 0);
 
-            let imgWidth = cardWidth; let imgHeight = (canvas.height * imgWidth) / canvas.width;
-            if (imgHeight > maxCardHeight) { imgHeight = maxCardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
-            const isLeft = (idx % 2 === 0); if (isLeft && idx > 0) pdf.addPage();
-            const xOffset = isLeft ? margin : (margin + cardWidth + gap);
-            const x = xOffset + (cardWidth - imgWidth) / 2; const y = margin + (maxCardHeight - imgHeight) / 2;
-
-            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-            sandbox.innerHTML = ""; 
+            pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.setFontSize(5);
+            pdf.text("COPYRIGHT © 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.", startX + 4, sigY + 11);
+            pdf.text("DEVELOPED BY AARAV TECH-HUB (AJ VNS)", startX + cardWidth - 4, sigY + 11, { align: 'right' });
         }
 
-        pdf.save(`Bulk_Class_${targetClass}_Results.pdf`);
-        window.hideProgress(); alert("Success! All student data compiled safely inside your local storage bundle.");
-    } catch(err) { console.error(err); window.hideProgress(); alert("An extraction processing fault occurred: " + err.message); }
+        if(btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> SAVING PDF...`; }
+        let saveFileName = targetSection === "ALL" ? `Bulk_Class_${targetClass}_Results.pdf` : `Bulk_Class_${targetClass}_Sec_${targetSection}_Results.pdf`;
+        pdf.save(saveFileName);
+        
+        window.hideProgress(); 
+        if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
+        alert("Success! Lightning Fast Vector PDF Generated Safely.");
+
+    } catch(err) { 
+        console.error(err); 
+        window.hideProgress(); 
+        if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
+        if (err.message === "AUTOTABLE_MISSING") alert("SYSTEM ERROR: jsPDF AutoTable plugin is missing!");
+        else alert("An extraction processing fault occurred: " + err.message); 
+    }
 };
 
 
-
+// ==========================================
+// 3. SPECIFIC STUDENT RESULTS PRINT (WITH REAL MEDAL IMAGES)
+// ==========================================
 window.printSpecificStudentResults = async () => {
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
@@ -2282,7 +2425,6 @@ window.printSpecificStudentResults = async () => {
     const inputIds = document.getElementById("admin-print-specific-results-ids").value.trim().toUpperCase();
     const examType = document.getElementById("admin-print-specific-results-exam").value;
     const academicYear = document.getElementById("admin-print-specific-results-session").value;
-    const sandbox = document.getElementById("bulk-print-sandbox");
     const btn = event.target; const oldText = btn ? btn.innerHTML : "Generate Selected Results PDF";
 
     if (!inputIds) { alert("Please enter at least one Scholar ID!"); return; }
@@ -2296,15 +2438,6 @@ window.printSpecificStudentResults = async () => {
         if(n === 'IT/COM') return 'IT/COMP'; return n;
     };
 
-    const waitForImages = (container) => {
-        const images = container.getElementsByTagName('img');
-        const promises = Array.from(images).map(img => {
-            if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
-        });
-        return Promise.all(promises);
-    };
-
     try {
         window.showProgress("Fetching Selected Students...");
         let selectedStudents = [];
@@ -2316,6 +2449,7 @@ window.printSpecificStudentResults = async () => {
         }
 
         if (selectedStudents.length === 0) { window.hideProgress(); throw new Error("No report records found for the given Scholar ID(s)."); }
+        
         selectedStudents.sort((a, b) => (parseInt(a.roll_no) || 0) - (parseInt(b.roll_no) || 0));
 
         let classRanksMaps = {}; let classTotalsMaps = {}; 
@@ -2429,11 +2563,56 @@ window.printSpecificStudentResults = async () => {
             } catch(e) {}
         }
 
-        const { jsPDF } = window.jspdf; const pdf = new jsPDF("l", "mm", "a4");
-        const pageWidth = 297; const pageHeight = 210; const margin = 5; const gap = 5;    
-        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; const maxCardHeight = pageHeight - margin * 2;
+        const loadImageUrl = (url) => {
+            return new Promise((resolve) => {
+                if (!url || url.trim() === '') { resolve(null); return; } 
+                const img = new Image();
+                let isResolved = false;
+                const finish = (result) => { if (!isResolved) { isResolved = true; resolve(result); } };
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => finish(img);
+                img.onerror = () => finish(null);
+                img.src = url;
+                setTimeout(() => finish(null), 3000); 
+            });
+        };
 
-        for (let idx = 0; selectedStudents.length > idx; idx++) {
+        if (btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> GENERATING PDF...`; }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) { throw new Error("jsPDF library is not loaded properly. Please refresh the page."); }
+        const { jsPDF } = window.jspdf; 
+        const pdf = new jsPDF("l", "mm", "a4");
+
+        const runAutoTable = (docInstance, options) => {
+            if (typeof docInstance.autoTable === 'function') { docInstance.autoTable(options); } 
+            else if (typeof window.jspdf.autoTable === 'function') { window.jspdf.autoTable(docInstance, options); } 
+            else if (typeof window.autoTable === 'function') { window.autoTable(docInstance, options); } 
+            else { throw new Error("AUTOTABLE_MISSING"); }
+        };
+
+        // 🥇 🥈 🥉 Load Twemoji Medal PNGs 
+        const medalGold = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f947.png");
+        const medalSilver = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f948.png");
+        const medalBronze = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f949.png");
+
+        let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
+        const logoLeft = await loadImageUrl("https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png");
+        const logoRight = await loadImageUrl("https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png");
+        const princSign = await loadImageUrl(principalSignUrl);
+
+        const pageWidth = 297; const pageHeight = 210; 
+        const margin = 5; const gap = 5;    
+        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
+        const maxCardHeight = pageHeight - margin * 2;
+
+        const blueColor = [30, 58, 138]; 
+        const orangeColor = [234, 88, 12]; 
+        const grayColor = [100, 116, 139]; 
+
+        for (let idx = 0; idx < selectedStudents.length; idx++) {
+            const percent = Math.round((((idx + 1) / selectedStudents.length) * 50) + 50);
+            window.updateProgress(percent, `Rendering Card Layer ${idx + 1} of ${selectedStudents.length}`);
+
             let data = selectedStudents[idx];
             let scholarStr = (data.scholar_id || 'UNKNOWN').toString().trim().toUpperCase();
             let targetClass = data.class ? data.class.toString().trim().toUpperCase() : "N/A";
@@ -2443,10 +2622,6 @@ window.printSpecificStudentResults = async () => {
             let classRank = classRanksMaps[targetGroupKey] ? (classRanksMaps[targetGroupKey][scholarStr] || 'N/A') : 'N/A';
             let totalInClass = classTotalsMaps[targetGroupKey] || 0;
 
-            const percent = Math.round((((idx + 1) / selectedStudents.length) * 50) + 50);
-            window.updateProgress(percent, `Rendering Card Layer ${idx + 1} of ${selectedStudents.length}`);
-
-            let principalSignUrl = classTeacherSignatures["PRINCIPAL"] || "";
             let isClass9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
             let hidePracColumn = isClass9or10 && (examType === "PMT" || examType === "PAT");
 
@@ -2454,12 +2629,130 @@ window.printSpecificStudentResults = async () => {
             if (!Array.isArray(subjects)) subjects = [];
 
             let totalMarks = 0; let maxMarks = 0; let examDisplayName = examType.replace(/_/g, " ");
-            let theoryHeader = "THEORY"; let pracHeader = "PRAC";
+            
+            let theoryHeader = "THEORY"; let pracHeader = "I/A";
             if (examType === "HALF_YEARLY") { theoryHeader = "MT"; pracHeader = "PMT"; } else if (examType === "ANNUAL") { theoryHeader = "ANNUAL"; pracHeader = "PAT"; }
-            let daysPresentStr = "N/A"; if (data.days_present !== undefined && data.days_present !== null) { let dp = data.days_present.toString(); if (dp.includes("/")) daysPresentStr = dp; else daysPresentStr = dp + " Days"; }
-            let bulkMedalIcon = ""; if (classRank === 1) bulkMedalIcon = "🥇"; else if (classRank === 2) bulkMedalIcon = "🥈"; else if (classRank === 3) bulkMedalIcon = "🥉";
+            
+            let daysPresentStr = "N/A"; 
+            if (data.days_present !== undefined && data.days_present !== null) { 
+                let dp = data.days_present.toString(); 
+                daysPresentStr = dp.includes("/") ? dp : dp + " Days"; 
+            }
 
-            let subjectRows = "";
+            const isLeft = (idx % 2 === 0); 
+            if (isLeft && idx > 0) pdf.addPage();
+            const startX = isLeft ? margin : (margin + cardWidth + gap);
+            const startY = margin;
+            let currentY = startY;
+
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.8);
+            pdf.rect(startX, startY, cardWidth, maxCardHeight);
+
+            pdf.setFontSize(7);
+            pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.text("AFFILIATION NO.: 331251", startX + 3, currentY + 5);
+            pdf.text("SCHOOL CODE: 67074", startX + cardWidth - 3, currentY + 5, { align: 'right' });
+
+            if (logoLeft) pdf.addImage(logoLeft, 'PNG', startX + 3, currentY + 7, 20, 20);
+            if (logoRight) pdf.addImage(logoRight, 'PNG', startX + cardWidth - 23, currentY + 7, 20, 20);
+
+            const centerX = startX + (cardWidth / 2);
+            currentY += 12;
+            pdf.setFontSize(14);
+            pdf.text("TLSM WORLD SCHOOL", centerX, currentY, { align: 'center' });
+            
+            currentY += 4;
+            pdf.setFontSize(6);
+            pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.text("GANGA TOLA, BIHIYA ROAD, PIRO BHOJPUR-802207", centerX, currentY, { align: 'center' });
+            
+            currentY += 3;
+            pdf.text("MOB: 9661651050 | ASKTLSMSCHOOL@GMAIL.COM", centerX, currentY, { align: 'center' });
+            
+            currentY += 5;
+            pdf.setFontSize(9);
+            pdf.setTextColor(0, 0, 0); 
+            pdf.text(`${examDisplayName} REPORT CARD (CLASS ${targetClass})`, centerX, currentY, { align: 'center' });
+            
+            currentY += 4;
+            pdf.setFontSize(8);
+            pdf.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+            pdf.text(`SESSION / YEAR: ${academicYear}`, centerX, currentY, { align: 'center' });
+
+            currentY += 3;
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.4);
+            pdf.line(startX, currentY, startX + cardWidth, currentY);
+
+            currentY += 5;
+            pdf.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setFontSize(8);
+            pdf.setFont("helvetica", "bold");
+            
+            const col1X = startX + 4;
+            const col1ValX = startX + 28;
+            
+            const photoW = 20; const photoH = 26;
+            const photoX = startX + cardWidth - photoW - 12; 
+            const photoY = currentY - 1;
+
+            pdf.text("Roll No:", col1X, currentY + 3);
+            pdf.text("Scholar ID:", col1X, currentY + 8);
+            pdf.text("Candidate Name:", col1X, currentY + 13);
+            pdf.text("Mother's Name:", col1X, currentY + 18);
+            pdf.text("Father's Name:", col1X, currentY + 23);
+            pdf.text("Class / Section:", col1X, currentY + 28);
+            pdf.text("DOB:", col1X, currentY + 33);
+
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(String(data.roll_no || '---'), col1ValX, currentY + 3);
+            pdf.text(String(scholarStr), col1ValX, currentY + 8);
+            pdf.setFont("helvetica", "bold"); 
+            pdf.text(String(data.name || '---').toUpperCase(), col1ValX, currentY + 13);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(String(data.mother || '---').toUpperCase(), col1ValX, currentY + 18);
+            pdf.text(String(data.father || '---').toUpperCase(), col1ValX, currentY + 23);
+            pdf.text(`${targetClass} - ${targetSec}`, col1ValX, currentY + 28); 
+            pdf.text(String(data.dob || '---'), col1ValX, currentY + 33);
+
+            pdf.setDrawColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.rect(photoX, photoY, photoW, photoH);
+            
+            let photoUrl = data.photo_url || photoMap[scholarStr];
+            if (photoUrl) {
+                let imgEl = await loadImageUrl(photoUrl);
+                if (imgEl) pdf.addImage(imgEl, 'JPEG', photoX, photoY, photoW, photoH);
+                else {
+                    pdf.setFontSize(6);
+                    pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+                    pdf.text("PHOTO", photoX + photoW/2, photoY + photoH/2, { align: 'center' });
+                }
+            } else {
+                pdf.setFontSize(6);
+                pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+                pdf.text("PHOTO", photoX + photoW/2, photoY + photoH/2, { align: 'center' });
+            }
+
+            currentY += 37; 
+            pdf.setLineDashPattern([1, 1], 0);
+            pdf.line(startX + 2, currentY, startX + cardWidth - 2, currentY);
+            pdf.setLineDashPattern([], 0); 
+
+            let tableHead = [];
+            let tableBody = [];
+            currentY += 3;
+
+            if (examType === 'ANNUAL') {
+                tableHead = [['SUB CODE', 'SUB NAME', 'PMT', 'MT', 'PAT', 'ANNUAL', 'TOTAL', 'GRADE']];
+            } else if (examType === 'HALF_YEARLY') {
+                tableHead = [['SUB CODE', 'SUB NAME', 'MT', 'PMT', 'TOTAL', 'GRADE']];
+            } else {
+                tableHead = hidePracColumn ? [['SUB CODE', 'SUB NAME', theoryHeader, 'TOTAL', 'GRADE']] : [['SUB CODE', 'SUB NAME', theoryHeader, pracHeader, 'TOTAL', 'GRADE']];
+            }
+
             subjects.forEach(sub => {
                 let subName = sanitizeSub(sub.name);
                 let displayCode = window.getSubjectCode(sub.name, sub.code); 
@@ -2480,18 +2773,10 @@ window.printSpecificStudentResults = async () => {
                     totalMarks += avg; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (avg / calculatedMax) * 100 : 0; 
                     let dynamicGrade = window.getGrade(subPercent); 
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11px;">
-                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 6px;">${pmt}</td><td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pat}</td><td style="padding: 6px; font-weight: 900; color: #1e3a8a;">${annual}</td>
-                        <td style="padding: 6px; font-weight: 900;">${avg} / ${calculatedMax}</td><td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    tableBody.push([displayCode, sub.name || '---', pmt, mt, pat, annual, `${avg} / ${calculatedMax}`, dynamicGrade]);
                 } else if (examType === "HALF_YEARLY") {
                     let pmt = (allPmtData[scholarStr] && allPmtData[scholarStr][subName] !== undefined) ? allPmtData[scholarStr][subName] : '---';
                     let mt = sub.theory !== undefined ? sub.theory : (sub.total || 0);
-                    
                     let pmtVal = (pmt !== '---') ? window.getSafeMark(pmt) : 0;
                     let mtVal = window.getSafeMark(mt);
                     let calculatedTotal = mtVal + pmtVal;
@@ -2499,15 +2784,7 @@ window.printSpecificStudentResults = async () => {
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
                     let dynamicGrade = window.getGrade(subPercent); 
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
-                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 6px;">${mt}</td><td style="padding: 6px;">${pmt}</td>
-                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
-                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    tableBody.push([displayCode, sub.name || '---', mt, pmt, `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
                 } else {
                     let calculatedTotal = 0;
                     if (isClass9or10) calculatedTotal = window.getSafeMark(sub.theory !== undefined ? sub.theory : (sub.total || 0));
@@ -2516,159 +2793,125 @@ window.printSpecificStudentResults = async () => {
                     totalMarks += calculatedTotal; maxMarks += calculatedMax;
                     let subPercent = calculatedMax > 0 ? (calculatedTotal / calculatedMax) * 100 : 0; 
                     let dynamicGrade = window.getGrade(subPercent); 
-                    let pracCell = hidePracColumn ? '' : `<td style="padding: 6px;">${sub.practical !== undefined ? sub.practical : '---'}</td>`;
-
-                    subjectRows += `
-                    <tr style="border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 12px;">
-                        <td style="padding: 6px; font-family: monospace;">${displayCode}</td>
-                        <td style="padding: 6px; text-align: left; font-weight: bold;">${sub.name || '---'}</td>
-                        <td style="padding: 6px;">${sub.theory !== undefined ? sub.theory : '---'}</td>
-                        ${pracCell}
-                        <td style="padding: 6px; font-weight: 900;">${calculatedTotal} / ${calculatedMax}</td>
-                        <td style="padding: 6px; color: #ea580c; font-weight: bold;">${dynamicGrade}</td>
-                    </tr>`;
+                    
+                    if (hidePracColumn) {
+                        tableBody.push([displayCode, sub.name || '---', sub.theory !== undefined ? sub.theory : '---', `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
+                    } else {
+                        tableBody.push([displayCode, sub.name || '---', sub.theory !== undefined ? sub.theory : '---', sub.practical !== undefined ? sub.practical : '---', `${calculatedTotal} / ${calculatedMax}`, dynamicGrade]);
+                    }
                 }
             });
 
-            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
-            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
-            let pracHeaderHtml = hidePracColumn ? '' : `<th style="padding: 6px; border: 1px solid #1e3a8a;">${pracHeader}</th>`;
-            let uniqueChartId = `bulk-specific-chart-${Date.now()}-${idx}`;
-
-            let photoUrl = data.photo_url || photoMap[scholarStr];
-            let photoHtml = photoUrl 
-                ? `<img src="${photoUrl}" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #1e3a8a; border-radius: 6px;" crossorigin="anonymous">` 
-                : `<div style="width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; color: #64748b; background: #f8fafc; text-align: center;">NO<br>PHOTO</div>`;
-
-            let graphHtml = examType === "ANNUAL" ? `
-            <div style="border: 1px solid #1e3a8a; background: white; border-radius: 6px; padding: 4px; margin-top: 8px;">
-                <div style="width: 100%; height: 120px; position: relative;"><canvas id="${uniqueChartId}"></canvas></div>
-            </div>
-            ` : '';
-
-            sandbox.innerHTML = `
-                <div id="bulk-specific-container-${idx}" style="border: 4px solid #1e3a8a; padding: 15px; background: #f8fafc; font-family: sans-serif; color: black; box-sizing: border-box; position: relative;">
-                    
-                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #1e3a8a; padding-bottom: 8px; margin-bottom: 10px; position: relative;">
-                        <div style="position: absolute; top: -5px; left: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">AFFILIATION NO.: 331251</div>
-                        <div style="position: absolute; top: -5px; right: 0; font-size: 10px; font-weight: 900; color: #1e3a8a;">SCHOOL CODE: 67074</div>
-
-                        <div style="width: 75px; text-align: left; margin-top: 15px;"><img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous"></div>
-                        <div style="text-align: center; flex: 1; margin-top: 15px;">
-                            <h2 style="color: #1e3a8a; font-weight: 900; font-size: 18px; margin: 0; text-transform: uppercase;">TLSM WORLD SCHOOL</h2>
-                            <p style="font-size: 8px; font-weight: bold; color: #334155; margin: 4px 0 0 0; text-transform: uppercase;">Ganga Tola, Bihiya Road, Piro Bhojpur-802207  | Mob: 9661651050 | asktlsmschool@gmail.com</p>
-                            <p style="color: #334155; font-size: 12px; font-weight: bold; margin: 6px 0 0 0; text-transform: uppercase;">${examDisplayName} Report Card (Class ${targetClass})</p>
-                            <p style="color: #ea580c; font-size: 11px; font-weight: 900; margin: 2px 0 0 0; text-transform: uppercase;">Session / Year: ${academicYear}</p>
-                        </div>
-                        <div style="width: 75px; text-align: right; margin-top: 15px;">
-                            <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" style="width: 70px; height: 70px; object-fit: contain;" crossorigin="anonymous">
-                        </div>
-                    </div>
-                      
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #94a3b8; padding-bottom: 8px; margin-bottom: 10px;">
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; font-size: 11px; flex: 1;">
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Roll No:</span></div><div style="font-weight: bold; color: #000;">${data.roll_no || 'N/A'}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Candidate Name:</span></div><div style="font-weight: 900; text-transform: uppercase; color: #000;">${data.name || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Mother's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.mother || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Father's Name:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${data.father || ''}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Class / Section:</span></div><div style="font-weight: bold; text-transform: uppercase; color: #000;">${targetClass} - ${targetSec}</div>
-                            <div><span style="color: #1e3a8a; font-weight: 900;">Pen No:</span></div><div style="font-weight: bold; color: #000;">${data.dob || ''}</div>
-                        </div>
-                        <div style="width: 90px; height: 110px; flex-shrink: 0; margin-left: 15px; margin-right: 25px;">
-    ${photoHtml}
-</div>
-
-                    </div>  
-                      
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #1e3a8a; margin-bottom: 10px; background: white;">  
-                        <thead>  
-                            ${examType === 'ANNUAL' ? `
-                            <tr style="background: #1e3a8a; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase;">
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PMT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">MT</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">PAT</th><th style="padding: 6px; border: 1px solid #1e3a8a;">ANNUAL</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">AVG TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>
-                            </tr>
-                            ` : `
-                            <tr style="background: #1e3a8a; color: white; font-size: 11px; font-weight: 900; text-transform: uppercase;">  
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">SUB CODE</th><th style="padding: 6px; border: 1px solid #1e3a8a; text-align: left;">SUB NAME</th>
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">${theoryHeader}</th>${pracHeaderHtml}
-                                <th style="padding: 6px; border: 1px solid #1e3a8a;">TOTAL</th><th style="padding: 6px; border: 1px solid #1e3a8a;">GRADE</th>  
-                            </tr>  
-                            `}
-                        </thead>  
-                        <tbody>${subjectRows}</tbody>  
-                    </table>  
-                      
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Total Marks:</span><span style="margin-left: auto; font-weight: 900;">${totalMarks} / ${maxMarks}</span>
-                    </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Percentage:</span><span style="margin-left: auto; font-weight: 900;">${percentage}%</span>
-                    </div>  
-                    <div style="display: flex; justify-content: space-between; padding: 6px; background: white; border: 1px solid #1e3a8a; border-radius: 6px; margin-bottom: 5px; font-size: 12px;">
-                        <span style="font-weight: bold; text-transform: uppercase;">Class Rank & Attendance:</span><span style="margin-left: auto; font-weight: 900; color: #ea580c;">Rank ${classRank} ${bulkMedalIcon} of ${totalInClass} | Attd: ${daysPresentStr}</span>
-                    </div>  
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px; background: #1e3a8a; color: white; border-radius: 6px; font-size: 12px; font-weight: bold; margin-top: 8px;">  
-                        <span>FINAL OUTCOME:</span><span style="margin-left: auto; background: white; color: ${autoResultStatus === 'PASS' ? '#047857' : '#b91c1c'}; padding: 2px 8px; border-radius: 20px;">${autoResultStatus}</span>  
-                    </div>  
-
-                    ${graphHtml}
-
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px; margin-bottom: 5px; padding: 0 20px;">
-                        <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;"></div>
-                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Class Teacher</p>
-                        </div>
-                        <div style="text-align: center; width: 140px;">
-                            <div style="height: 35px; display: flex; align-items: flex-end; justify-content: center;">
-                                ${principalSignUrl ? `<img src="${principalSignUrl}" style="width: 120px; height: 35px; object-fit: contain;" crossorigin="anonymous">` : ``}
-                            </div>
-                            <p style="font-size: 11px; font-weight: 900; color: #1e3a8a; border-top: 2px solid #1e3a8a; margin: 3px 0 0 0; padding-top: 4px; text-transform: uppercase;">Principal</p>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">COPYRIGHT&copy; 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.</span>
-                        <span style="font-size: 8px; color: #475569; font-weight: 900; text-transform: uppercase;">DEVELOPED BY AARAV TECH-HUB (AJ VNS)</span>
-                    </div>
-                </div>
-            `;
-
-            if (examType === 'ANNUAL') {
-                let chartData = await buildPerformanceChartData(scholarStr, examType, academicYear, subjects);
-                let canvasEl = document.getElementById(uniqueChartId);
-                if (canvasEl) {
-                    let ctx = canvasEl.getContext('2d');
-                    await new Promise((resolve) => {
-                        new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, animation: { onComplete: () => resolve() }, plugins: { legend: { labels: { font: { size: 7 } } } }, scales: { y: { beginAtZero: true, max:100, ticks: { font: { size: 6 } } }, x: { ticks: { font: { size: 6 } } } } } });
-                        setTimeout(resolve, 1500);
-                    });
+            runAutoTable(pdf, {
+                startY: currentY,
+                margin: { left: startX + 4 },
+                tableWidth: cardWidth - 8,
+                head: tableHead,
+                body: tableBody,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 8, fontStyle: 'bold', halign: 'center', cellPadding: 2 },
+                bodyStyles: { fontSize: 8, halign: 'center', textColor: 0, cellPadding: 2 },
+                columnStyles: { 0: { cellWidth: 20 }, 1: { halign: 'left', fontStyle: 'bold' } },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === data.table.columns.length - 1) {
+                        data.cell.styles.textColor = [234, 88, 12];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
                 }
+            });
+
+            currentY = (pdf.lastAutoTable ? pdf.lastAutoTable.finalY : currentY + (tableBody.length * 8)) + 5;
+
+            let percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : "0.00";
+            let autoResultStatus = percentage >= 33 ? "PASS" : "FAIL";
+
+            pdf.setFontSize(8);
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            
+            // 🥇 EXACT MEDAL PLACEMENT LOGIC 🥇
+            const drawSummaryRow = (yPos, title, value, valColor, rankForMedal = 0) => {
+                pdf.rect(startX + 4, yPos, cardWidth - 8, 6);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont("helvetica", "normal");
+                pdf.text(title, startX + 6, yPos + 4);
+                
+                pdf.setFont("helvetica", "bold");
+                if (valColor) pdf.setTextColor(valColor[0], valColor[1], valColor[2]);
+                pdf.text(value, startX + cardWidth - 6, yPos + 4, { align: 'right' });
+
+                let textWidth = pdf.getTextWidth(value);
+                let medalXPosition = startX + cardWidth - 6 - textWidth - 5;
+
+                if (rankForMedal === 1 && medalGold) {
+                    pdf.addImage(medalGold, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                } else if (rankForMedal === 2 && medalSilver) {
+                    pdf.addImage(medalSilver, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                } else if (rankForMedal === 3 && medalBronze) {
+                    pdf.addImage(medalBronze, 'PNG', medalXPosition, yPos + 1.2, 3.5, 3.5);
+                }
+            };
+
+            drawSummaryRow(currentY, "TOTAL MARKS:", `${totalMarks} / ${maxMarks}`);
+            currentY += 8;
+            drawSummaryRow(currentY, "PERCENTAGE:", `${percentage}%`);
+            currentY += 8;
+            
+            // Pass the rank so medal is drawn!
+            drawSummaryRow(currentY, "CLASS RANK & ATTENDANCE:", `Rank ${classRank} of ${totalInClass} | Attd: ${daysPresentStr}`, orangeColor, classRank);
+
+            currentY += 8;
+            pdf.setFillColor(30, 58, 138);
+            pdf.rect(startX + 4, currentY, cardWidth - 8, 8, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFont("helvetica", "bold");
+            pdf.text("FINAL OUTCOME:", startX + 6, currentY + 5.5);
+            
+            pdf.setFillColor(255, 255, 255);
+            pdf.roundedRect(startX + cardWidth - 25, currentY + 1.5, 20, 5, 2.5, 2.5, 'F');
+            if (autoResultStatus === "PASS") pdf.setTextColor(4, 120, 87); 
+            else pdf.setTextColor(185, 28, 28); 
+            pdf.setFontSize(9);
+            pdf.text(autoResultStatus, startX + cardWidth - 15, currentY + 5, { align: 'center' });
+
+            let sigY = startY + maxCardHeight - 15;
+            
+            pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
+            pdf.setLineWidth(0.3);
+            pdf.line(startX + 10, sigY, startX + 50, sigY);
+            pdf.line(startX + cardWidth - 50, sigY, startX + cardWidth - 10, sigY);
+            
+            pdf.setTextColor(30, 58, 138);
+            pdf.setFontSize(8);
+            pdf.text("CLASS TEACHER", startX + 30, sigY + 4, { align: 'center' });
+            pdf.text("PRINCIPAL", startX + cardWidth - 30, sigY + 4, { align: 'center' });
+
+            if (princSign) {
+                pdf.addImage(princSign, 'PNG', startX + cardWidth - 45, sigY - 12, 30, 10);
             }
 
-            let containerEl = document.getElementById(`bulk-specific-container-${idx}`);
-            await waitForImages(containerEl); 
-            
-            let canvas = await html2canvas(containerEl, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
-            let imgData = canvas.toDataURL("image/png");
+            pdf.setLineDashPattern([1, 1], 0);
+            pdf.setDrawColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.line(startX + 2, sigY + 7, startX + cardWidth - 2, sigY + 7);
+            pdf.setLineDashPattern([], 0);
 
-            let imgWidth = cardWidth; let imgHeight = (canvas.height * imgWidth) / canvas.width;
-            if (imgHeight > maxCardHeight) { imgHeight = maxCardHeight; imgWidth = (canvas.width * imgHeight) / canvas.height; }
-            const isLeft = (idx % 2 === 0); if (isLeft && idx > 0) pdf.addPage();
-            const xOffset = isLeft ? margin : (margin + cardWidth + gap);
-            const x = xOffset + (cardWidth - imgWidth) / 2; const y = margin + (maxCardHeight - imgHeight) / 2;
-
-            pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
-            sandbox.innerHTML = ""; 
+            pdf.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
+            pdf.setFontSize(5);
+            pdf.text("COPYRIGHT © 2026 TLSM WORLD SCHOOL, ALL RIGHTS RESERVED.", startX + 4, sigY + 11);
+            pdf.text("DEVELOPED BY AARAV TECH-HUB (AJ VNS)", startX + cardWidth - 4, sigY + 11, { align: 'right' });
         }
 
+        if(btn) { btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> SAVING PDF...`; }
         pdf.save(`Selected_Students_Results_Bundle.pdf`);
-        window.hideProgress(); alert(`Success! Generated PDF Bundle for ${selectedStudents.length} selected students with exact ranks.`);
-    } catch(err) { console.error(err); window.hideProgress(); alert("Extraction Fault: " + err.message); } finally {
-        sandbox.innerHTML = ""; if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
+        window.hideProgress(); alert(`Success! Generated PDF Bundle for ${selectedStudents.length} selected students.`);
+    } catch(err) { 
+        console.error(err); window.hideProgress(); 
+        if (btn) { btn.innerHTML = oldText; btn.disabled = false; }
+        if (err.message === "AUTOTABLE_MISSING") alert("SYSTEM ERROR: jsPDF AutoTable plugin is missing!");
+        else alert("Extraction Fault: " + err.message); 
     }
 };
+
+
 
 
 window.processExcelUpload = () => {  
@@ -6049,6 +6292,9 @@ window.initAutoAssignmentDate = () => {
 // ==========================================
 // 📄 TABULAR PDF MASTER LEDGER (BOLD MARKS & LARGE FONT)
 // ==========================================
+// ==========================================
+// 📄 TABULAR PDF MASTER LEDGER (FULL WIDTH)
+// ==========================================
 window.downloadResultDataPDF = async () => {
     let pdfSandbox = null; 
     try {
@@ -6116,11 +6362,12 @@ window.downloadResultDataPDF = async () => {
 
         const ROWS_PER_PAGE = 15; 
 
+        // 🔥 NAYA: Container width badha di hai taaki full screen aaye
         pdfSandbox = document.createElement('div');
         pdfSandbox.style.position = 'absolute'; pdfSandbox.style.top = '-9999px'; pdfSandbox.style.left = '-9999px';
-        pdfSandbox.style.width = '1600px'; 
+        pdfSandbox.style.width = '1800px'; 
         pdfSandbox.style.background = '#ffffff'; 
-        pdfSandbox.style.padding = '30px';
+        pdfSandbox.style.padding = '10px'; // Extra border padding remove ki
         document.body.appendChild(pdfSandbox);
 
         for (let cName of sortedClasses) {
@@ -6285,7 +6532,7 @@ window.downloadResultDataPDF = async () => {
                 });
 
                 pdfSandbox.innerHTML = `
-                    <div style="border: 5px solid #1e3a8a; padding: 25px; background: #fff; box-sizing: border-box;">
+                    <div style="border: 3px solid #1e3a8a; padding: 15px; background: #fff; width: 100%; box-sizing: border-box;">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:5px double #1e3a8a; padding-bottom:12px; margin-bottom:20px;">
                             <div>
                                 <h1 style="margin:0; font-size:32px; color:#1e3a8a; font-weight:900; letter-spacing: 1px;">MASTER EXAMINATION LEDGER</h1>
@@ -6313,7 +6560,9 @@ window.downloadResultDataPDF = async () => {
 
                 const pageWidth = 297; 
                 const pageHeight = 210; 
-                const margin = 5;
+                
+                // 🔥 NAYA MARGIN LOGIC (Edge to edge print)
+                const margin = 2; // Margin only 2mm
                 const usableWidth = pageWidth - (margin * 2);
                 const usableHeight = pageHeight - (margin * 2);
 
@@ -6324,6 +6573,7 @@ window.downloadResultDataPDF = async () => {
                     imgHeight = usableHeight;
                     imgWidth = (canvas.width * imgHeight) / canvas.height;
                 }
+                
                 let xOffset = margin + (usableWidth - imgWidth) / 2;
 
                 if (!isFirstPage) { pdf.addPage(); } else { isFirstPage = false; }
