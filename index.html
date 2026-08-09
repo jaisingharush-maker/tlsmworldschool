@@ -1934,9 +1934,6 @@ window.fetchStudentResult = async () => {
 };
 
 
-// ==========================================
-// 2. BULK PRINT CLASS RESULTS (WITH REAL MEDAL IMAGES)
-// ==========================================
 window.printBulkClassResults = async () => {
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
@@ -2091,7 +2088,6 @@ window.printBulkClassResults = async () => {
             else { throw new Error("AUTOTABLE_MISSING"); }
         };
 
-        // 🥇 🥈 🥉 Load Twemoji Medal PNGs 
         const medalGold = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f947.png");
         const medalSilver = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f948.png");
         const medalBronze = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f949.png");
@@ -2100,10 +2096,16 @@ window.printBulkClassResults = async () => {
         const logoRight = await loadImageUrl("https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png");
         const princSign = await loadImageUrl(principalSignUrl);
         
-        const pageWidth = 297; const pageHeight = 210; 
-        const margin = 5; const gap = 5;    
-        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
-        const maxCardHeight = pageHeight - margin * 2;
+        // 🔥 NAYA MARGIN AUR SPACING LOGIC 🔥
+        const pageWidth = 297; 
+        const pageHeight = 210; 
+        const leftMargin = 3;   // Left margin kam kiya
+        const rightMargin = 5;  
+        const topMargin = 5;
+        const gap = 10;         // Spacing badha di
+        
+        const cardWidth = (pageWidth - leftMargin - rightMargin - gap) / 2; 
+        const maxCardHeight = pageHeight - (topMargin * 2);
 
         const blueColor = [30, 58, 138]; 
         const orangeColor = [234, 88, 12]; 
@@ -2135,8 +2137,10 @@ window.printBulkClassResults = async () => {
 
             const isLeft = (idx % 2 === 0); 
             if (isLeft && idx > 0) pdf.addPage();
-            const startX = isLeft ? margin : (margin + cardWidth + gap);
-            const startY = margin;
+            
+            // Apply new spacing
+            const startX = isLeft ? leftMargin : (leftMargin + cardWidth + gap);
+            const startY = topMargin;
             let currentY = startY;
 
             pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
@@ -2198,7 +2202,7 @@ window.printBulkClassResults = async () => {
             pdf.text("Mother's Name:", col1X, currentY + 18);
             pdf.text("Father's Name:", col1X, currentY + 23);
             pdf.text("Class / Section:", col1X, currentY + 28);
-            pdf.text("DOB:", col1X, currentY + 33);
+            pdf.text("PEN NO:", col1X, currentY + 33);
 
             pdf.setTextColor(0, 0, 0);
             pdf.setFont("helvetica", "normal");
@@ -2322,7 +2326,6 @@ window.printBulkClassResults = async () => {
             pdf.setFontSize(8);
             pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
             
-            // 🥇 EXACT MEDAL PLACEMENT LOGIC 🥇
             const drawSummaryRow = (yPos, title, value, valColor, rankForMedal = 0) => {
                 pdf.rect(startX + 4, yPos, cardWidth - 8, 6);
                 pdf.setTextColor(0, 0, 0);
@@ -2333,7 +2336,6 @@ window.printBulkClassResults = async () => {
                 if (valColor) pdf.setTextColor(valColor[0], valColor[1], valColor[2]);
                 pdf.text(value, startX + cardWidth - 6, yPos + 4, { align: 'right' });
 
-                // Agar rank 1, 2, 3 hai toh uske theek pehle actual Medal Image chipkegi
                 let textWidth = pdf.getTextWidth(value);
                 let medalXPosition = startX + cardWidth - 6 - textWidth - 5;
 
@@ -2351,7 +2353,6 @@ window.printBulkClassResults = async () => {
             drawSummaryRow(currentY, "PERCENTAGE:", `${percentage}%`);
             currentY += 8;
             
-            // Pass the rank so medal is drawn!
             drawSummaryRow(currentY, "CLASS RANK & ATTENDANCE:", `Rank ${classRank} of ${totalInClass} | Attd: ${daysPresentStr}`, orangeColor, classRank);
 
             currentY += 8;
@@ -2413,9 +2414,7 @@ window.printBulkClassResults = async () => {
 };
 
 
-// ==========================================
-// 3. SPECIFIC STUDENT RESULTS PRINT (WITH REAL MEDAL IMAGES)
-// ==========================================
+
 window.printSpecificStudentResults = async () => {
     if (!isCurrentUserAdmin && !subAdminAllowedTabs.includes('excel-results')) {
         alert("Unauthorized Access! You do not have permission for Excel Results Desk.");
@@ -2590,7 +2589,6 @@ window.printSpecificStudentResults = async () => {
             else { throw new Error("AUTOTABLE_MISSING"); }
         };
 
-        // 🥇 🥈 🥉 Load Twemoji Medal PNGs 
         const medalGold = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f947.png");
         const medalSilver = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f948.png");
         const medalBronze = await loadImageUrl("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f949.png");
@@ -2600,10 +2598,16 @@ window.printSpecificStudentResults = async () => {
         const logoRight = await loadImageUrl("https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png");
         const princSign = await loadImageUrl(principalSignUrl);
 
-        const pageWidth = 297; const pageHeight = 210; 
-        const margin = 5; const gap = 5;    
-        const cardWidth = (pageWidth - (margin * 2) - gap) / 2; 
-        const maxCardHeight = pageHeight - margin * 2;
+        // 🔥 NAYA MARGIN AUR SPACING LOGIC 🔥
+        const pageWidth = 297; 
+        const pageHeight = 210; 
+        const leftMargin = 3;   // Left margin kam kiya
+        const rightMargin = 5;  
+        const topMargin = 5;
+        const gap = 10;         // Spacing badha di
+        
+        const cardWidth = (pageWidth - leftMargin - rightMargin - gap) / 2; 
+        const maxCardHeight = pageHeight - (topMargin * 2);
 
         const blueColor = [30, 58, 138]; 
         const orangeColor = [234, 88, 12]; 
@@ -2641,8 +2645,10 @@ window.printSpecificStudentResults = async () => {
 
             const isLeft = (idx % 2 === 0); 
             if (isLeft && idx > 0) pdf.addPage();
-            const startX = isLeft ? margin : (margin + cardWidth + gap);
-            const startY = margin;
+            
+            // Apply new spacing
+            const startX = isLeft ? leftMargin : (leftMargin + cardWidth + gap);
+            const startY = topMargin;
             let currentY = startY;
 
             pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
@@ -2704,7 +2710,7 @@ window.printSpecificStudentResults = async () => {
             pdf.text("Mother's Name:", col1X, currentY + 18);
             pdf.text("Father's Name:", col1X, currentY + 23);
             pdf.text("Class / Section:", col1X, currentY + 28);
-            pdf.text("DOB:", col1X, currentY + 33);
+            pdf.text("PEN NO:", col1X, currentY + 33);
 
             pdf.setTextColor(0, 0, 0);
             pdf.setFont("helvetica", "normal");
@@ -2828,7 +2834,6 @@ window.printSpecificStudentResults = async () => {
             pdf.setFontSize(8);
             pdf.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
             
-            // 🥇 EXACT MEDAL PLACEMENT LOGIC 🥇
             const drawSummaryRow = (yPos, title, value, valColor, rankForMedal = 0) => {
                 pdf.rect(startX + 4, yPos, cardWidth - 8, 6);
                 pdf.setTextColor(0, 0, 0);
@@ -2856,7 +2861,6 @@ window.printSpecificStudentResults = async () => {
             drawSummaryRow(currentY, "PERCENTAGE:", `${percentage}%`);
             currentY += 8;
             
-            // Pass the rank so medal is drawn!
             drawSummaryRow(currentY, "CLASS RANK & ATTENDANCE:", `Rank ${classRank} of ${totalInClass} | Attd: ${daysPresentStr}`, orangeColor, classRank);
 
             currentY += 8;
@@ -2910,6 +2914,7 @@ window.printSpecificStudentResults = async () => {
         else alert("Extraction Fault: " + err.message); 
     }
 };
+
 
 
 
@@ -6817,7 +6822,7 @@ window.deleteSpecificStudentResults = async () => {
 };
 
 // ==========================================
-// 🏆 TOP 10 RANK HOLDERS PDF ENGINE (HIGHLIGHTED BORDERS & NO-WRAP)
+// 🏆 TOP 10 RANK HOLDERS PDF ENGINE (WITH TOTAL SCORE & CBSE LOGO)
 // ==========================================
 window.downloadTop10ListPDF = async () => {
     let pdfSandbox = null;
@@ -6940,7 +6945,7 @@ window.downloadTop10ListPDF = async () => {
             let top10 = group.filter(st => st.finalRank <= 10);
             if (top10.length === 0) continue; 
 
-            const ROWS_PER_PAGE = 11; 
+            const ROWS_PER_PAGE = 16; 
             let chunks = [];
             for (let i = 0; i < top10.length; i += ROWS_PER_PAGE) {
                 chunks.push(top10.slice(i, i + ROWS_PER_PAGE));
@@ -6953,12 +6958,12 @@ window.downloadTop10ListPDF = async () => {
                 chunk.forEach((st, idx) => {
                     let pct = st.sMax > 0 ? ((st.sTotal / st.sMax) * 100).toFixed(2) : "0.00";
                     
-                    let rankStyle = "font-size: 24px; font-weight: 900; white-space: nowrap;";
+                    let rankStyle = "font-size: 20px; font-weight: 900; white-space: nowrap;";
                     let medalHtml = "";
                     let rowBg = idx % 2 === 0 ? "#ffffff" : "#f8fafc";
                     
-                    let nameStyle = "font-size: 20px; font-weight: 900; text-transform: uppercase; white-space: nowrap;";
-                    let otherNamesStyle = "font-size: 20px; font-weight: 900; text-transform: uppercase; color: #334155; white-space: nowrap;";
+                    let nameStyle = "font-size: 16px; font-weight: 900; text-transform: uppercase; white-space: nowrap;";
+                    let otherNamesStyle = "font-size: 16px; font-weight: 900; text-transform: uppercase; color: #334155; white-space: nowrap;";
 
                     if (st.finalRank === 1) { 
                         rankStyle += `color: #d97706; text-shadow: 1px 1px 2px rgba(217, 119, 6, 0.4);`; 
@@ -6974,14 +6979,14 @@ window.downloadTop10ListPDF = async () => {
                     }
 
                     tBody += `
-                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 75px;">
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; ${rankStyle}">${st.finalRank} ${medalHtml}</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 20px; font-weight: 900; color: #475569; white-space: nowrap;">${st.roll_no || '-'}</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${nameStyle}">${st.name || '-'}</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.father || '-'}</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.mother || '-'}</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 22px; font-weight: 900; color: #1e3a8a; white-space: nowrap;">${st.sTotal}</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; font-size: 22px; font-weight: 900; color: #ea580c; white-space: nowrap;">${pct}%</td>
+                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 50px;">
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8; ${rankStyle}">${st.finalRank} ${medalHtml}</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8; font-size: 16px; font-weight: 900; color: #475569; white-space: nowrap;">${st.roll_no || '-'}</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8; text-align: left; ${nameStyle}">${st.name || '-'}</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.father || '-'}</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8; text-align: left; ${otherNamesStyle}">${st.mother || '-'}</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8; font-size: 18px; font-weight: 900; color: #1e3a8a; white-space: nowrap;">${st.sTotal} / ${st.sMax}</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8; font-size: 18px; font-weight: 900; color: #ea580c; white-space: nowrap;">${pct}%</td>
                         </tr>
                     `;
                 });
@@ -6990,14 +6995,14 @@ window.downloadTop10ListPDF = async () => {
                 for (let e = 0; e < emptyRowsCount; e++) {
                     let rowBg = (chunk.length + e) % 2 === 0 ? "#ffffff" : "#f8fafc";
                     tBody += `
-                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 75px;">
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
-                            <td style="padding: 10px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                        <tr style="text-align:center; color:#0f172a; background: ${rowBg}; height: 50px;">
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 10px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
+                            <td style="padding: 6px 8px; border: 1px solid #94a3b8;">&nbsp;</td>
                         </tr>
                     `;
                 }
@@ -7016,12 +7021,14 @@ window.downloadTop10ListPDF = async () => {
                                 
                                 <div style="background-color: #1e3a8a; padding: 12px 50px; border-radius: 12px; border-bottom: 5px solid #ea580c; display: inline-block;">
                                     <span style="color: #ffffff; font-family: 'Arial', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">
-                                        ${examSel.replace(/_/g, ' ')} ${sessionSel} CLASS TOPPERS 
+                                        ${examSel.replace(/_/g, ' ')} ${sessionSel} TOP 10 LIST 
                                     </span>
                                 </div>
                             </div>
                             
-                            <div style="flex-shrink: 0; width: 140px; padding-left: 30px;"></div>
+                            <div style="flex-shrink: 0; padding-left: 30px; border-left: 3px solid #cbd5e1;">
+                                <img src="https://i.postimg.cc/SQMq5ctK/file-0000000055e08208b2ce02df862fa91b.png" style="width: 140px; height: 140px; object-fit: contain;">
+                            </div>
                         </div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; padding: 0 10px; flex-shrink: 0;">
@@ -7044,7 +7051,7 @@ window.downloadTop10ListPDF = async () => {
                                         <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">CANDIDATE NAME</th>
                                         <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">FATHER'S NAME</th>
                                         <th style="padding: 12px 10px; border: 1px solid #ffffff; text-align: left; font-weight: 900; white-space: nowrap;">MOTHER'S NAME</th>
-                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 100px; font-weight: 900; white-space: nowrap;">SCORE</th>
+                                        <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 130px; font-weight: 900; white-space: nowrap;">SCORE</th>
                                         <th style="padding: 12px 8px; border: 1px solid #ffffff; width: 110px; font-weight: 900; white-space: nowrap;">PERCENT</th>
                                     </tr>
                                 </thead>
@@ -7093,6 +7100,8 @@ window.downloadTop10ListPDF = async () => {
         alert("Error while rendering Top 10 List: " + error.message);
     }
 };
+
+
 
 
 window.downloadCBTPdf = async (testId, testTitle) => {
