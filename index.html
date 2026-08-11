@@ -7450,6 +7450,29 @@ window.addEventListener('keydown', (e) => {
 });
 
 
+// 1. Right-Click block karne ka code
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// 2. Keyboard shortcuts (F12, Inspect, View Source) block karne ka code
+window.addEventListener('keydown', function(e) {
+    // F12 block karna
+    if (e.key === 'F12') {
+        e.preventDefault();
+    }
+    // Ctrl+Shift+I (Inspect) aur Ctrl+U (View Source) block karna
+    if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'u')) {
+        e.preventDefault();
+    }
+    // Ctrl+Shift+J (Console) aur Ctrl+S (Save) block karna
+    if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 's')) {
+        e.preventDefault();
+    }
+});
+
+    
+
 </script>
 
 
