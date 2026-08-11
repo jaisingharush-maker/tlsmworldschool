@@ -255,6 +255,20 @@
                 <button id="toggle-portal-btn" onclick="window.toggleResultVisibility()" class="bg-amber-600 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all">Toggle State</button>
             </div>
         </div>
+        
+        <!-- LIVE RESULT TRACKING BOX -->
+<div class="glass !p-4 border border-blue-200 bg-blue-50 col-span-1 md:col-span-2 mt-4">
+    <p class="text-[10px] font-black text-blue-600 mb-1 uppercase"><i class="fas fa-chart-line mr-1"></i> Live Result Tracking Report</p>
+    <p class="text-[9px] text-slate-600 mb-3">Check karein portal live hone ke baad kis-kis bacche ne result dekha hai aur report generate karein.</p>
+    <div class="flex gap-2 mb-3">
+        <select id="track-session" class="publisher-input text-xs font-bold bg-white text-slate-900 w-1/2"></select>
+        <select id="track-exam" class="publisher-input text-xs font-bold bg-white text-slate-900 w-1/2"></select>
+    </div>
+    <button onclick="window.generateViewReport()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-[10px] uppercase shadow-md transition-all"><i class="fas fa-search mr-1"></i> Fetch Live Report</button>
+    <div id="tracking-report-container" class="mt-4 hidden max-h-60 overflow-y-auto pr-2"></div>
+</div>
+<!-- LIVE RESULT TRACKING BOX END -->
+
 
         <div class="glass !p-4 border border-orange-200">
             <p class="text-[9px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-cogs mr-1"></i> Exam & Session Config</p>
@@ -730,6 +744,16 @@
                 Loading Data...
             </div>
         </div>
+        
+          <!-- 🔥 NAYA: DETAILED FEEDBACK LIST BOX 🔥 -->
+        <div class="glass !p-4 border border-blue-200 max-w-md mx-auto mt-4">
+            <p class="text-[12px] font-black text-slate-900 mb-4 uppercase text-center"><i class="fas fa-list mr-1 text-blue-600"></i> Student Feedback Details</p>
+            <div id="feedback-detailed-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                <p class="text-[10px] font-bold text-slate-400 text-center py-4">Loading feedback records...</p>
+            </div>
+        </div>
+        <!-- 🔥 NAYA BOX KHATAM 🔥 -->
+
     </div>
 
                    <div id="sec-sub-admins" class="admin-section hidden pb-20 max-w-2xl mx-auto">
@@ -1268,25 +1292,61 @@ function loadFeedbackData() {
         let yesCount = 0;
         let noCount = 0;
         let total = 0;
+        let feedbacks = []; // Data jama karne ke liye
 
         snap.forEach(docSnap => {
             const data = docSnap.data();
             if (data.vote === 'YES') yesCount++;
             else if (data.vote === 'NO') noCount++;
             total++;
+            feedbacks.push(data); // List mein daal rahe hain
         });
 
-        let yesPercent = total > 0 ? ((yesCount / total) * 100).toFixed(1) : 0;
-        let noPercent = total > 0 ? ((noCount / total) * 100).toFixed(1) : 0;
+        // 🔥 NAYA LOGIC: Sabse naya feedback sabse upar dikhega 🔥
+        feedbacks.sort((a, b) => {
+            let timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+            let timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+            return timeB - timeA;
+        });
 
+        let detailedHtml = '';
+        feedbacks.forEach(data => {
+            // Exact Date aur Time nikalne ka code
+            let dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12: true}) : 'Old Record (Time Unknown)';
+            
+            // YES aur NO ke hisaab se color aur icon set karna
+            let voteColor = data.vote === 'YES' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200';
+            let voteIcon = data.vote === 'YES' ? 'fa-thumbs-up' : 'fa-thumbs-down';
+            
+            detailedHtml += `
+            <div class="p-3 border rounded-xl flex justify-between items-center shadow-sm mb-2 ${voteColor}">
+                <div>
+                    <p class="text-[11px] font-black uppercase text-slate-900">${data.name || 'Unknown User'}</p>
+                    <p class="text-[10px] font-bold text-slate-600">${data.email || 'No Email'}</p>
+                    <p class="text-[8px] font-bold text-slate-500 mt-1"><i class="fas fa-clock mr-1"></i>${dateStr}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-[11px] font-black uppercase tracking-widest"><i class="fas ${voteIcon} mr-1"></i> ${data.vote}</span>
+                </div>
+            </div>`;
+        });
+
+        // Stats UI Update
         document.getElementById("feedback-stats").innerHTML = `
             <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200 mt-2">
                 <div><span class="text-slate-500">Total Votes:</span> <span class="text-slate-900 font-black">${total}</span></div>
-                <div class="text-emerald-600"><i class="fas fa-thumbs-up"></i> ${yesPercent}%</div>
-                <div class="text-red-600"><i class="fas fa-thumbs-down"></i> ${noPercent}%</div>
+                <div class="text-emerald-600"><i class="fas fa-thumbs-up"></i> ${total > 0 ? ((yesCount / total) * 100).toFixed(1) : 0}%</div>
+                <div class="text-red-600"><i class="fas fa-thumbs-down"></i> ${total > 0 ? ((noCount / total) * 100).toFixed(1) : 0}%</div>
             </div>
         `;
 
+        // Detailed List UI Update
+        const listContainer = document.getElementById("feedback-detailed-list");
+        if (listContainer) {
+            listContainer.innerHTML = detailedHtml || '<p class="text-[10px] font-bold text-slate-400 text-center py-4 border border-dashed border-slate-300 rounded-lg">No feedback received yet.</p>';
+        }
+
+        // Pie Chart Update
         const ctx = document.getElementById('feedbackPieChart').getContext('2d');
         if (feedbackChartInstance) {
             feedbackChartInstance.destroy();
@@ -1316,6 +1376,7 @@ function loadFeedbackData() {
         });
     });
 }
+
   
 async function loadUserSubmissions(uid) {  
     onSnapshot(collection(db, "user_submissions"), snap => {  
@@ -1563,7 +1624,7 @@ window.adminDirectUpdateMarks = async () => {
     }
 };
 
-// ==========================================
+
 // 1. ONLINE RESULT VIEW (PORTAL)
 // ==========================================
 window.fetchStudentResult = async () => {  
@@ -1600,11 +1661,13 @@ window.fetchStudentResult = async () => {
                     <p class="text-sm text-slate-700 font-bold mb-4">Your school fee is pending Contact School Administration.</p>  
                     ${auth.currentUser.email === adminEmail ? `<button onclick="toggleFeeDue('${targetDocId}', true)" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold">UNBLOCK RESULT</button>` : ``}  
                 </div>`;  
-            targetPanel.classList.remove("hidden"); return;  
+            targetPanel.classList.remove("hidden");
+            return;  
         }  
 
         let subjects = [];  
-        try { subjects = typeof data.subjects_json === "string" ? JSON.parse(data.subjects_json) : data.subjects_json; } catch(e) {}  
+        try { subjects = typeof data.subjects_json === "string" ? JSON        // 
+.parse(data.subjects_json) : data.subjects_json; } catch(e) {}  
         if (!Array.isArray(subjects)) subjects = [];
           
         let totalMarks = 0; let maxMarks = 0;  
@@ -1923,8 +1986,28 @@ window.fetchStudentResult = async () => {
         `;  
         
         targetPanel.classList.remove("hidden");  
+        
+     
+        
         if (classRank === 1) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#fbbf24', '#f59e0b', '#d97706'] }); }
 
+
+       
+        // 🔥 NAYA: HIDDEN TRACKING SYSTEM (SAHI POSITION) 🔥
+        try {
+            await setDoc(doc(db, "user_submissions", "view_" + targetDocId), {
+                isResultView: true,
+                scholar_id: currentScholarId,
+                name: data.name || "Unknown",
+                class: studentClass,
+                section: studentSection,
+                academic_year: academicYear,
+                exam_type: examType,
+                lastViewedAt: new Date().toISOString()
+            }, { merge: true });
+        } catch(e) { console.error("Tracking error: ", e); }
+        // 🔥 TRACKING SYSTEM END 🔥
+        
         if (examType === 'ANNUAL') {
             let chartData = await buildPerformanceChartData(currentScholarId, examType, displayAcademicYear, subjects);
             let ctx = document.getElementById('student-analysis-chart').getContext('2d');
@@ -4598,15 +4681,16 @@ function renderExamSessionUI() {
     appExams.forEach(e => window.addNewExamInput(e));
 }
 
-// ==========================================
+
 // ⚙️ AUTO-POPULATE DROPDOWNS ENGINE
-// ==========================================
+
 function populateDropdowns() {
     // Session wale saare dropdowns ki list
     const sessionSelects = [
         'student-academic-year', 
         'admin-print-academic-year', 
-        'admin-upload-academic-year', 
+        'admin-upload-academic-year',
+        'track-session',
         'del-session', 
         'admin-update-session', 
         'admit-session', 
@@ -4626,6 +4710,7 @@ function populateDropdowns() {
         'admin-print-exam-type', 
         'admin-upload-exam-type', 
         'del-exam', 
+        'track-exam',
         'admin-update-exam',
         'admin-print-specific-results-exam',
         'edit-result-exam',
@@ -7470,6 +7555,133 @@ window.addEventListener('keydown', function(e) {
         e.preventDefault();
     }
 });
+
+
+// ==========================================
+// 📊 LIVE RESULT TRACKING REPORT ENGINE (CLEAN & WORKING)
+// ==========================================
+// ==========================================
+// 📊 LIVE RESULT TRACKING REPORT ENGINE (100% BULLETPROOF)
+// ==========================================
+window.generateViewReport = async () => {
+    const session = document.getElementById("track-session").value;
+    const exam = document.getElementById("track-exam").value;
+    const container = document.getElementById("tracking-report-container");
+    
+    container.innerHTML = `<p class="text-[10px] text-center font-bold text-slate-500"><i class="fas fa-spinner fa-spin"></i> Analyzing Server Logs...</p>`;
+    container.classList.remove("hidden");
+    
+    try {
+        // 🔥 NAYA FIX: Aapke khud ke bulletproof getFb() function ka use 🔥
+        const { db, collection, query, where, getDocs } = await getFb();
+        
+        // Ab yahan query aur collection kabhi fail nahi honge
+        const q = query(collection(db, "user_submissions"), where("isResultView", "==", true));
+        const snap = await getDocs(q);
+        
+        let viewedStudents = [];
+        snap.forEach(d => {
+            let data = d.data();
+            if(data.academic_year === session && data.exam_type === exam) {
+                viewedStudents.push(data);
+            }
+        });
+        
+        viewedStudents.sort((a, b) => new Date(b.lastViewedAt) - new Date(a.lastViewedAt));
+        
+        if(viewedStudents.length === 0) {
+            container.innerHTML = `<p class="text-[10px] font-bold text-slate-500 text-center py-4 bg-white rounded-lg border border-slate-200">Abhi tak kisi student ne apna result check nahi kiya hai.</p>`;
+            return;
+        }
+        
+        let html = `<div class="flex justify-between items-center mb-3"><span class="text-[10px] font-black text-slate-800 uppercase">Total Students Viewed: <span class="text-white bg-blue-600 px-2 py-0.5 rounded-full ml-1">${viewedStudents.length}</span></span></div>`;
+        
+        viewedStudents.forEach(st => {
+            let dateObj = new Date(st.lastViewedAt);
+            let timeStr = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            let dateStr = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            
+            html += `
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center mb-2">
+                <div>
+                    <p class="text-[11px] font-black text-slate-900 uppercase">${st.name || 'UNKNOWN'}</p>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Scholar: <span class="text-blue-600">${st.scholar_id}</span> | Class: ${st.class} ${st.section || 'A'}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-emerald-600"><i class="fas fa-clock mr-1"></i>${timeStr}</p>
+                    <p class="text-[8px] font-bold text-slate-400 mt-0.5">${dateStr}</p>
+                </div>
+            </div>`;
+        });
+        
+        html += `<button onclick="window.printTrackingReport()" class="w-full mt-3 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg transition-all tracking-wider"><i class="fas fa-print mr-2"></i> Print Official Report</button>`;
+        
+        window.currentTrackingReportData = viewedStudents;
+        window.currentTrackingSession = session;
+        window.currentTrackingExam = exam;
+        container.innerHTML = html;
+        
+    } catch(e) {
+        container.innerHTML = `<p class="text-[10px] font-bold text-red-500 text-center bg-red-50 p-2 rounded-lg">Database Error: ${e.message}</p>`;
+    }
+};
+
+
+
+
+window.printTrackingReport = () => {
+    let printWin = window.open('', '', 'width=900,height=700');
+    let rows = window.currentTrackingReportData.map((st, i) => {
+        let dateObj = new Date(st.lastViewedAt);
+        let timeStr = dateObj.toLocaleString('en-IN');
+        return `<tr>
+            <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">${i+1}</td>
+            <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">${st.scholar_id}</td>
+            <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: 900; text-transform: uppercase;">${st.name || '-'}</td>
+            <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center;">${st.class} ${st.section || 'A'}</td>
+            <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; color: #16a34a; font-weight: bold;">${timeStr}</td>
+        </tr>`;
+    }).join('');
+
+    printWin.document.write(`
+        <html><head><title>Result Viewing Tracking Report</title>
+        <style>
+            body { font-family: 'Arial', sans-serif; padding: 30px; color: #0f172a; } 
+            table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 13px; } 
+            th { background: #1e3a8a; color: white; padding: 12px; border: 1px solid #1e3a8a; text-transform: uppercase; letter-spacing: 1px;}
+            tr:nth-child(even) { background-color: #f8fafc; }
+        </style>
+        </head><body>
+        <div style="text-align: center; border-bottom: 4px double #1e3a8a; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="color: #1e3a8a; font-size: 28px; margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: 2px;">TLSM WORLD SCHOOL</h2>
+            <h3 style="color: #ea580c; font-size: 18px; margin: 8px 0 0 0; text-transform: uppercase;">OFFICIAL RESULT VIEWING TRACKING REPORT</h3>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+            <div>
+                <p><strong>EXAM NAME:</strong> ${window.currentTrackingExam.replace(/_/g, ' ')}</p>
+                <p><strong>ACADEMIC SESSION:</strong> ${window.currentTrackingSession}</p>
+            </div>
+            <div style="text-align: right;">
+                <p><strong>REPORT DATE:</strong> ${new Date().toLocaleDateString('en-IN')}</p>
+                <p><strong>TOTAL STUDENTS VIEWED:</strong> <span style="font-size: 16px; font-weight: 900; color: #16a34a; background: #dcfce7; padding: 2px 8px; border-radius: 4px;">${window.currentTrackingReportData.length}</span></p>
+            </div>
+        </div>
+
+        <table>
+            <thead><tr><th>S.No</th><th>Scholar ID</th><th>Student Name</th><th>Class & Sec</th><th>Checked On (Exact Time)</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        
+        <div style="margin-top: 50px; display: flex; justify-content: space-between; font-weight: bold; font-size: 12px;">
+            <div style="text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px;">Report Generated By</div>
+            <div style="text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px;">Principal / Admin Signature</div>
+        </div>
+        <script>window.onload = function() { window.print(); window.close(); }<\/script>
+        </body></html>
+    `);
+    printWin.document.close();
+};
 
     
 
