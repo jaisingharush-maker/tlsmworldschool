@@ -1,3 +1,1175 @@
+    <!DOCTYPE html>  
+<html lang="en">  
+<head>    
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+<title>TLSM WORLD SCHOOL</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script> <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+
+<script src="https://cdn.tailwindcss.com"></script>  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>  
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>  
+  /* Pure White Background & App Load Animation */  
+  @keyframes popAnimation {
+    0% { opacity: 0; transform: scale(0.9) translateY(40px); }
+    60% { opacity: 1; transform: scale(1.02) translateY(-10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .animate-pop {
+    animation: popAnimation 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  body {   
+    background: #f8fafc; 
+    background-color: #f8fafc;
+    font-family: -apple-system, sans-serif;   
+    min-height: 100vh;   
+    margin: 0;   
+    -webkit-user-select: none;   
+    user-select: none;   
+    overflow-x: hidden;   
+    color: #0f172a; 
+  }   
+  
+  #app { 
+    padding: 16px; 
+    padding-bottom: 40px; 
+    display: none; 
+    position: relative; 
+    z-index: 10; 
+  }
+
+  /* White Cards */
+  .glass {
+    background: #ffffff;
+    border-radius: 30px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  }
+
+  header { background: #ffffff !important; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+  .chapter-card {
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .chapter-card:active { transform: scale(0.97); background: #f1f5f9; }
+
+  /* Light Theme Screens */
+  #lock-screen { display: none; position: fixed; inset: 0; background: #f8fafc; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+  #lock-screen h2 { color: #0f172a; }
+
+  #login-screen {
+    background: #f8fafc;
+    position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+  }
+  .login-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 40px; width: 85%; max-width: 360px; padding: 40px 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+  #login-screen h1 { color: #0f172a; }
+
+  .nav-btn { color: #64748b; text-align: left; transition: 0.2s; }
+  .nav-active { color: #ea580c !important; font-weight: 900; } /* Bhagwa Color */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .publisher-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 11px; outline: none; margin-bottom: 6px; }
+  
+  .admin-sub-tab { font-size: 10px; font-weight: 800; padding: 8px 12px; border-radius: 12px; color: #64748b; cursor: pointer; transition: 0.3s; }
+  .admin-sub-tab.active { background: #ea580c; color: white; } /* Bhagwa Color */
+
+  .fs-modal { position: fixed; inset: 0; z-index: 5000; background: #f8fafc; display: none; flex-direction: column; overflow-y: auto; }
+  #modal-header { padding: 12px 20px; background: #ffffff; border-bottom: 1px solid #e2e8f0; color: #0f172a; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5005; }
+  #modal-header button { color: #0f172a; }
+
+  .option-btn { width: 100%; text-align: left; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; margin-bottom: 8px; font-size: 12px; transition: 0.2s; color: black; background: #f8fafc; }
+  .option-btn.selected { border-color: #ea580c !important; background: rgba(234, 88, 12, 0.1) !important; font-weight: bold; } /* Bhagwa Color */
+
+  .media-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .protection-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 55px; z-index: 5006; background: transparent; }
+  iframe { border: none; width: 100%; height: 100%; pointer-events: auto; }
+</style>
+</head>  
+<body>   
+
+<div id="lock-screen">  
+    <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fas fa-mobile-alt"></i></div>  
+    <h2 class="text-xl font-black uppercase">Security Alert</h2>  
+    <p id="lock-reason" class="text-[10px] text-slate-500 font-bold mt-2">Device Locked Please Contact Admin for Reset Your device📞📞 9229809156📞.</p>  
+    <button onclick="logout()" class="mt-8 text-orange-600 font-bold uppercase text-xs underline">Logout</button>  
+</div>  
+
+<div id="payment-lock-screen" style="display: none; position: fixed; inset: 0; background: #f8fafc; z-index: 25000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+    <div class="glass border-red-200 border-4 p-8 max-w-md shadow-2xl">
+        <i class="fas fa-exclamation-triangle text-red-600 text-6xl mb-4"></i>
+        <h2 class="text-xl font-black uppercase text-slate-800 mb-4">DEAR TLSM WORLD SCHOOL MANAGEMENT,</h2>
+        
+        <p class="text-[12px] text-slate-700 font-bold mb-6 leading-relaxed">
+            This correspondence serves as a formal notification that your gratuitous service plan terminated on August 14, 2026, at 9:45 AM. To avert any operational disruptions and reinstate your unfettered access to our platform, Please contact AARAV ED-TECH to process an agreement.<br><br>
+            Contact e-mail: <a href="mailto:supportaaravedtech@gmail.com" class="text-blue-600 hover:text-blue-800 underline text-[13px] font-black tracking-wide">supportaaravedtech@gmail.com</a>
+        </p>
+      
+        <!-- Logout button fix: Ab click karte hi pehle ye screen hide hogi, phir Firebase se logout hoga -->
+        <button onclick="document.getElementById('payment-lock-screen').style.display='none'; logout();" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all tracking-widest">LOGOUT</button>
+    </div>
+</div>
+
+
+
+<div id="login-screen">  
+  <div class="login-card">  
+    
+    <div class="w-24 h-24 mx-auto mb-4 flex items-center justify-center drop-shadow-xl">  
+        <img src="https://i.postimg.cc/hjTFV5Hk/Screenshot-2026-0526-080731.png" alt="School Logo" class="w-full h-full object-contain">
+    </div>  
+
+    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-[0.2em] mb-8 uppercase whitespace-nowrap drop-shadow-sm">TLSM WORLD SCHOOL</h2>  
+   <p class="text-[10px] font-bold uppercase tracking-widest mb-8 text-slate-500">This site is completely design and created by Aarav Jai Vishwanath Singh</p>  
+    <button id="login-btn" onclick="login()" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-orange-700 transition-all">CONTINUE WITH GOOGLE</button>  
+  </div>  
+</div>  
+
+<div id="app" class="max-w-5xl mx-auto"> 
+  <header class="bg-white rounded-2xl mb-6 p-4 shadow-sm flex flex-wrap justify-between items-center relative z-50">  
+    <div class="flex items-center gap-3">  
+        <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">π</div>  
+        <div>  
+          <p id="user-display" class="font-bold text-sm text-slate-900 uppercase">User Name</p>  
+          <span id="expiry-tag" class="text-[8px] text-orange-600 font-bold uppercase block leading-tight">Syncing...</span>  
+        </div>  
+    </div>  
+    
+    <div class="flex items-center gap-4">
+        <button onclick="logout()" class="text-red-600 text-[10px] font-bold bg-red-50 px-3 py-1 rounded-full border border-red-200">LOGOUT</button>
+        <button onclick="toggleMobileMenu()" class="md:hidden text-orange-600 text-2xl p-1 focus:outline-none"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <nav id="top-nav" class="hidden flex-col w-full md:flex md:w-auto md:flex-row md:items-center mt-4 md:mt-0 gap-2 md:gap-8 basis-full md:basis-auto transition-all">
+        <button onclick="switchTab('library'); closeMobileMenu()" id="btn-library" class="nav-btn text-[12px] md:text-sm font-bold nav-active flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-book text-lg w-5 text-center"></i> BOOKS</button>  
+        <button onclick="switchTab('lectures'); closeMobileMenu()" id="btn-lectures" class="nav-btn text-[12px] md:text-sm font-bold flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-play-circle text-lg w-5 text-center"></i> COURSES</button>  
+        <button onclick="switchTab('results'); closeMobileMenu()" id="btn-results" class="nav-btn text-[12px] md:text-sm font-bold flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-poll-h text-lg w-5 text-center"></i> EXAMINATION RESULT</button>  
+        <button onclick="switchTab('admin'); closeMobileMenu()" id="btn-admin" class="nav-btn text-[12px] md:text-sm font-bold hidden text-slate-400 flex items-center gap-2 p-2 rounded-lg hover:bg-orange-50"><i class="fas fa-user-shield text-lg w-5 text-center"></i> ADMIN</button>  
+    </nav>
+  </header>    
+  
+  <div id="tab-library" class="tab-content active"><div id="bookGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10"></div></div>    
+  
+  <div id="tab-lectures" class="tab-content">  
+      <div id="lec-locked" class="glass hidden text-center mt-10 max-w-md mx-auto">  
+          <i class="fas fa-lock text-orange-500 text-4xl mb-4"></i>  
+          <p class="text-[12px] font-black text-slate-900 mb-4 uppercase italic">Premium Batch Required</p>  
+          <p class="text-[10px] text-slate-500 mb-6">You don't have an active subscription. Enroll in a batch to access Videos and DPP Tests.</p>  
+          <div id="plans-container" class="space-y-3 text-left"></div>  
+      </div>  
+      <div id="subscriber-content" class="hidden">  
+          <div id="batch-content-nav" class="flex gap-2 mb-4 max-w-md mx-auto">  
+              <button onclick="showContent('videos')" id="nav-v" class="flex-1 py-2 rounded-xl text-[10px] font-black bg-orange-600 text-white shadow-lg">VIDEOS</button>  
+              <button onclick="showContent('dpps')" id="nav-d" class="flex-1 py-2 rounded-xl text-[10px] font-black bg-slate-100 text-slate-600 border border-slate-200">DPP TEST</button>  
+          </div>  
+          <div id="chapter-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10"></div>  
+          <div id="dpp-view" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 pb-10"></div>  
+          <div id="lecture-list-view" class="hidden pb-10 max-w-2xl mx-auto">  
+              <button onclick="showChapters()" class="mb-4 text-slate-600 text-xs font-bold flex items-center gap-2 uppercase"><i class="fas fa-arrow-left"></i> Back</button>  
+              <h2 id="current-chapter-title" class="text-slate-900 font-black uppercase text-sm mb-4 italic">Chapter</h2>  
+              <div id="lecture-container" class="space-y-3"></div>  
+          </div>  
+      </div>
+  </div>    
+  
+  <div id="tab-results" class="tab-content space-y-4 pb-10 max-w-xl mx-auto">  
+      <div id="result-locked-notice" class="glass text-center p-6 hidden">
+          <i class="fas fa-clock text-amber-500 text-4xl mb-3"></i>
+          <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">Result Not Declared Yet</h3>
+          <p class="text-[10px] text-slate-500 mt-1">Your Result is in processing you will see your result on provided date by TLSMWORLDSCHOOL</p>
+      </div>
+
+      <div id="result-input-box" class="glass !p-5">  
+          <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-2"><i class="fas fa-poll-h mr-2 text-orange-600"></i>Check Examination Result</h2>  
+          <p class="text-[10px] text-slate-500 mb-4">Enter your Scholar ID, select Academic Year & Exam Type to view your report card panel.</p>  
+          <div class="flex flex-col gap-2">  
+              <input type="text" id="student-scholar-id" class="publisher-input !mb-0 text-center text-sm font-bold tracking-widest uppercase py-3" placeholder="ENTER SCHOLAR ID (e.g. 2026101)">  
+              
+              <select id="student-academic-year" class="publisher-input !mb-0 text-center text-sm font-bold py-3 bg-white text-slate-900"></select>
+              <select id="student-exam-type" class="publisher-input !mb-0 text-center text-sm font-bold py-3 bg-white text-slate-900"></select>
+
+              <button onclick="window.fetchStudentResult()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-search mr-2"></i>Get Result</button>  
+          </div>  
+          
+          <div id="cbt-analysis-input-box" class="glass !p-5 mt-4">
+          <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-2"><i class="fas fa-laptop-code mr-2 text-orange-600"></i>CBT Test Analysis</h2>
+          <p class="text-[10px] text-slate-500 mb-4">Enter your Scholar ID to view your past CBT tests detailed answer key and analysis.</p>
+          <div class="flex flex-col gap-2">
+              <input type="text" id="analysis-scholar-id" class="publisher-input !mb-0 text-center text-sm font-bold tracking-widest uppercase py-3" placeholder="ENTER SCHOLAR ID">
+              <button onclick="window.fetchCBTAnalysis()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-xs tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-search mr-2"></i>Get Answer Key</button>
+          </div>
+      </div>
+      <div id="cbt-analysis-display-panel" class="hidden mt-4 space-y-4 w-full"></div>
+      ```
+
+          
+      </div>  
+      
+      
+      
+      <div id="result-display-panel" class="hidden bg-white text-black rounded-3xl p-4 border border-slate-200 shadow-2xl overflow-x-auto"></div>  
+      <button id="download-btn" onclick="downloadResult()" class="mt-3 bg-orange-600 text-white px-5 py-2 rounded-xl font-bold text-xs w-full max-w-xl mx-auto hidden md:block">📥 Download Result</button>  
+      
+            <div id="feedback-section" class="glass !p-5 mt-6">
+          <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-2"><i class="fas fa-comment-dots mr-2 text-orange-600"></i>App Feedback</h2>
+          <p class="text-[10px] text-slate-500 mb-4">Are you satisfied with this application and your overall learning experience?</p>
+          
+          <div class="flex gap-2" id="feedback-buttons">
+              <button onclick="window.submitFeedback('YES')" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg transition-all"><i class="fas fa-thumbs-up mr-1"></i> Yes</button>
+              <button onclick="window.submitFeedback('NO')" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg transition-all"><i class="fas fa-thumbs-down mr-1"></i> No</button>
+          </div>
+
+          <!-- Naya Reason Wala Section Jo 'NO' Click Karne Par Dikhega -->
+          <div id="feedback-reasons" class="hidden mt-4 space-y-2">
+              <p class="text-[10px] font-bold text-slate-700 uppercase mb-2 border-b pb-1">Bataiye kya problem aa rahi hai:</p>
+              <button onclick="window.submitFinalFeedback('NO', 'Result ka design achha nahi laga')" class="w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-[10px] font-bold text-slate-700 hover:bg-red-50 hover:border-red-300 transition-all shadow-sm">1. Result ka design achha nahi laga</button>
+              <button onclick="window.submitFinalFeedback('NO', 'App ka design nahi pasand aaya')" class="w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-[10px] font-bold text-slate-700 hover:bg-red-50 hover:border-red-300 transition-all shadow-sm">2. App ka design nahi pasand aaya</button>
+              <button onclick="window.submitFinalFeedback('NO', 'App slow kaam kar raha hai')" class="w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-[10px] font-bold text-slate-700 hover:bg-red-50 hover:border-red-300 transition-all shadow-sm">3. App slow kaam kar raha hai</button>
+              <button onclick="window.submitFinalFeedback('NO', 'Information samajh nahi aa rahi')" class="w-full text-left bg-white border border-slate-200 p-3 rounded-xl text-[10px] font-bold text-slate-700 hover:bg-red-50 hover:border-red-300 transition-all shadow-sm">4. Information samajh nahi aa rahi</button>
+            
+          </div>
+
+          <p id="feedback-status" class="text-[10px] font-bold mt-3 hidden text-center uppercase tracking-widest"></p>
+      </div>
+
+  </div>    
+
+  <div id="tab-admin" class="tab-content space-y-4 max-w-4xl mx-auto">  
+    <div class="flex justify-center flex-wrap gap-2 bg-slate-100 p-2 rounded-2xl border border-slate-200">  
+        <div onclick="showAdminSection('publish')" id="sub-btn-publish" class="admin-sub-tab active">PUBLISH</div>  
+        <div onclick="showAdminSection('manage')" id="sub-btn-manage" class="admin-sub-tab">MANAGE</div>  
+        <div onclick="showAdminSection('users')" id="sub-btn-users" class="admin-sub-tab">USERS</div>  
+        <div onclick="showAdminSection('excel-results')" id="sub-btn-excel-results" class="admin-sub-tab">EXCEL RESULTS</div>  
+        <div onclick="showAdminSection('reeval')" id="sub-btn-reeval" class="admin-sub-tab text-blue-600">RE-EVAL</div>
+        <div onclick="showAdminSection('admit')" id="sub-btn-admit" class="admin-sub-tab text-purple-600">ADMIT CARDS</div>
+        <div onclick="showAdminSection('feedback')" id="sub-btn-feedback" class="admin-sub-tab">FEEDBACK</div>  
+        <div onclick="showAdminSection('sub-admins')" id="sub-btn-sub-admins" class="admin-sub-tab text-red-600 font-bold">MANAGE SUB-ADMINS</div>
+        
+        <div onclick="showAdminSection('assignments')" id="sub-btn-assignments" class="admin-sub-tab text-emerald-600 font-bold">ASSIGNMENTS</div>
+
+        
+        
+        
+  
+    </div>  
+    
+    <div id="sec-publish" class="admin-section grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div class="glass !p-4 border border-amber-500/30 bg-amber-50 col-span-1 md:col-span-2">
+            <p class="text-[9px] font-black text-amber-600 mb-1 uppercase"><i class="fas fa-eye-slash mr-1"></i> Result Portal Control Panel</p>
+            <p class="text-[9px] text-slate-600 mb-3">Yahan se aap students ke liye result panel ko hide/unhide kar sakte hain takki leak na ho.</p>
+            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <div>
+                    <span class="text-xs font-bold block text-slate-900">Portal Live Status:</span>
+                    <span id="portal-status-badge" class="text-[9px] text-red-600 font-bold uppercase">HIDDEN (SECURE)</span>
+                </div>
+                <button id="toggle-portal-btn" onclick="window.toggleResultVisibility()" class="bg-amber-600 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all">Toggle State</button>
+            </div>
+        </div>
+        
+                <!-- 🔥 DEVELOPER KILL SWITCH (APP BLOCK) 🔥 -->
+        <div class="glass !p-4 border-2 border-red-500 bg-red-50 col-span-1 md:col-span-2 mt-4">
+            <p class="text-[11px] font-black text-red-600 mb-1 uppercase"><i class="fas fa-ban mr-1"></i> Developer Kill Switch (App Control)</p>
+            <p class="text-[9px] text-slate-600 mb-3 font-bold">Agar school payment na kare, toh is button se poori app block kar dein. Normal users ko expiry notice dikhega.</p>
+            <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-red-200 shadow-sm">
+                <div>
+                    <span class="text-xs font-bold block text-slate-900">App Status:</span>
+                    <span id="app-block-status-badge" class="text-[10px] text-emerald-600 font-black uppercase tracking-wider">LIVE (RUNNING)</span>
+                </div>
+                <button id="toggle-app-block-btn" onclick="window.toggleAppBlock()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all">BLOCK APP</button>
+            </div>
+        </div>
+        <!-- KILL SWITCH END -->
+
+        
+        <!-- LIVE RESULT TRACKING BOX -->
+<div class="glass !p-4 border border-blue-200 bg-blue-50 col-span-1 md:col-span-2 mt-4">
+    <p class="text-[10px] font-black text-blue-600 mb-1 uppercase"><i class="fas fa-chart-line mr-1"></i> Live Result Tracking Report</p>
+    <p class="text-[9px] text-slate-600 mb-3">Check karein portal live hone ke baad kis-kis bacche ne result dekha hai aur report generate karein.</p>
+    <div class="flex gap-2 mb-3">
+        <select id="track-session" class="publisher-input text-xs font-bold bg-white text-slate-900 w-1/2"></select>
+        <select id="track-exam" class="publisher-input text-xs font-bold bg-white text-slate-900 w-1/2"></select>
+    </div>
+    <button onclick="window.generateViewReport()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-bold text-[10px] uppercase shadow-md transition-all"><i class="fas fa-search mr-1"></i> Fetch Live Report</button>
+    <div id="tracking-report-container" class="mt-4 hidden max-h-60 overflow-y-auto pr-2"></div>
+</div>
+<!-- LIVE RESULT TRACKING BOX END -->
+
+
+        <div class="glass !p-4 border border-orange-200">
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-cogs mr-1"></i> Exam & Session Config</p>
+            <p class="text-[9px] text-slate-500 mb-3">Add or remove Academic Sessions and Exam Types globally across the app.</p>
+            
+            <p class="text-[9px] font-bold text-slate-700 mb-1">Manage Academic Sessions</p>
+            <div id="dynamic-session-inputs" class="space-y-1 mb-2"></div>
+            <button onclick="addNewSessionInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px]">+ ADD SESSION (e.g. 2028-29)</button>
+
+            <p class="text-[9px] font-bold text-slate-700 mb-1 mt-4">Manage Exam Types</p>
+            <div id="dynamic-exam-inputs" class="space-y-1 mb-2"></div>
+            <button onclick="addNewExamInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px]">+ ADD EXAM TYPE (e.g. FINAL)</button>
+
+            <button onclick="window.saveExamSettings()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] mt-3 shadow-lg">SAVE EXAM CONFIG</button>
+        </div>
+
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Publish Lecture</p>  
+            <input id="lec-batch" class="publisher-input" placeholder="Batch ID (e.g. UDAAN 2027)">  
+            <input id="lec-chapter" class="publisher-input" placeholder="Chapter Name">  
+            <input id="lec-title" class="publisher-input" placeholder="Lecture Title">  
+            <input id="lec-link" class="publisher-input" placeholder="Video Link">  
+            <input id="lec-notes" class="publisher-input" placeholder="Notes Link">  
+            <button id="lec-save-btn" onclick="saveLecture()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE LECTURE</button>  
+        </div>  
+       <div class="glass !p-4">  
+    <p class="text-[9px] font-black text-red-600 mb-2 uppercase">Publish CBT Test / DPP</p>  
+    <input id="dpp-batch" class="publisher-input" placeholder="Batch ID (e.g. UDAAN 2027)">  
+    <input id="dpp-title" class="publisher-input" placeholder="Test Title">  
+    
+    <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+            <label class="text-[9px] font-bold text-slate-500">Time Limit (Mins)</label>
+            <input type="number" id="cbt-time" class="publisher-input !m-0" placeholder="e.g. 30">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold text-slate-500">Test End Date & Time</label>
+            <input type="datetime-local" id="cbt-endtime" class="publisher-input !m-0">
+        </div>
+    </div>
+
+    <label class="text-[9px] font-bold text-slate-500">Questions (Normal Text Format)</label>
+    <p class="text-[8px] text-slate-400 mb-1">Format: Q. Question \n A. Opt1 \n B. Opt2 \n Ans. 0 (Index)</p>
+    <textarea id="dpp-data" class="publisher-input h-32" placeholder="Q. What is 2+2?&#10;A. 3&#10;B. 4&#10;Ans. 1"></textarea>  
+    <button id="dpp-save-btn" onclick="saveDPP()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE CBT TEST</button>  
+</div>
+
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Publish Book</p>  
+            <input id="book-title" class="publisher-input" placeholder="Book Title">  
+            <input id="book-link" class="publisher-input" placeholder="PDF Link">  
+            <input id="book-price" class="publisher-input" placeholder="Price">  
+            <input id="book-access" class="publisher-input" placeholder="Access (ALL or emails with comma)">  
+            <button id="book-save-btn" onclick="saveBook()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE BOOK</button>  
+        </div>  
+        <div class="glass !p-4 border border-blue-200 bg-blue-50">  
+            <p class="text-[9px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-signature mr-1"></i> Manage Signatures</p>
+            <p class="text-[9px] text-slate-500 mb-3">Add or edit teacher signatures. Use "DEFAULT" for the fallback signature.</p>
+            <input id="sig-class" class="publisher-input border-blue-300" placeholder="Class (e.g. 9, 10, DEFAULT)">  
+            <input id="sig-url" class="publisher-input border-blue-300" placeholder="Signature Image URL">  
+            <button id="sig-save-btn" onclick="saveSignature()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-[10px] shadow-lg">SAVE SIGNATURE</button>  
+        </div>
+        
+                <div class="glass !p-4 border border-emerald-200 bg-emerald-50">  
+            <p class="text-[9px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-book-open mr-1"></i> Manage Assignment Subjects</p>
+            <p class="text-[9px] text-slate-500 mb-3">Homework ke liye naye subjects add ya delete karein.</p>
+            <div class="flex gap-2 mb-2">
+                <input id="new-assign-sub" class="publisher-input border-emerald-300 !m-0 uppercase" placeholder="Subject Name (e.g. SANSKRIT)">
+                <button onclick="window.addAssignSubject()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold shadow-md">ADD</button>
+            </div>
+            <div id="assign-sub-list" class="grid grid-cols-2 gap-2 mt-3">
+                </div>
+        </div>
+        
+                <div class="glass !p-4 border border-blue-200 bg-blue-50/50 col-span-1 md:col-span-2 mt-4">  
+            <p class="text-[9px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-tie mr-1"></i> Manage Class Teachers</p>
+            <p class="text-[9px] text-slate-500 mb-3">Har class ke liye Class Teacher ka naam set karein (Manually ya Excel se Bulk Upload).</p>
+            
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <input id="ct-manual-class" class="publisher-input border-blue-300 !m-0 uppercase text-xs" placeholder="Class (e.g. 10TH-A)">
+                <input id="ct-manual-name" class="publisher-input border-blue-300 !m-0 uppercase text-xs" placeholder="Teacher's Name">
+            </div>
+            <button onclick="window.saveClassTeacherManual()" class="w-full bg-blue-600 text-white py-2 rounded-xl text-[10px] font-bold shadow-md uppercase mb-4">Save Single Teacher</button>
+            
+            <div class="border-t border-dashed border-blue-200 pt-3">
+                <p class="text-[9px] text-slate-600 mb-2 font-bold uppercase">Bulk Upload Teachers Excel (.xlsx):</p>
+                <p class="text-[8px] text-slate-400 mb-2">Headers strictly match: <code class="text-blue-600 font-bold">class, teacher_name</code></p>
+                <div class="flex flex-col sm:flex-row gap-2 items-center bg-white p-2 rounded-xl border border-blue-200">
+                    <input type="file" id="ct-excel-file" accept=".xlsx, .xls" class="text-[10px] text-slate-600 w-full file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[9px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                    <button onclick="window.uploadClassTeachersExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold shadow-md whitespace-nowrap w-full sm:w-auto">Upload Excel</button>
+                </div>
+            </div>
+
+            <p class="text-[9px] font-black text-slate-700 mt-4 mb-2 uppercase">Active Class Teachers List:</p>
+            <div id="class-teachers-list-preview" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                <p class="text-[9px] text-slate-400 font-bold">Loading teacher directory...</p>
+            </div>
+        </div>
+
+
+        
+        <div class="glass !p-4">  
+            <p class="text-[9px] font-black text-orange-600 mb-2 uppercase">Batch Configuration</p>  
+            <div id="plan-inputs" class="space-y-1"></div>  
+            <button onclick="addNewPlanInput()" class="w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-xl font-bold text-[10px] mt-2">+ ADD BATCH</button>  
+            <button onclick="window.saveSettings()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold text-[10px] mt-2 shadow-lg">SAVE CONFIG</button>  
+        </div>  
+    </div>  
+
+    <div id="sec-manage" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
+        <div id="manageSigGrid" class="space-y-2 col-span-1 md:col-span-2"></div>
+        <div id="manageLecGrid" class="space-y-2 col-span-1 md:col-span-2"></div>  
+        <div id="manageDPPGrid" class="space-y-2"></div>  
+        <div id="manageBookGrid" class="space-y-2"></div>  
+    </div>  
+
+    <div id="sec-users" class="admin-section hidden pb-20">  
+        <div class="glass mt-6 !p-4 mb-4">  
+            <p class="text-[10px] font-black text-orange-600 uppercase mb-3">Student DPP Analytics</p>  
+            <div class="flex gap-2 mb-4">  
+                <input type="text" id="analyticsSearch" placeholder="Enter student name or email" class="publisher-input !mb-0">  
+                <button onclick="searchAnalytics()" class="bg-orange-600 text-white px-4 rounded-xl text-[10px] font-bold">SEARCH</button>  
+            </div>  
+            <div id="dppAnalytics" class="hidden"></div>  
+        </div>  
+        <div id="adminUserList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"></div>  
+    </div>  
+
+        <div id="sec-excel-results" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">  
+      <div class="glass !p-4 border-2 border-orange-200">
+    <p class="text-[10px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Class Results</p>
+    <p class="text-[9px] text-slate-500 mb-3">Ek hi baar me kisi ek class & section ke sabhi bacho ka result card single PDF me print karein.</p>
+    <div class="space-y-2">
+        <div class="flex gap-2">
+            <input type="text" id="admin-print-class" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2 flex-1" placeholder="CLASS (e.g. 10)">
+            <input type="text" id="admin-print-section" class="publisher-input !mb-0 text-center text-xs font-bold uppercase py-2 w-1/3" placeholder="SEC (A, B, ALL)" value="ALL">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <select id="admin-print-academic-year" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+            <select id="admin-print-exam-type" class="publisher-input text-[10px] font-bold bg-white text-slate-900"></select>
+        </div>
+        <button onclick="window.printBulkClassResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Generate Bulk Class PDF</button>
+    </div>
+</div>
+
+
+               <div class="glass !p-4">  
+            <p class="text-[10px] font-black text-orange-600 mb-2 uppercase">Bulk Upload & Download Results</p>  
+            
+            <p class="text-[9px] text-orange-600 font-bold mb-2 uppercase">Select Academic Year:</p>
+            <select id="admin-upload-academic-year" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+
+            <p class="text-[9px] text-amber-600 font-bold mb-2 uppercase">Select Exam Type:</p>
+            <select id="admin-upload-exam-type" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
+
+            <p class="text-[9px] text-slate-600 mb-4 leading-relaxed">  
+                <strong>Universal Mode:</strong> Select session and exam type above to either upload a new sheet or download existing data as backup.<br>
+                Upload format: <code class="text-orange-500">scholar_id, roll_no, name... HINDI_TH, HINDI_PR</code>
+            </p>  
+            <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="publisher-input text-xs pt-2">  
+                      <button onclick="window.processExcelUpload()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all mb-2"><i class="fas fa-file-upload mr-2"></i>Process & Upload Data</button>  
+
+            <button onclick="window.downloadResultDataXLSX()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all mb-2">
+                <i class="fas fa-file-excel mr-2"></i>Download Master Sheet (Excel)
+            </button>
+
+            <button onclick="window.downloadResultDataPDF()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase transition-all">
+                <i class="fas fa-file-pdf mr-2"></i>Download Class Results Sheet (PDF)
+            </button>
+            
+            <button onclick="window.downloadTop10ListPDF()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg transition-all mt-2">
+    <i class="fas fa-trophy mr-2"></i>Download Top 10 List
+</button>
+
+        </div>  
+
+        <div class="glass !p-4 border-2 border-orange-200 mt-2">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Print Specific Student(s) Results</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar unka report card PDF bundle generate karein. Multiple ke liye comma (,) lagayein (e.g. 2026101, 2026105).</p>
+            <input type="text" id="admin-print-specific-results-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S) (e.g. 2026101, 2026105)">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="admin-print-specific-results-session" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+                <select id="admin-print-specific-results-exam" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+            </div>
+            <button onclick="window.printSpecificStudentResults()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">
+                <i class="fas fa-file-pdf mr-2"></i>Generate Selected Results PDF
+            </button>
+        </div>
+
+
+        <div class="glass !p-4 border-2 border-blue-200 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-edit mr-1"></i> Add or Edit Student Result Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi bacche ka result edit karna ho ya naya record banana ho, Scholar ID daal kar fetch karein. Excel ki zaroorat nahi padegi.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-2 mb-4">
+                <input type="text" id="edit-result-scholar" class="publisher-input !mb-0 text-center uppercase font-bold flex-1" placeholder="SCHOLAR ID (e.g. 2026101)">
+                <select id="edit-result-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-full sm:w-1/3"></select>
+                <select id="edit-result-exam" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-full sm:w-1/3"></select>
+                <button onclick="window.fetchSingleResultData()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide transition-all">FETCH / ADD</button>
+            </div>
+            
+            <div id="edit-result-form" class="hidden border-t border-slate-200 pt-4 mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Name</label><input type="text" id="er-name" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Roll No</label><input type="text" id="er-roll" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Class</label><input type="text" id="er-class" class="publisher-input !mb-0 uppercase"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Section</label><input type="text" id="er-section" class="publisher-input !mb-0 uppercase"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Name</label><input type="text" id="er-father" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="er-mother" class="publisher-input !mb-0"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="er-dob" class="publisher-input !mb-0" placeholder="DD/MM/YYYY"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Days Present</label><input type="text" id="er-days" class="publisher-input !mb-0" placeholder="e.g. 200/220"></div>
+                    <div><label class="text-[9px] font-bold text-slate-500 ml-1">Photo URL</label><input type="text" id="er-photo" class="publisher-input !mb-0" placeholder="Direct Photo Link"></div>
+
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 ml-1">Fee Due (Block Result?)</label>
+                        <select id="er-fee" class="publisher-input !mb-0 font-bold bg-white">
+                            <option value="false">NO (Result LIVE)</option>
+                            <option value="true">YES (Block Result)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl mb-3">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                        <p class="text-[10px] font-black text-slate-700 uppercase flex items-center">
+                            <i class="fas fa-list-ol mr-1 text-blue-600"></i> Subject Marks
+                        </p>
+                        <button onclick="window.addSubjectFieldUI()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded text-[9px] font-bold uppercase transition-all shadow-sm">
+                            + Add Subject
+                        </button>
+                    </div>
+                    <p class="text-[8px] text-slate-500 mb-2 leading-tight">Fill in the details below. Total and Grade will be calculated automatically on save.</p>
+                    
+                    <div id="dynamic-subjects-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                </div>
+
+                <button id="btn-update-result" onclick="window.updateSingleResultData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-1 transition-all">SAVE STUDENT RESULT</button>
+            </div>
+        </div>
+
+
+
+                  <div class="glass !p-4 border-2 border-red-200 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-user-minus mr-1"></i> Delete Specific Student Results</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar unka result permanently delete karein. Multiple ke liye comma (,) lagayein.</p>
+            <input type="text" id="admin-del-specific-results-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S) (e.g. 2026101, 2026105)">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="admin-del-specific-results-session" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+                <select id="admin-del-specific-results-exam" class="publisher-input text-[10px] font-bold bg-white text-slate-900 !mb-0"></select>
+            </div>
+            <button id="btn-delete-specific-results" onclick="window.deleteSpecificStudentResults()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">
+                <i class="fas fa-trash-alt mr-2"></i>Delete Selected Results
+            </button>
+        </div>
+
+
+
+
+        
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 max-w-md mx-auto">
+            <p class="text-[10px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Specific Results</p>
+            <p class="text-[9px] text-slate-600 mb-3">Select the Session and Exam type you want to delete permanently.</p>
+            <select id="del-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-2"></select>
+            <select id="del-exam" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-4"></select>
+            <button onclick="window.deleteSpecificResults()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">Delete Selected Results</button>
+        </div>
+    </div>
+
+    
+    <div id="sec-reeval" class="admin-section hidden pb-20">
+        <div class="glass !p-4 border-2 border-blue-200 max-w-2xl mx-auto mb-6">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-file-signature mr-1"></i> Re-evaluation & Dispute Desk</p>
+            <p class="text-[10px] text-slate-500 mb-4">Manage copy uploads and live active doubts/chats from students here.</p>
+            <div id="adminReevalList" class="space-y-4">
+                <p class="text-xs font-bold text-slate-400 text-center py-4">Loading Desk Engine...</p>
+            </div>
+        </div>
+
+        <div class="glass !p-5 border-2 border-emerald-500 max-w-2xl mx-auto">
+            <p class="text-[12px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-edit mr-1"></i> Update Student Marks Directly</p>
+            <p class="text-[10px] text-slate-500 mb-4">Admin can directly rewrite or change marks for any student subject here.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="admin-update-scholar" class="publisher-input" placeholder="Scholar ID (e.g. 2026101)">
+                <select id="admin-update-session" class="publisher-input bg-white text-slate-900"></select>
+                <select id="admin-update-exam" class="publisher-input bg-white text-slate-900"></select>
+                <input type="text" id="admin-update-subject" class="publisher-input" placeholder="Subject Name (e.g. MATHEMATICS)">
+                <input type="number" id="admin-update-theory" class="publisher-input" placeholder="New Theory Marks">
+                <input type="number" id="admin-update-practical" class="publisher-input" placeholder="New Practical / IA Marks">
+            </div>
+            <button onclick="window.adminDirectUpdateMarks()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] mt-4 shadow-lg uppercase tracking-wider"><i class="fas fa-save mr-1"></i> Apply & Update Marks</button>
+        </div>
+    </div>
+
+        <div id="sec-admit" class="admin-section hidden pb-20 grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div class="glass !p-4 border-2 border-purple-200 col-span-1 md:col-span-2">
+            <p class="text-[12px] font-black text-purple-600 mb-2 uppercase"><i class="fas fa-calendar-alt mr-1"></i> Class-wise Datesheet Builder</p>
+            <p class="text-[9px] text-slate-500 mb-3">Har class ke exam schedule yahan save karein. Ye hi schedule Admit Card pe print hoga.</p>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="datesheet-class" class="publisher-input !mb-0 text-center uppercase font-bold" placeholder="ENTER CLASS (e.g. 10)">
+                <button onclick="window.loadDatesheet()" class="bg-slate-800 text-white px-4 rounded-xl text-[10px] font-bold shadow-md">LOAD</button>
+            </div>
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm mb-4 mt-2">
+    <h3 class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider"><i class="fas fa-tools mr-1"></i> Quick Datesheet Actions</h3>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <div>
+            <label class="text-[10px] text-slate-500 font-semibold block mb-1">Academic Session</label>
+            <select id="ds-bulk-session" class="publisher-input !m-0 text-[11px] w-full">
+                <option value="2026-27">2026-27</option>
+                <option value="2025-26">2025-26</option>
+            </select>
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-500 font-semibold block mb-1">Exam Type</label>
+            <select id="ds-bulk-exam" class="publisher-input !m-0 text-[11px] w-full">
+                <option value="FINAL_EXAM">PMT</option>
+                <option value="HALF_YEARLY">HALF YEARLY</option>
+                <option value="PRE_BOARD">PAT</option>
+                <option value="PRE_BOARD">ANNUAL</option>
+            </select>
+        </div>
+        <div>
+            <label class="text-[10px] text-slate-500 font-semibold block mb-1">Sitting Mode</label>
+            <select id="ds-bulk-sitting" class="publisher-input !m-0 text-[11px] w-full">
+                <option value="single">Single Sitting</option>
+                <option value="double">Double Sitting</option>
+            </select>
+        </div>
+        <div class="flex flex-col justify-end">
+            <button onclick="window.deleteBulkDatesheet()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold py-2 px-3 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row items-center gap-2 bg-white p-2 rounded-lg border border-dashed border-slate-300">
+        <div class="flex-1 w-full">
+            <span class="text-[10px] text-slate-400 block mb-1">Upload Master Datesheet Excel (.xlsx)</span>
+            <input type="file" id="ds-excel-file-input" accept=".xlsx, .xls" class="text-[11px] text-slate-600 w-full file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+        </div>
+        <button onclick="window.uploadDatesheetViaExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 px-4 rounded-lg shadow-sm transition-all h-full w-full md:w-auto whitespace-nowrap">
+            <i class="fas fa-file-upload mr-1"></i> Upload Excel
+        </button>
+    </div>
+</div>
+
+            
+            
+            
+            <div class="flex gap-2 mb-3">
+                <select id="datesheet-type" onchange="window.toggleDatesheetType()" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900">
+                    <option value="single">Single Sitting (1 Exam/Day)</option>
+                    <option value="double">Double Sitting (2 Exams/Day)</option>
+                </select>
+            </div>
+            
+            <div id="double-sitting-times" class="hidden flex-col gap-2 mb-3">
+                <div class="flex flex-col bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-500 mb-1">1st Sitting Time:</span>
+                    <div class="flex items-center gap-2">
+                        <input type="time" id="ds-time1-start" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                        <span class="font-bold text-slate-400 text-[10px]">TO</span>
+                        <input type="time" id="ds-time1-end" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                    </div>
+                </div>
+                <div class="flex flex-col bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+                    <span class="text-[10px] font-bold text-slate-500 mb-1">2nd Sitting Time:</span>
+                    <div class="flex items-center gap-2">
+                        <input type="time" id="ds-time2-start" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                        <span class="font-bold text-slate-400 text-[10px]">TO</span>
+                        <input type="time" id="ds-time2-end" class="publisher-input !m-0 !bg-slate-50 text-[10px] flex-1">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="datesheet-rows" class="space-y-2 mb-3"></div>
+            <button onclick="window.addDatesheetRow()" class="w-full border-2 border-dashed border-purple-300 text-purple-600 py-2 rounded-xl font-bold text-[10px] mb-2">+ ADD EXAM DATE</button>
+            <button onclick="window.saveDatesheet()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold text-[11px] shadow-lg uppercase tracking-wider">SAVE DATESHEET</button>
+        </div>
+        
+        <div class="glass !p-4 border-2 border-emerald-200">
+            <p class="text-[12px] font-black text-emerald-600 mb-2 uppercase"><i class="fas fa-file-excel mr-1"></i> Upload Master Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Admit card ke liye saal me ek baar Excel upload karein.
+                <br>Headers hone chahiye: <code class="text-emerald-600">scholar_id, roll_no, name, father, mother, dob, class, section, photo_url, pen_no, candidate_aadhar, mother_aadhar, father_aadhar</code>
+            </p>
+            <select id="admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="file" id="admit-excel-file" accept=".xlsx, .xls" class="publisher-input text-xs pt-2 mb-3">
+            <button onclick="window.processAdmitCardExcel()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider shadow-lg uppercase">UPLOAD MASTER DATA</button> 
+          <button onclick="window.downloadMasterDataCSV()" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[11px]">
+    <i class="fas fa-download mr-2"></i> Download Current Master Data (Excel/CSV)
+          </button>
+          
+        </div>
+        
+        <div class="glass !p-4 border-2 border-orange-200">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Bulk Print Admit Cards</p>
+            <p class="text-[9px] text-slate-500 mb-3">Puri class ka admit card ek hi A4 multi-page PDF me generate aur print karein.</p>
+            <input type="text" id="print-admit-class" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER CLASS (e.g. 10)">
+            <select id="print-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="text" id="print-admit-exam-name" class="publisher-input text-center text-xs font-bold uppercase mb-3" placeholder="EXAM NAME (e.g. SECONDARY SCHOOL EXAM)">
+            <button onclick="window.printBulkAdmitCards()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg">GENERATE ADMIT CARDS PDF</button>
+        </div>
+        
+        <div class="glass !p-4 border-2 border-orange-200 mt-2">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-print mr-1"></i> Print Specific Admit Card(s)</p>
+            <p class="text-[9px] text-slate-500 mb-3">Kisi ek ya 4-5 baccho ka Scholar ID daal kar admit card generate karein. Comma (,) lagayein (e.g. 2026101, 2026105).</p>
+            <input type="text" id="print-specific-admit-ids" class="publisher-input text-center text-xs font-bold uppercase mb-2" placeholder="ENTER SCHOLAR ID(S)">
+            <select id="print-specific-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <input type="text" id="print-specific-admit-exam-name" class="publisher-input text-center text-xs font-bold uppercase mb-3" placeholder="EXAM NAME (e.g. SECONDARY SCHOOL EXAM)">
+            <button onclick="window.printSpecificAdmitCards()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase shadow-lg transition-all">GENERATE SELECTED ADMIT CARDS</button>
+        </div>
+        
+        <div class="glass !p-4 border-2 border-blue-200 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-blue-600 mb-2 uppercase"><i class="fas fa-user-plus mr-1"></i> Add or Edit Student Data</p>
+            <p class="text-[9px] text-slate-500 mb-3">Naya admission aaye ya kisi ka data galat ho jaye, Scholar ID daal kar fetch karein aur direct yahin se add/update karein bina Excel ke.</p>
+            
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="edit-admit-scholar" class="publisher-input !mb-0 text-center uppercase font-bold" placeholder="SCHOLAR ID (e.g. 2026101)">
+                <select id="edit-admit-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900"></select>
+                <button onclick="window.fetchSingleAdmitCard()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-xl text-[10px] font-bold shadow-md uppercase tracking-wide">FETCH / ADD</button>
+            </div>
+            
+            <div id="edit-admit-form" class="hidden grid grid-cols-1 md:grid-cols-3 gap-3 border-t border-slate-200 pt-4 mt-2">
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Name</label><input type="text" id="ea-name" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Roll No</label><input type="text" id="ea-roll" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">PEN No</label><input type="text" id="ea-pen" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Name</label><input type="text" id="ea-father" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Name</label><input type="text" id="ea-mother" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Date of Birth</label><input type="text" id="ea-dob" class="publisher-input !mb-0" placeholder="DD/MM/YYYY"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Class</label><input type="text" id="ea-class" class="publisher-input !mb-0 uppercase"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Section</label><input type="text" id="ea-section" class="publisher-input !mb-0 uppercase"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Candidate Aadhaar</label><input type="text" id="ea-caadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Mother's Aadhaar</label><input type="text" id="ea-maadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Father's Aadhaar</label><input type="text" id="ea-faadhar" class="publisher-input !mb-0"></div>
+                <div><label class="text-[9px] font-bold text-slate-500 ml-1">Photo URL</label><input type="text" id="ea-photo" class="publisher-input !mb-0"></div>
+                
+                <button id="btn-update-admit" onclick="window.updateSingleAdmitCard()" class="md:col-span-3 bg-emerald-600 text-white py-3 rounded-xl font-bold text-[11px] tracking-wider uppercase shadow-lg mt-2 transition-all hover:bg-emerald-700">SAVE STUDENT RECORD</button>
+            </div>
+        </div>
+        
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-trash-alt mr-1"></i> Delete Master Data (Admit Cards)</p>
+            <p class="text-[9px] text-slate-600 mb-3">Select the Session to permanently delete all uploaded student admit card master records for that specific session.</p>
+            <select id="del-admit-session" class="publisher-input text-xs font-bold bg-white text-slate-900 mb-3"></select>
+            <button onclick="window.deleteAdmitCardData()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg">DELETE SESSION DATA</button>
+        </div>
+        
+        <div class="glass !p-4 border-2 border-red-200 bg-red-50 md:col-span-2 mt-2">
+            <p class="text-[12px] font-black text-red-600 mb-2 uppercase"><i class="fas fa-user-minus mr-1"></i> Delete Specific Student(s)</p>
+            <p class="text-[9px] text-slate-600 mb-3">Ek ya ek se zyada baccho ka Admit Card data delete karne ke liye unka Scholar ID daalein. Multiple delete karne ke liye comma (,) lagayein.</p>
+            
+            <div class="flex gap-2 mb-2">
+                <input type="text" id="del-specific-scholars" class="publisher-input !mb-0 text-center uppercase font-bold flex-1" placeholder="Scholar ID(s) e.g. 2026101, 2026105">
+                <select id="del-specific-session" class="publisher-input !mb-0 text-xs font-bold bg-white text-slate-900 w-32"></select>
+            </div>
+            <button onclick="window.deleteSpecificAdmitCards()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all shadow-lg mt-2">DELETE STUDENT(S)</button>
+        </div>
+        
+    </div>
+
+        <div id="sec-feedback" class="admin-section hidden pb-20">
+        <div class="glass !p-4 border border-orange-200 text-center max-w-md mx-auto">
+            <p class="text-[12px] font-black text-slate-900 mb-2 uppercase"><i class="fas fa-chart-pie mr-1 text-orange-600"></i> App Feedback Overview</p>
+            <p class="text-[10px] text-slate-500 mb-4">Percentage of students satisfied with the app.</p>
+            
+            <div class="relative w-full h-64 flex justify-center border-b border-slate-200 pb-4">
+                <canvas id="feedbackPieChart"></canvas>
+            </div>
+            
+            <div id="feedback-stats" class="mt-4 text-xs font-bold text-slate-800 uppercase tracking-wide">
+                Loading Data...
+            </div>
+        </div>
+        
+          <!-- 🔥 NAYA: DETAILED FEEDBACK LIST BOX 🔥 -->
+        <div class="glass !p-4 border border-blue-200 max-w-md mx-auto mt-4">
+            <p class="text-[12px] font-black text-slate-900 mb-4 uppercase text-center"><i class="fas fa-list mr-1 text-blue-600"></i> Student Feedback Details</p>
+            <div id="feedback-detailed-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                <p class="text-[10px] font-bold text-slate-400 text-center py-4">Loading feedback records...</p>
+            </div>
+        </div>
+        <!-- 🔥 NAYA BOX KHATAM 🔥 -->
+
+    </div>
+
+                   <div id="sec-sub-admins" class="admin-section hidden pb-20 max-w-2xl mx-auto">
+        <div class="glass !p-5 border-2 border-orange-200 mb-6">
+            <p class="text-[12px] font-black text-orange-600 mb-2 uppercase"><i class="fas fa-user-shield mr-1"></i> Create New Sub-Admin</p>
+            <p class="text-[10px] text-slate-500 mb-4">Email aur School ka naam daalein aur select karein ki is user ko Admin panel ke kaun-kaun se tabs ka access dena hai.</p>
+            
+            <input type="email" id="subadmin-email" class="publisher-input text-sm font-bold py-3 mb-2" placeholder="ENTER SUB-ADMIN EMAIL (e.g. school@gmail.com)">
+            <input type="text" id="subadmin-school" class="publisher-input text-sm font-bold py-3 mb-2" placeholder="ENTER SCHOOL NAME (e.g. TLSM World School)">
+            
+            <p class="text-[10px] font-black text-slate-700 mt-3 mb-2 uppercase">Assign Permissions (Select Sub-Tabs):</p>
+            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4">
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="publish" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> PUBLISH LECTURES</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="manage" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> MANAGE CONTENT</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="users" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> USERS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="excel-results" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> EXCEL RESULTS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="reeval" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> RE-EVALUATION</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="admit" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> ADMIT CARDS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer"><input type="checkbox" value="feedback" class="subadmin-perm-cb w-4 h-4 accent-orange-600"> FEEDBACKS</label>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer border border-emerald-200 bg-emerald-50 p-1.5 rounded-lg"><input type="checkbox" value="assignments" class="subadmin-perm-cb w-4 h-4 accent-emerald-600"> ASSIGNMENTS</label>
+            </div>
+            
+            <button onclick="window.saveSubAdmin()" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all"><i class="fas fa-plus-circle mr-1"></i> Grant Access</button>
+        </div>
+
+        <div class="glass !p-4 border-2 border-slate-200">
+            <p class="text-[11px] font-black text-slate-800 uppercase mb-3"><i class="fas fa-users-cog mr-1 text-slate-600"></i> Active Sub-Admins List</p>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="search-subadmin-school" onkeyup="window.filterSubAdmins()" class="publisher-input !mb-0 text-xs font-bold w-full border-blue-300" placeholder="SEARCH BY SCHOOL NAME... (e.g. TLSM)">
+            </div>
+            <div id="subAdminListContainer" class="space-y-3">
+                <p class="text-xs font-bold text-slate-400 text-center py-4">No sub-admins configured yet.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="sec-assignments" class="admin-section hidden pb-20 max-w-4xl mx-auto">
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+    <div>
+        <label class="text-[10px] font-bold uppercase ml-1">Class</label>
+        <select id="as-class" class="publisher-input !m-0 uppercase font-bold bg-white text-slate-700 cursor-pointer">
+            <option value="" disabled selected>SELECT CLASS...</option>
+            <option value="NURSERY-A">NURSERY-A</option>
+            <option value="LKG-A">LKG-A</option>
+            <option value="UKG-A">UKG-A</option>
+            <option value="I-A">I-A</option>
+            <option value="II-A">II-A</option>
+            <option value="III-A">III-A</option>
+            <option value="IV-A">IV-A</option>
+            <option value="IV-B">IV-B</option>
+            <option value="V-A">V-A</option>
+            <option value="VI-A">VI-A</option>
+            <option value="VII-A">VII-A</option>
+            <option value="VII-B">VII-B</option>
+            <option value="VIII-A">VIII-A</option>
+            <option value="IX-A">IX-A</option>
+            <option value="X-A">X-A</option>
+        </select>
+    </div>
+    <div><label class="text-[10px] font-bold uppercase ml-1">Date</label><input type="date" id="as-date" class="publisher-input !m-0 font-bold"></div>
+    <div><label class="text-[10px] font-bold uppercase ml-1">Day</label><input type="text" id="as-day" class="publisher-input !m-0 uppercase font-bold" placeholder="e.g. MONDAY"></div>
+</div>
+
+                
+            </div>
+
+            <label class="text-[11px] text-slate-700 font-black uppercase mb-3 block border-b-2 border-emerald-100 pb-1">Select Subjects to Add Homework:</label>
+            <div class="flex flex-wrap gap-2 mb-6" id="subject-chips-container"></div>
+            <div id="assignment-inputs-area" class="space-y-4 mb-6"></div>
+
+            <button onclick="window.printAssignmentCard()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase tracking-widest text-[11px]">
+                <i class="fas fa-wand-magic-sparkles mr-2"></i> Generate Premium Assignment PDF
+            </button>
+        </div>
+    </div>
+
+
+
+<div id="assignment-print-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 800px; background: white; padding: 20px;">
+    </div>
+
+
+<div id="bulk-print-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 600px; background: white; color: black; padding: 20px;"></div>
+<div id="admit-card-sandbox" style="position: absolute; top: -9999px; left: -9999px; width: 950px; background: white; color: black; padding: 10px;"></div>
+
+<div id="main-modal" class="fs-modal">  
+    <div id="modal-header">  
+        <div class="flex items-center gap-2 overflow-hidden">  
+            <span id="modal-title" class="text-xs font-bold uppercase truncate text-slate-900">Secure Viewer</span>  
+        </div>  
+        <div class="flex items-center gap-2">  
+            <button onclick="toggleFullScreen()" class="text-slate-900 p-2"><i class="fas fa-expand"></i></button>  
+            <button onclick="closeModal()" class="text-slate-900 p-2"><i class="fas fa-times text-xl"></i></button>  
+        </div>  
+    </div>  
+    <div id="modal-content" class="flex-1 relative bg-black overflow-hidden"></div>  
+</div>  
+
+<div id="cbt-details-modal" class="fs-modal !bg-slate-900/60 justify-center items-center p-4" style="z-index: 6000;">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl mx-auto mt-20">
+        <h2 class="text-lg font-black text-slate-900 uppercase mb-1">CBT Registration</h2>
+        <p class="text-[10px] text-slate-500 mb-4 font-bold">Please verify your details before starting.</p>
+        
+        <input type="text" id="cbt-cand-name" class="publisher-input mb-2 font-bold" placeholder="Candidate Name">
+        <input type="text" id="cbt-cand-roll" class="publisher-input mb-2 font-bold" placeholder="Roll No">
+        <input type="text" id="cbt-cand-scholar" class="publisher-input mb-4 font-bold" placeholder="Scholar ID">
+        
+        <button onclick="window.beginCBTTest()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg hover:bg-orange-700 transition-all">Save Details & Start Test</button>
+    </div>
+</div>
+
+<div id="cbt-instructions-modal" class="fs-modal !bg-slate-900/60 justify-center items-center p-4" style="z-index: 6500; display: none;">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl mx-auto my-auto max-h-[90vh] flex flex-col">
+        
+        <div class="border-b border-slate-200 pb-3 mb-3">
+            <h2 class="text-lg font-black text-slate-900 uppercase">General Instructions</h2>
+            <p class="text-[10px] text-slate-500 font-bold">Read the instructions carefully before starting the test.</p>
+        </div>
+
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2 text-xs text-slate-700 font-medium mb-4">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <p class="font-bold text-slate-900 mb-1">📌 Important Rules:</p>
+                <ul class="list-disc pl-4 space-y-1 text-[11px]">
+                    <li>Ensure you have a stable internet connection.</li>
+                    <li>The clock/timer will be set at the top right corner.</li>
+                    <li>When the timer reaches zero, the test will be <b>automatically submitted</b>.</li>
+                    <li>Do not refresh the page or close the browser during the test.</li>
+                    <li>Rank will be decided based on Score & Time Taken.</li>
+                    
+                <li><b>Next Question:</b> Arrow Right (➡️) ya 'N'</li>
+        <li><b>Prev Question:</b> Arrow Left (⬅️) ya 'P'</li>
+        <li><b>Select Option A/B/C/D:</b> Keys 'A', 'B', 'C', 'D' ya '1', '2', '3', '4'</li>
+        <li><b>Mark for Review:</b> 'M' ya 'R' Key</li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-200 pt-4">
+            <label class="flex items-center gap-2 mb-4 cursor-pointer">
+                <input type="checkbox" id="cbt-agree-check" onchange="window.toggleStartTestBtn()" class="w-4 h-4 accent-orange-600">
+                <span class="text-[11px] font-bold text-slate-800">I have read and understood all the instructions.</span>
+            </label>
+
+            <button id="btn-real-start-test" onclick="window.launchActualTest()" disabled class="w-full bg-slate-300 text-slate-500 py-3 rounded-xl font-black text-xs uppercase shadow transition-all cursor-not-allowed">
+                Start Test
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+
+<div id="quiz-modal" class="fs-modal !bg-white flex-col h-screen">  
+    <div class="p-4 bg-slate-100 text-slate-900 flex justify-between items-center border-b border-slate-200 shrink-0">  
+        <span id="quiz-title" class="text-[10px] font-bold uppercase truncate max-w-[45%]">Test</span>  
+        
+        <div id="cbt-timer-display" class="hidden items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full font-black text-[11px] animate-pulse">
+            <i class="fas fa-clock"></i> <span id="cbt-time-left">00:00</span>
+        </div>
+        <button onclick="closeQuiz()"><i class="fas fa-times text-lg"></i></button>  
+    </div>  
+
+    <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+        
+        <div class="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 relative">
+            <div id="quiz-screen" class="p-6 overflow-y-auto max-w-2xl mx-auto w-full flex-1 pb-20 md:pb-6"></div>  
+            
+            <div id="quiz-footer" class="p-4 border-t border-slate-200 mt-auto flex flex-wrap gap-2 justify-between bg-slate-50 shrink-0 w-full">  
+                </div>
+        </div>
+
+        <div class="w-full md:w-72 bg-slate-50 flex flex-col h-48 md:h-full shrink-0 border-t md:border-t-0 border-slate-200">
+            <div class="p-3 border-b border-slate-200 bg-white font-black text-[10px] uppercase text-slate-800 flex justify-between items-center cursor-pointer md:cursor-default" onclick="document.getElementById('palette-container').classList.toggle('hidden')">
+                <span>Question Palette</span>
+                <i class="fas fa-th md:hidden text-slate-400"></i>
+            </div>
+            
+            <div id="palette-container" class="flex-1 flex flex-col overflow-hidden hidden md:flex">
+                <div id="question-palette" class="p-4 grid grid-cols-5 gap-2 overflow-y-auto flex-1 content-start">
+                    </div>
+                
+                <div class="p-3 border-t border-slate-200 bg-white text-[9px] font-bold text-slate-600 flex flex-col gap-1.5 shrink-0">
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-green-500 shadow-inner"></span> Answered</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-red-500 shadow-inner"></span> Not Answered</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-purple-500 shadow-inner"></span> Marked for Review</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-md bg-slate-200 border border-slate-300"></span> Not Visited</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";  
+import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, Timestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";  
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";  
+
+// EmailJS Initialization
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); 
+
+window.toggleMobileMenu = () => {
+    const nav = document.getElementById('top-nav');
+    nav.classList.toggle('hidden');
+    nav.classList.toggle('flex');
+};
+window.closeMobileMenu = () => {
+    if(window.innerWidth < 768) { 
+        const nav = document.getElementById('top-nav');
+        nav.classList.add('hidden');
+        nav.classList.remove('flex');
+    }
+};
+
+window.getSafeMark = function(val) {
+    if (val === 'AB' || val === 'ABS') return 0;
+    return Number(val || 0);
+};
+
+  
+window.getGrade = function(percent) {  
+    if (percent >= 91) return "A1";  
+    if (percent >= 81) return "A2";  
+    if (percent >= 71) return "B1";  
+    if (percent >= 61) return "B2";  
+    if (percent >= 51) return "C1";  
+    if (percent >= 41) return "C2";  
+    if (percent >= 33) return "D";  
+    return "E";  
+};
+
+window.getSubjectCode = function(subName, fallbackCode) {
+    if (!subName) return fallbackCode || '---';
+    const name = subName.toUpperCase().trim();
+    if (name.includes('HINDI')) return '002';
+    if (name.includes('ENGLISH')) return '184';
+    if (name.includes('MATH')) return '041';
+    if (name === 'SCIENCE' || name === 'SCI') return '086';
+    if (name.includes('SST') || name.includes('SOCIAL')) return '087';
+    if (name.includes('IT') || name.includes('COM') || name.includes('INFO')) return '402';
+    return fallbackCode || '---';
+};
+
+let classTeacherSignatures = {
+    "DEFAULT": "https://i.postimg.cc/mhfGSdq7/Screenshot-2026-0527-204541.png" 
+};
+  
+const fbCfg = { apiKey: "AIzaSyCrFbBhfWT6WlYAH_ZmopTfzrf47GEQe1k", authDomain: "book-swap-104b7.firebaseapp.com", projectId: "book-swap-104b7" };  
+const fbApp = initializeApp(fbCfg); const db = getFirestore(fbApp); const auth = getAuth(fbApp); const prov = new GoogleAuthProvider();  
+const adminEmail = "mihirjaisingh@gmail.com";  
+  
+let currentLectures = []; let currentDPPs = []; let allUsers = [];   
+let userBatchCode = "FREE"; let appBatches = [];  
+let appSessions = ["2025-26", "2026-27", "2027-28"]; 
+let appExams = ["PMT", "HALF_YEARLY", "PAT", "ANNUAL"]; 
+let editLecId = null; let editDppId = null; let editBookId = null;  
+let userCompletedDPPs = {};  
+let quizStarted = false; let quizSubmitted = false;  
+let isResultsPortalVisible = false;
+let feedbackChartInstance = null;
+
+// ==========================================
+// 📊 CHART DATA GENERATOR (SMART PERCENTAGE ENGINE)
+// ==========================================
+// ==========================================
+// 📊 CHART DATA GENERATOR (STRICT OVERRIDE ENGINE)
+// ==========================================
+window.buildPerformanceChartData = async (scholarId, examType, academicYear, subjectsList) => {
+    const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+    const app = appMod.getApp(); 
+    const db = fs.getFirestore(app);
+
+    let targetClass = "N/A";
+    try {
+        let snap = await fs.getDoc(fs.doc(db, "school_results", `${scholarId}_${examType}_${academicYear}`));
+        if(snap.exists()) targetClass = snap.data().class || "N/A";
+    } catch(e){}
+
+    targetClass = targetClass.toString().trim().toUpperCase();
+    
+    // Class 9 & 10 Detector
+    let is9or10 = targetClass === "9" || targetClass.startsWith("9TH") || targetClass.startsWith("9-") || targetClass.startsWith("9 ") || targetClass === "IX" || targetClass.startsWith("IX-") || targetClass.startsWith("IX ") || targetClass === "10" || targetClass.startsWith("10TH") || targetClass.startsWith("10-") || targetClass.startsWith("10 ") || targetClass === "X" || targetClass.startsWith("X-") || targetClass.startsWith("X ");
+
+    const sanitizeSub = (name) => {
+        if(!name) return '---'; let n = name.toUpperCase().trim();
+        if(n === 'IT/COM') return 'IT/COMP'; return n;
+    };
+
+    let labels = [];
+    subjectsList.forEach(s => {
+        let n = sanitizeSub(s.name);
+        if(!labels.includes(n)) labels.push(n);
+    });
+
+    let datasets = [];
+
+    const getExamPercentageData = async (eType, labelStr, colorBg) => {
+        let dataArr = [];
+        try {
+            let docSnap = await fs.getDoc(fs.doc(db, "school_results", `${scholarId}_${eType}_${academicYear}`));
+            let eSubs = [];
+            if(docSnap.exists()) {
+                let d = docSnap.data().subjects_json;
+                eSubs = typeof d === "string" ? JSON.parse(d) : d;
+            }
+            if(!Array.isArray(eSubs)) eSubs = [];
+
+            let marksMap = {};
+            eSubs.forEach(s => {
+                let n = sanitizeSub(s.name);
+                let th = Number(s.theory !== undefined ? s.theory : (s.total || 0));
+                let pr = Number(s.practical !== undefined ? s.practical : 0);
+                let tot = Number(s.total || 0);
+                
+                // 🔥 STRICT MAX MARKS: Database ko ignore karke apni settings lagayega
+                let maxM = (eType === "PMT" || eType === "PAT") ? 20 : 100;
+                let scored = 0;
+                
+                // Scored marks calculation rule
+                if ((eType === "PMT" || eType === "PAT") && is9or10) {
+                    scored = th;
+                } else if (eType === "HALF_YEARLY" || eType === "ANNUAL") {
+                    scored = th; 
+                } else {
+                    scored = tot;
+                }
+                
+                // Percentage for accurate graph height
+                let pct = maxM > 0 ? (scored / maxM) * 100 : 0;
+                marksMap[n] = pct;
+            });
+
+            labels.forEach(l => {
+                dataArr.push(marksMap[l] !== undefined ? marksMap[l].toFixed(2) : 0);
+            });
+        } catch(e) {
+            labels.forEach(() => dataArr.push(0));
+        }
+        
+        datasets.push({
+            label: labelStr,
+            data: dataArr,
+            backgroundColor: colorBg,
+            borderWidth: 0
+        });
+    };
+
+    if (examType === "PMT") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)"); // Red
+    } else if (examType === "HALF_YEARLY") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)");
+        await getExamPercentageData("HALF_YEARLY", "HALF YEARLY", "rgba(52, 211, 153, 0.8)"); // Green
+    } else if (examType === "PAT") {
+        await getExamPercentageData("PAT", "PAT", "rgba(251, 146, 60, 0.8)"); // Orange
+    } else if (examType === "ANNUAL") {
+        await getExamPercentageData("PMT", "PMT", "rgba(248, 113, 113, 0.8)");
+        await getExamPercentageData("HALF_YEARLY", "HALF YEARLY", "rgba(52, 211, 153, 0.8)");
+        await getExamPercentageData("PAT", "PAT", "rgba(251, 146, 60, 0.8)");
+        await getExamPercentageData("ANNUAL", "ANNUAL", "rgba(96, 165, 250, 0.8)"); // Blue
+    }
+
+    return { labels, datasets };
+};
+
+
+let globalUID = null;
+let isCurrentUserAdmin = false;
 let isSubAdmin = false;
 let subAdminAllowedTabs = [];
 let currentSchoolName = "TLSM WORLD SCHOOL"; // Naya Security Variable
@@ -112,6 +1284,7 @@ onAuthStateChanged(auth, async user => {
         
         checkAccess(user.uid); loadBooks(); loadSettings(); loadUserSubmissions(user.uid);  
         listenResultVisibility(); 
+        window.listenAppBlockState();
         window.initAutoAssignmentDate();
 
     } else {  
@@ -405,6 +1578,64 @@ window.toggleResultVisibility = async () => {
         alert("Result Portal is now SECURELY HIDDEN from all non-admin devices.");
     }
 };
+
+let isAppBlocked = false;
+
+window.listenAppBlockState = () => {
+    onSnapshot(doc(db, "settings", "app"), snapshot => {
+        if (snapshot.exists()) {
+            isAppBlocked = snapshot.data().appBlocked === true;
+            
+            const badge = document.getElementById("app-block-status-badge");
+            const toggleBtn = document.getElementById("toggle-app-block-btn");
+            
+            if (badge && toggleBtn) {
+                if (isAppBlocked) {
+                    badge.innerText = "BLOCKED (PAYMENT PENDING)";
+                    badge.className = "text-[10px] text-red-600 font-black uppercase tracking-wider";
+                    toggleBtn.innerText = "UNBLOCK APP";
+                    toggleBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all";
+                } else {
+                    badge.innerText = "LIVE (RUNNING)";
+                    badge.className = "text-[10px] text-emerald-600 font-black uppercase tracking-wider";
+                    toggleBtn.innerText = "BLOCK APP";
+                    toggleBtn.className = "bg-red-600 hover:bg-red-700 text-white text-[10px] font-black px-4 py-2.5 rounded-xl shadow-md uppercase transition-all";
+                }
+            }
+
+            // Normal user ke screen ko block karne ka logic
+            const blockScreen = document.getElementById("payment-lock-screen");
+            const appDiv = document.getElementById("app");
+            
+            if (isAppBlocked && !isCurrentUserAdmin) {
+                if (blockScreen) blockScreen.style.display = "flex";
+                if (appDiv) appDiv.style.display = "none";
+            } else {
+                if (blockScreen) blockScreen.style.display = "none";
+                if (auth.currentUser && document.getElementById("lock-screen").style.display === "none") {
+                    if (appDiv) appDiv.style.display = "block";
+                }
+            }
+        }
+    });
+};
+
+window.toggleAppBlock = async () => {
+    if (!isCurrentUserAdmin) return;
+    const newState = !isAppBlocked;
+    
+    if (newState) {
+        if (!confirm("⚠️ WARNING ⚠️\n\nKya aap sach mein app ko block karna chahte hain? Sabhi students aur school staff ko 'Plan Expired' ka message dikhega!")) return;
+    } else {
+        if (!confirm("Kya aap app ko wapas Live (Unblock) karna chahte hain?")) return;
+    }
+    
+    await setDoc(doc(db, "settings", "app"), { appBlocked: newState }, { merge: true });
+    
+    if(newState) alert("App is now BLOCKED!"); 
+    else alert("App is now UNBLOCKED and LIVE!");
+};
+
 
 window.applyReevaluation = async (docId) => {
     const sessionSel = document.getElementById(`reeval-session-${docId}`).value;
