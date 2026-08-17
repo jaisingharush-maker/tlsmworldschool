@@ -116,7 +116,9 @@
 </div>  
 
 <div id="payment-lock-screen" style="display: none; position: fixed; inset: 0; background: #f8fafc; z-index: 25000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
-    <div class="glass border-red-200 border-4 p-8 max-w-md shadow-2xl">
+    
+    <!-- 1. WARNING SCREEN -->
+    <div class="glass border-red-200 border-4 p-8 max-w-md shadow-2xl w-full" id="lock-warning-box">
         <i class="fas fa-exclamation-triangle text-red-600 text-6xl mb-4"></i>
         <h2 class="text-xl font-black uppercase text-slate-800 mb-4">DEAR TLSM WORLD SCHOOL MANAGEMENT,</h2>
         
@@ -125,9 +127,54 @@
             Contact e-mail: <a href="mailto:supportaaravedtech@gmail.com" class="text-blue-600 hover:text-blue-800 underline text-[13px] font-black tracking-wide">supportaaravedtech@gmail.com</a>
         </p>
       
-        <!-- Logout button fix: Ab click karte hi pehle ye screen hide hogi, phir Firebase se logout hoga -->
-        <button onclick="document.getElementById('payment-lock-screen').style.display='none'; logout();" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all tracking-widest">LOGOUT</button>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="window.openAgreementForm()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all tracking-widest border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1">YES, I AGREE</button>
+            <button onclick="document.getElementById('payment-lock-screen').style.display='none'; logout();" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg transition-all tracking-widest border-b-4 border-slate-950 active:border-b-0 active:translate-y-1">LOGOUT</button>
+        </div>
     </div>
+
+    <!-- 2. AGREEMENT FORM MODAL (Hidden Initially) -->
+    <div class="glass border-blue-200 border-4 p-6 w-full max-w-2xl shadow-2xl hidden max-h-[90vh] overflow-y-auto" id="agreement-form-box" style="background: white; text-align: left;">
+        <h2 class="text-lg sm:text-xl font-black uppercase text-blue-900 border-b-2 border-blue-900 pb-3 mb-5 flex items-center"><i class="fas fa-file-signature text-2xl mr-3 text-orange-600"></i> Service Renewal Agreement</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">School Name *</label><input type="text" id="agr-school" value="TLSM WORLD SCHOOL" class="publisher-input !m-0 font-bold bg-slate-100 text-slate-500 cursor-not-allowed" readonly></div>
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Affiliation No. *</label><input type="text" id="agr-aff" class="publisher-input !m-0 font-bold" placeholder="Enter Affiliation No."></div>
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">School Code *</label><input type="text" id="agr-code" class="publisher-input !m-0 font-bold" placeholder="Enter School Code"></div>
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Contact Person Name *</label><input type="text" id="agr-person" class="publisher-input !m-0 font-bold" placeholder="Authorised Person Name"></div>
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Designation *</label><input type="text" id="agr-desig" class="publisher-input !m-0 font-bold" placeholder="e.g. Principal, Director"></div>
+            <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Contact Number *</label><input type="tel" id="agr-phone" class="publisher-input !m-0 font-bold" placeholder="10 Digit Mobile No."></div>
+            <div class="md:col-span-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Official Email *</label><input type="email" id="agr-email" class="publisher-input !m-0 font-bold" placeholder="school@gmail.com"></div>
+            
+            <div class="md:col-span-2 bg-blue-50 p-4 rounded-xl border border-blue-200 mt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-blue-800 uppercase tracking-wide mb-1 block">Select Renewal Plan *</label>
+                        <select id="agr-plan" onchange="window.updateAgreementAmount()" class="publisher-input !m-0 font-black text-slate-800 cursor-pointer border-blue-300">
+                            <option value="">-- Choose a Plan --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-800 uppercase tracking-wide mb-1 block">Payable Amount (₹) *</label>
+                        <input type="text" id="agr-amount" class="publisher-input !m-0 font-black text-emerald-700 bg-emerald-100 text-lg border-emerald-300" readonly placeholder="₹ 0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-5">
+            <label class="text-[10px] font-black text-slate-500 uppercase tracking-wide">Remarks / Additional Info</label>
+            <textarea id="agr-remarks" class="publisher-input h-16 font-bold" placeholder="Any specific requirements..."></textarea>
+        </div>
+        
+        <p class="text-[9px] text-slate-500 font-bold mb-4 italic text-center">By submitting this form, an automated digital agreement will be generated and mailed to AARAV TECH-HUB.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="window.submitAgreement()" id="btn-submit-agr" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-black text-xs uppercase shadow-lg transition-all tracking-wider"><i class="fas fa-paper-plane mr-2"></i> Submit & Generate Agreement</button>
+            <button onclick="window.cancelAgreementForm()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-6 py-3.5 rounded-xl font-black text-xs uppercase shadow transition-all tracking-wider">Cancel</button>
+        </div>
+    </div>
+
 </div>
 
 
@@ -146,6 +193,16 @@
 </div>  
 
 <div id="app" class="max-w-5xl mx-auto"> 
+
+    <!-- 🔥 GLOBAL ANNOUNCEMENT BANNER 🔥 -->
+  <div id="global-announcement-banner" style="display: none;" class="bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2.5 px-4 text-[10px] sm:text-xs font-black uppercase tracking-wider shadow-lg rounded-2xl mb-4 flex-col sm:flex-row items-center justify-center gap-2 border-2 border-red-400 animate-pulse">
+      <div class="flex items-center gap-2">
+          <i class="fas fa-bell text-yellow-300 text-sm sm:text-base"></i>
+          <span id="global-announcement-text">Your message will appear here...</span>
+      </div>
+  </div>
+
+
   <header class="bg-white rounded-2xl mb-6 p-4 shadow-sm flex flex-wrap justify-between items-center relative z-50">  
     <div class="flex items-center gap-3">  
         <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">π</div>  
@@ -286,6 +343,17 @@
             </div>
         </div>
         
+                <!-- 🔥 GLOBAL ANNOUNCEMENT CONTROL 🔥 -->
+        <div class="glass !p-4 border-2 border-indigo-200 bg-indigo-50 col-span-1 md:col-span-2 mt-4">
+            <p class="text-[11px] font-black text-indigo-700 mb-1 uppercase"><i class="fas fa-bullhorn mr-1"></i> Global Announcement Alert</p>
+            <p class="text-[9px] text-slate-600 mb-3 font-bold">Ye message sabhi users ko app ke top par alert ki tarah dikhega. Hatane ke liye text box khali karke Publish dabayein.</p>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="text" id="admin-announcement-input" class="publisher-input !m-0 font-bold border-indigo-300 w-full" placeholder="e.g., Your Free Plan will be expired soon...">
+                <button onclick="window.saveGlobalAnnouncement()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-[10px] font-black shadow-md uppercase transition-all whitespace-nowrap"><i class="fas fa-paper-plane mr-1"></i> Publish</button>
+            </div>
+        </div>
+
+        
                 <!-- 🔥 DEVELOPER KILL SWITCH (APP BLOCK) 🔥 -->
         <div class="glass !p-4 border-2 border-red-500 bg-red-50 col-span-1 md:col-span-2 mt-4">
             <p class="text-[11px] font-black text-red-600 mb-1 uppercase"><i class="fas fa-ban mr-1"></i> Developer Kill Switch (App Control)</p>
@@ -299,6 +367,18 @@
             </div>
         </div>
         <!-- KILL SWITCH END -->
+
+
+        <!-- SCHOOL RENEWAL PLANS (FOR AGREEMENT) -->
+        <div class="glass !p-4 border-2 border-emerald-200 bg-emerald-50 col-span-1 md:col-span-2 mt-4">
+            <p class="text-[11px] font-black text-emerald-700 mb-2 uppercase"><i class="fas fa-file-invoice-dollar mr-1"></i> App Renewal Plans (For Agreement Form)</p>
+            <p class="text-[9px] text-slate-600 mb-3 font-bold">Ye plans school walon ko 'Agreement Form' me dropdown me dikhenge.</p>
+            
+            <div id="renewal-plan-inputs" class="space-y-2 mb-3"></div>
+            
+            <button onclick="window.addRenewalPlanInput()" class="w-full border-2 border-dashed border-emerald-400 text-emerald-700 py-2.5 rounded-xl font-bold text-[10px] uppercase mb-2">+ Add New Plan (e.g., 100 Days Plan)</button>
+            <button onclick="window.saveRenewalPlans()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black text-[10px] shadow-lg uppercase tracking-wider">Save Renewal Plans</button>
+        </div>
 
         
         <!-- LIVE RESULT TRACKING BOX -->
@@ -1617,6 +1697,28 @@ window.listenAppBlockState = () => {
                 }
             }
         }
+        
+        // Apne listener function ke andar ise add karein
+onSnapshot(doc(db, "settings", "app"), snapshot => {
+    if (snapshot.exists()) {
+        const data = snapshot.data();
+        const banner = document.getElementById("global-announcement-banner");
+        const bannerText = document.getElementById("global-announcement-text");
+        const adminInput = document.getElementById("admin-announcement-input");
+
+        // Admin input auto-fill
+        if(adminInput) adminInput.value = data.globalAnnouncement || "";
+
+        // Message show/hide logic
+        if(data.globalAnnouncement && data.globalAnnouncement.trim() !== "") {
+            bannerText.innerText = data.globalAnnouncement;
+            banner.style.display = "flex";
+        } else {
+            banner.style.display = "none";
+        }
+    }
+});
+
     });
 };
 
@@ -7837,7 +7939,229 @@ window.printTrackingReport = () => {
     printWin.document.close();
 };
 
+    let appRenewalPlans = [];
+
+// Admin Setup & Fetching
+window.addRenewalPlanInput = (name = '', price = '') => {
+    const container = document.getElementById("renewal-plan-inputs"); 
+    const div = document.createElement('div');
+    div.className = "flex gap-2 renewal-row bg-white p-2 rounded-xl border border-emerald-200 shadow-sm"; 
+    div.innerHTML = `
+        <input class="r-name publisher-input !m-0 border-emerald-300 font-bold" placeholder="Plan Name (e.g. Server Renewal - 100 Days)" value="${name}"> 
+        <input class="r-price publisher-input !m-0 border-emerald-300 font-bold w-1/3 text-emerald-700" placeholder="Price (e.g. 5999)" value="${price}"> 
+        <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 rounded-lg transition-all"><i class="fas fa-trash"></i></button>
+    `;
+    if(container) container.appendChild(div);
+};
+
+window.saveRenewalPlans = async () => {
+    let renewalPlans = []; 
+    document.querySelectorAll('.renewal-row').forEach(row => {
+        const n = row.querySelector('.r-name').value.trim(); 
+        const p = row.querySelector('.r-price').value.trim();
+        if(n && p) renewalPlans.push({ name: n, price: p });
+    });
+    await setDoc(doc(db,"settings","app"), { renewalPlans }, {merge:true}); 
+    alert("Renewal Plans Saved Successfully! Dropdown is now updated."); 
+    loadSettings();
+};
+
+// Override loadSettings logic to fetch plans
+const originalLoadSettings = window.loadSettings;
+window.loadSettings = async () => {
+    await originalLoadSettings();
+    const s = await getDoc(doc(db,"settings","app"));   
+    if(s.exists()) {
+        const data = s.data();
+        appRenewalPlans = data.renewalPlans || [];
+        const rpi = document.getElementById("renewal-plan-inputs"); 
+        if(rpi) {
+            rpi.innerHTML = "";
+            appRenewalPlans.forEach(p => window.addRenewalPlanInput(p.name, p.price));
+        }
+    }
+};
+
+// Agreement Form UI Handlers
+window.openAgreementForm = () => {
+    document.getElementById('lock-warning-box').classList.add('hidden');
+    document.getElementById('agreement-form-box').classList.remove('hidden');
     
+    // Dropdown me admin wale plans dikhana
+    const planSelect = document.getElementById('agr-plan');
+    planSelect.innerHTML = '<option value="">-- Choose a Plan --</option>';
+    appRenewalPlans.forEach(p => {
+        planSelect.innerHTML += `<option value="${p.price}" data-name="${p.name}">${p.name} - ₹${p.price}</option>`;
+    });
+};
+
+window.cancelAgreementForm = () => {
+    document.getElementById('lock-warning-box').classList.remove('hidden');
+    document.getElementById('agreement-form-box').classList.add('hidden');
+};
+
+window.updateAgreementAmount = () => {
+    const planSelect = document.getElementById('agr-plan');
+    const amtInput = document.getElementById('agr-amount');
+    amtInput.value = planSelect.value ? `₹ ${planSelect.value}` : '';
+};
+
+// Main Submit Agreement & PDF / Email Generation
+window.submitAgreement = async () => {
+    const aff = document.getElementById('agr-aff').value.trim();
+    const code = document.getElementById('agr-code').value.trim();
+    const person = document.getElementById('agr-person').value.trim();
+    const desig = document.getElementById('agr-desig').value.trim();
+    const phone = document.getElementById('agr-phone').value.trim();
+    const email = document.getElementById('agr-email').value.trim();
+    const planSelect = document.getElementById('agr-plan');
+    const remarks = document.getElementById('agr-remarks').value.trim();
+    
+    if(!aff || !code || !person || !desig || !phone || !email || !planSelect.value) {
+        alert("Please fill all the mandatory fields (*) to proceed.");
+        return;
+    }
+
+    const planName = planSelect.options[planSelect.selectedIndex].getAttribute('data-name');
+    const price = planSelect.value;
+    
+    const btn = document.getElementById("btn-submit-agr");
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating Agreement...';
+    btn.disabled = true;
+
+    try {
+        const agrId = `AGR_${Date.now()}`;
+        const dateStr = new Date().toLocaleDateString('en-IN');
+        
+        // 1. Save directly to Firebase Database for Backup
+        await setDoc(doc(db, "school_agreements", agrId), {
+            schoolName: "TLSM WORLD SCHOOL",
+            affiliationNo: aff, schoolCode: code, contactPerson: person, designation: desig,
+            contactNumber: phone, email: email, selectedPlan: planName, amount: price,
+            remarks: remarks, timestamp: Timestamp.now(), status: "PENDING_PAYMENT"
+        });
+
+        // 2. Beautiful PDF Generation for School (User)
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p", "mm", "a4");
+        
+        pdf.setDrawColor(30, 58, 138); pdf.setLineWidth(1); pdf.rect(5, 5, 200, 287); // Border
+        
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(22); pdf.setTextColor(30, 58, 138); 
+        pdf.text("SERVICE RENEWAL AGREEMENT", 105, 25, { align: "center" });
+        
+        pdf.setFontSize(10); pdf.setTextColor(100, 116, 139);
+        pdf.text(`ISSUED BY: AARAV TECH-HUB (AJ VNS)`, 105, 32, { align: "center" });
+
+        pdf.setFontSize(11); pdf.setTextColor(0, 0, 0);
+        pdf.text(`Date: ${dateStr}`, 190, 45, { align: "right" });
+        pdf.text(`Agreement Ref No: ${agrId}`, 20, 45);
+        
+        pdf.setDrawColor(200, 200, 200); pdf.line(20, 50, 190, 50);
+        
+        // Block 1: School Info
+        pdf.setFontSize(14); pdf.setFont("helvetica", "bold"); pdf.text("1. School Particulars", 20, 62);
+        pdf.setFontSize(11); pdf.setFont("helvetica", "normal");
+        pdf.text(`School Name : TLSM WORLD SCHOOL`, 25, 71);
+        pdf.text(`Affiliation No : ${aff}`, 25, 78);
+        pdf.text(`School Code  : ${code}`, 25, 85);
+
+        // Block 2: Authorised Person Info
+        pdf.setFontSize(14); pdf.setFont("helvetica", "bold"); pdf.text("2. Authorised Signatory", 20, 100);
+        pdf.setFontSize(11); pdf.setFont("helvetica", "normal");
+        pdf.text(`Name       : ${person}`, 25, 109);
+        pdf.text(`Designation: ${desig}`, 25, 116);
+        pdf.text(`Phone No.  : ${phone}`, 25, 123);
+        pdf.text(`Email ID   : ${email}`, 25, 130);
+
+        // Block 3: Plan Info
+        pdf.setFontSize(14); pdf.setFont("helvetica", "bold"); pdf.text("3. Subscription Order Details", 20, 145);
+        pdf.setFontSize(11); pdf.setFont("helvetica", "normal");
+        pdf.text(`Selected Service Plan : ${planName}`, 25, 154);
+        pdf.setFont("helvetica", "bold"); pdf.setTextColor(4, 120, 87);
+        pdf.text(`Total Payable Amount  : Rs. ${price} /-`, 25, 161);
+        pdf.setFont("helvetica", "normal"); pdf.setTextColor(0, 0, 0);
+        pdf.text(`Remarks / Add. Info   : ${remarks || 'N/A'}`, 25, 168);
+
+        pdf.setDrawColor(200, 200, 200); pdf.line(20, 180, 190, 180);
+
+        // Block 4: Terms
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(12); pdf.text("Terms & Declarations:", 20, 190);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+        pdf.text("1. This document acts as an official agreement for the renewal of software, cloud server,", 20, 198);
+        pdf.text("   and technical support services provided by Aarav Tech-Hub.", 20, 203);
+        pdf.text("2. The services for the school app portal will resume automatically upon the realization", 20, 210);
+        pdf.text("   of the payable amount.", 20, 215);
+        pdf.text("3. This is an electronically generated document authorized by the user and does not", 20, 222);
+        pdf.text("   require a physical signature.", 20, 227);
+
+        // Signature Box
+        pdf.setFontSize(11); pdf.setFont("helvetica", "bold");
+        pdf.text(`e-Accepted By:`, 190, 255, { align: "right" });
+        pdf.setFont("helvetica", "normal");
+        pdf.text(`${person} (${desig})`, 190, 262, { align: "right" });
+        pdf.text(`On behalf of TLSM WORLD SCHOOL`, 190, 269, { align: "right" });
+
+        // Auto Download to User Device
+        pdf.save(`Renewal_Agreement_${dateStr.replace(/\//g, '-')}.pdf`);
+
+        // 3. Email to Admin Logic
+        const emailParams = {
+            to_email: "supportaaravedtech@gmail.com", // Aapka official email
+            from_name: person,
+            message: `URGENT: NEW RENEWAL AGREEMENT RECEIVED!
+            
+Agreement ID: ${agrId}
+School: TLSM WORLD SCHOOL
+Affiliation No: ${aff}
+School Code: ${code}
+
+--- SIGNATORY DETAILS ---
+Name: ${person}
+Designation: ${desig}
+Phone: ${phone}
+Email: ${email}
+
+--- SUBSCRIPTION ORDER ---
+Selected Plan: ${planName}
+Amount to be Paid: Rs. ${price}
+Remarks: ${remarks}
+
+Status: Agreement signed digitally. Pending Payment realization.`
+        };
+
+        try {
+            await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", emailParams);
+        } catch(emailErr) {
+            console.warn("Email alert missed, but Database saved.", emailErr);
+        }
+
+        alert("Agreement Successfully Generated! A PDF copy has been downloaded to your device, and our team has been notified. We will contact you soon.");
+        window.cancelAgreementForm();
+        
+    } catch(e) {
+        console.error("Agreement error:", e);
+        alert("System encountered an error. Please try again.");
+    } finally {
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }
+};
+
+window.saveGlobalAnnouncement = async () => {
+    const inputEl = document.getElementById("admin-announcement-input");
+    const msg = inputEl.value.trim();
+    
+    // Save to Firestore
+    await setDoc(doc(db, "settings", "app"), { 
+        globalAnnouncement: msg 
+    }, { merge: true });
+
+    alert(msg !== "" ? "Announcement Published!" : "Announcement Removed!");
+};
+
+
 
 </script>
 
